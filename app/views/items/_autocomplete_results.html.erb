@@ -1,0 +1,14 @@
+<%= link_to item_path(item), class: "flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" do %>
+  <img
+    src="<%= item.images.first || "https://via.placeholder.com/32" %>"
+    alt=""
+    class="w-8 h-8 object-contain bg-gray-100 dark:bg-gray-700 rounded"
+  >
+  <div class="flex-1 min-w-0">
+    <p class="font-medium text-sm truncate"><%= item.full_name %></p>
+    <p class="text-xs text-gray-500 dark:text-gray-400 truncate"><%= item.short_name %></p>
+  </div>
+  <% if item.categories.any? %>
+    <span class="text-xs text-gray-400"><%= item.categories.first.humanize %></span>
+  <% end %>
+<% end %>

@@ -2,19 +2,16 @@
 
 module ItemComponent
   class CardComponent < ViewComponent::Base
-    attr_reader :item
-
-    def initialize(item:)
-      super
-      @item = item
+    def initialize(card:)
+      @card = card
     end
 
     def image_url
-      item.images.first || "https://via.placeholder.com/150"
+      card.images.first || "https://via.placeholder.com/150"
     end
 
     def category_badges
-      item.categories.first(3)
+      card.categories.first(3)
     end
   end
 end

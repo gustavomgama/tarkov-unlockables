@@ -62,6 +62,13 @@ class Item < ApplicationRecord
     where(bsg_id: [OfferUnlock.pluck(:item_id), BarterUnlock.pluck(:item_id), CraftUnlock.pluck(:item_id)].flatten.uniq)
   }
 
+  def self.search(query)
+    return all if query.blank?
+
+    q = "%#{query}%"
+    where("slug ILIKE ? OR full_name ILIKE ? OR short_name ILIKE ?", q, q, q)
+  end
+
   def how_to_unlock
     paths = []
 
