@@ -98,7 +98,7 @@
   </div>
 
   <div data-view-toggle-target="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-    <%= render ItemComponent::CardComponent.with_collection(@items) %>
+    <%= render partial: "items/item_card", collection: @items, as: :card %>
   </div>
 
   <div data-view-toggle-target="table" class="hidden overflow-x-auto">
