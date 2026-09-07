@@ -64,3 +64,4 @@ skills-lock.json
 
 /offlinedata/tarkovmarket/*
 offlinedata/officialwiki/itembatches
+offlinedata/officialwiki/parsed_items.json
