@@ -8,6 +8,7 @@
 #  previous_tasks_count :integer          default(0), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  trader_level         :jsonb            not null
 #
 # Indexes
 #

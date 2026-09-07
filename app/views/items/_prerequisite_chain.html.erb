@@ -1,0 +1,42 @@
+<%# Renders a prerequisite chain (array of hashes: :name, :full_name, :given_by, :player_level, :trader_requirements).
+    Locals:
+      chain    — Array<Hash> from Task#prerequisite_chain (start-to-end order; we reverse for display)
+      css_class — wrapper class (default: "prereq-chain")
+%>
+<% css_class ||= "prereq-chain" %>
+<% ordered = chain.reverse %>
+<div class="<%= css_class %>">
+  <% if ordered.length > 1 %>
+    <p class="text-xs text-[var(--text-muted)] mb-2">
+      Complete <%= ordered.length - 1 %> prerequisite <%= 'task'.pluralize(ordered.length - 1) %> to unlock:
+    </p>
+    <div class="flex items-center gap-1 flex-wrap">
+      <% ordered.each_with_index do |t, i| %>
+        <% if i > 0 %>
+          <svg class="w-3 h-3 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        <% end %>
+        <span class="px-2 py-1 text-xs <%= i == ordered.length - 1 ? 'font-medium bg-[var(--accent)] text-[var(--bg-dark)]' : 'bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]' %>">
+          <%= t[:name] %>
+          <% if t[:player_level].to_i > 0 || (t[:trader_requirements] || []).any? %>
+            <span class="prereq-req ml-1 text-[10px] opacity-90">
+              <% parts = [] %>
+              <% parts << "lvl #{t[:player_level]}" if t[:player_level].to_i > 0 %>
+              <% (t[:trader_requirements] || []).each do |tr| %>
+                <% if tr['trader_name'].to_s.strip.empty? %>
+                  <% parts << "LL#{tr['trader_level']}" %>
+                <% else %>
+                  <% parts << "#{tr['trader_name'].to_s.titleize} LL#{tr['trader_level']}" %>
+                <% end %>
+              <% end %>
+              <%= parts.join(' · ') %>
+            </span>
+          <% end %>
+        </span>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-[var(--text-muted)]">No prerequisites - available from start</p>
+  <% end %>
+</div>

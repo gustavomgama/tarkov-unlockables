@@ -113,7 +113,7 @@ class Importers::TaskGraphTest < ActiveSupport::TestCase
         "requirements" => [
           {
             "player_level" => "10",
-            "trader_level" => [],
+            "trader_level" => [ { "trader_name" => "therapist", "trader_level" => "2" } ],
             "previous_tasks" => [
               { "task_id" => "tg_task_a", "task_name" => "task-alpha" },
               { "task_id" => "",          "task_name" => "task-ghost" }
@@ -194,6 +194,47 @@ class Importers::TaskGraphTest < ActiveSupport::TestCase
 
     missing_pt = pts.find { |pt| pt.task_name == "task-ghost" }
     assert_nil missing_pt.task_id
+  end
+
+  # --- Task 11: trader_level jsonb populated from source ---
+
+  test "imports trader_level from source on each requirement (task_graph)" do
+    run_import!
+
+    a = Task.find_by(bsg_id: "tg_task_a")
+    assert_equal [], a.requirements.first.trader_level
+
+    b = Task.find_by(bsg_id: "tg_task_b")
+    assert_equal [ { "trader_name" => "therapist", "trader_level" => "2" } ], b.requirements.first.trader_level
+  end
+
+  test "imports empty trader_name entry (e.g. the-guide LL4)" do
+    # Inline fixture: a single task with a trader_level entry whose trader_name is blank.
+    write_fixture([
+      {
+        "bsg_id" => "tg_task_guide",
+        "full_name" => "The Guide",
+        "name" => "the-guide",
+        "wiki_link" => "",
+        "given_by" => "Peacekeeper",
+        "kappa_required" => "false",
+        "lightkeeper_required" => "false",
+        "leads_to" => [],
+        "requirements" => [
+          {
+            "player_level" => "0",
+            "trader_level" => [ { "trader_name" => "", "trader_level" => "4" } ],
+            "previous_tasks" => []
+          }
+        ],
+        "start_rewards" => [ { "loose_items" => [], "offer_unlocks" => [], "barter_unlocks" => [], "craft_unlocks" => [] } ],
+        "finish_rewards" => [ { "loose_items" => [], "offer_unlocks" => [], "barter_unlocks" => [], "craft_unlocks" => [] } ]
+      }
+    ])
+    run_import!
+
+    guide = Task.find_by(bsg_id: "tg_task_guide")
+    assert_equal [ { "trader_name" => "", "trader_level" => "4" } ], guide.requirements.first.trader_level
   end
 
   test "creates rewards (start_rewards + finish_rewards)" do

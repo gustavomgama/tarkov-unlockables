@@ -24,7 +24,14 @@ class Task < ApplicationRecord
     return [] if visited.include?(id)
     visited << id
 
-    chain = [ { name: name, full_name: full_name, given_by: given_by, level: requirements.first&.player_level } ]
+    first_req = requirements.first
+    chain = [ {
+      name:                name,
+      full_name:           full_name,
+      given_by:            given_by,
+      player_level:        first_req&.player_level.to_i,
+      trader_requirements: first_req&.trader_level || []
+    } ]
 
     requirements.each do |req|
       req.previous_tasks.each do |pt|

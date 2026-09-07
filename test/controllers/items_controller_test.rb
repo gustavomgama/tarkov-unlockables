@@ -215,4 +215,91 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     bare&.destroy
   end
+
+  # --- Task 11: prerequisite chain rendered with per-node requirements ---
+
+  test "show renders prerequisite chain with lvl + trader requirements in How to Unlock" do
+    item = Item.create!(bsg_id: "m80-#{SecureRandom.hex(4)}", full_name: "7.62x51mm M80", short_name: "M80")
+    wet1 = Task.create!(bsg_id: "wet1v-#{SecureRandom.hex(4)}", full_name: "Wet Job 1", name: "wet-job-part-1", given_by: "Mechanic")
+    guide = Task.create!(bsg_id: "guidev-#{SecureRandom.hex(4)}", full_name: "The Guide", name: "the-guide", given_by: "Peacekeeper")
+    cleaner = Task.create!(bsg_id: "cleanv-#{SecureRandom.hex(4)}", full_name: "The Cleaner", name: "the-cleaner", given_by: "Peacekeeper")
+
+    wet1.requirements.create!(player_level: 14, trader_level: [])
+    guide_r = guide.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "", "trader_level" => "4" } ])
+    guide_r.previous_tasks.create!(task: wet1, task_name: wet1.name)
+    cleaner_r = cleaner.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ])
+    cleaner_r.previous_tasks.create!(task: guide, task_name: guide.name)
+
+    reward = cleaner.rewards.create!(reward_type: "finish_rewards")
+    reward.offer_unlocks.create!(item_id: item.id, item_name: item.full_name, trader_name: "peacekeeper", trader_level: "4")
+
+    get item_url(item)
+    assert_response :success
+
+    # Chain pills include each task name (in reverse order, root first)
+    assert_select "span", text: /wet-job-part-1/
+    assert_select "span", text: /the-guide/
+    assert_select "span", text: /the-cleaner/
+
+    # Per-node requirements rendered
+    assert_select ".prereq-req", minimum: 1, text: /lvl 14/
+    assert_select ".prereq-req", text: /LL4/
+    assert_select ".prereq-req", text: /Peacekeeper LL3/
+
+    assert_select "h2", text: /How to Unlock/
+  ensure
+    OfferUnlock.where(item_id: item&.id).destroy_all
+    PreviousTask.where(task_id: [ wet1&.id, guide&.id, cleaner&.id ]).update_all(task_id: nil)
+    Reward.where(task_id: [ wet1&.id, guide&.id, cleaner&.id ]).destroy_all
+    [ wet1, guide, cleaner ].each { |t| t&.destroy }
+    item&.destroy
+  end
+
+  test "show renders inline chain under item_currency with task_unlock=true" do
+    item = Item.create!(bsg_id: "m80c-#{SecureRandom.hex(4)}", full_name: "M80 Currency", short_name: "M80c")
+    wet1 = Task.create!(bsg_id: "wet1c-#{SecureRandom.hex(4)}", full_name: "Wet Job 1", name: "wet-job-part-1", given_by: "Mechanic")
+    cleaner = Task.create!(bsg_id: "cleanc-#{SecureRandom.hex(4)}", full_name: "The Cleaner", name: "the-cleaner", given_by: "Peacekeeper")
+
+    wet1.requirements.create!(player_level: 14, trader_level: [])
+    cleaner_r = cleaner.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ])
+    cleaner_r.previous_tasks.create!(task: wet1, task_name: wet1.name)
+
+    reward = cleaner.rewards.create!(reward_type: "finish_rewards")
+    reward.offer_unlocks.create!(item_id: item.id, item_name: item.full_name, trader_name: "peacekeeper", trader_level: "4")
+
+    item.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 4, task_unlock: true)
+
+    get item_url(item)
+    assert_response :success
+
+    # Inline chain rendered with class .currency-chain (the Where to Get sub-block)
+    assert_select ".currency-chain", minimum: 1
+    assert_select ".currency-chain span", text: /wet-job-part-1/
+    assert_select ".currency-chain span", text: /the-cleaner/
+    # Inline Task-gated indicator
+    assert_select ".currency-chain .prereq-req", text: /lvl 14/
+    assert_select ".currency-chain .prereq-req", text: /Peacekeeper LL3/
+    # Badge in the row itself
+    assert_select "span", text: /Task-gated/
+  ensure
+    OfferUnlock.where(item_id: item&.id).destroy_all
+    PreviousTask.where(task_id: [ wet1&.id, cleaner&.id ]).update_all(task_id: nil)
+    Reward.where(task_id: [ wet1&.id, cleaner&.id ]).destroy_all
+    item&.item_currencies&.destroy_all
+    [ wet1, cleaner ].each { |t| t&.destroy }
+    item&.destroy
+  end
+
+  test "show renders 'unlocking task not found' for task_currency when no OfferUnlock" do
+    item = Item.create!(bsg_id: "m80d-#{SecureRandom.hex(4)}", full_name: "M80d", short_name: "M80d")
+    item.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 4, task_unlock: true)
+
+    get item_url(item)
+    assert_response :success
+
+    assert_select ".currency-chain", text: /unlocking task not found/
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+  end
 end

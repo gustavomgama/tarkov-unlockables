@@ -56,9 +56,24 @@
           </div>
         <% end %>
         <% @item.item_currencies.each do |c| %>
-          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-currency)] text-[var(--text)]">Trader</span>
-            <span class="text-sm text-[var(--text)]"><%= c.trader %> LL<%= c.min_trader_level %> - <%= c.currency %></span>
+          <div class="py-2 border-b border-[var(--border)] last:border-0">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-currency)] text-[var(--text)]">Trader</span>
+              <span class="text-sm text-[var(--text)]"><%= c.trader %> LL<%= c.min_trader_level %> - <%= c.currency %></span>
+              <% if c.task_unlock? %>
+                <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)]">Task-gated</span>
+              <% end %>
+            </div>
+            <% if c.task_unlock? %>
+              <% unlocking_task = OfferUnlock.find_by(item_id: @item.id)&.reward&.task %>
+              <% if unlocking_task %>
+                <%= render "items/prerequisite_chain", chain: unlocking_task.prerequisite_chain, css_class: "currency-chain mt-2 ml-1" %>
+              <% else %>
+                <div class="currency-chain mt-2 ml-1">
+                  <p class="text-xs text-[var(--text-muted)]">unlocking task not found</p>
+                </div>
+              <% end %>
+            <% end %>
           </div>
         <% end %>
       </div>
@@ -80,33 +95,8 @@
               <span class="text-sm text-[var(--text-muted)]">· <%= unlock.reward&.task&.given_by&.titleize %></span>
             </div>
 
-            <% chain = unlock.reward&.task&.prerequisite_chain %>
-            <% if chain && chain.length > 1 %>
-              <div class="mb-2">
-                <p class="text-xs text-[var(--text-muted)] mb-2">
-                  Complete <%= chain.length - 1 %> prerequisite <%= 'task'.pluralize(chain.length - 1) %> to unlock:
-                </p>
-                <div class="flex items-center gap-1 flex-wrap">
-                  <% chain.reverse.each_with_index do |t, i| %>
-                    <% if i > 0 %>
-                      <svg class="w-3 h-3 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    <% end %>
-                    <% if i == chain.length - 1 %>
-                      <span class="px-2 py-1 text-xs font-medium bg-[var(--accent)] text-[var(--bg-dark)]">
-                        <%= t[:name] %>
-                      </span>
-                    <% else %>
-                      <span class="px-2 py-1 text-xs bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]">
-                        <%= t[:name] %>
-                      </span>
-                    <% end %>
-                  <% end %>
-                </div>
-              </div>
-            <% elsif chain %>
-              <p class="text-sm text-[var(--text-muted)]">No prerequisites - available from start</p>
+            <% if unlock.reward&.task %>
+              <%= render "items/prerequisite_chain", chain: unlock.reward.task.prerequisite_chain %>
             <% end %>
 
             <% if unlock.reward&.task&.wiki_link.present? %>

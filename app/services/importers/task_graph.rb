@@ -73,7 +73,10 @@ module Importers
 
     def import_requirements(task, requirements)
       requirements.each do |req|
-        requirement = task.requirements.create!(player_level: req["player_level"].to_i)
+        requirement = task.requirements.create!(
+          player_level: req["player_level"].to_i,
+          trader_level: req["trader_level"] || []
+        )
         previous_tasks = req["previous_tasks"] || []
         previous_tasks.each do |pt|
           requirement.previous_tasks.create!(
