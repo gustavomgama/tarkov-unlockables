@@ -28,11 +28,11 @@ one:
   item: one
   item_name: Test Item One
   trader_name: Prapor
-  trader_level: LL2
+  trader_level: 2
 
 two:
   reward: two
   item: two
   item_name: Test Item Two
   trader_name: Therapist
-  trader_level: LL3
+  trader_level: 3

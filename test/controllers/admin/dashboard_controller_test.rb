@@ -26,8 +26,8 @@ module Admin
       get_auth admin_root_path
 
       assert_response :success
-      assert_match /Items.*0/m, response.body
-      assert_match /Tasks.*0/m, response.body
+      assert_match /Items.*2/m, response.body
+      assert_match /Tasks.*2/m, response.body
     end
 
     test "dashboard has manage links for each model" do

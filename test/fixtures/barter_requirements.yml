@@ -22,9 +22,9 @@
 one:
   barter_unlock: one
   trader_name: Prapor
-  trader_level: LL2
+  trader_level: 2
 
 two:
   barter_unlock: two
   trader_name: Therapist
-  trader_level: LL3
+  trader_level: 3

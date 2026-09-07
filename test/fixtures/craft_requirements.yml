@@ -22,9 +22,9 @@
 one:
   craft_unlock: one
   trader_name: Mechanic
-  trader_level: LL2
+  trader_level: 2
 
 two:
   craft_unlock: two
   trader_name: Mechanic
-  trader_level: LL3
+  trader_level: 3
