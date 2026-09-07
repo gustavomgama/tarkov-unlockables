@@ -13,7 +13,7 @@ module AdminCrud
   end
 
   included do
-    before_action :set_resource, only: [:show, :edit, :update, :destroy]
+    before_action :set_resource, only: [ :show, :edit, :update, :destroy ]
   end
 
   def index
@@ -49,7 +49,7 @@ module AdminCrud
 
   def destroy
     @resource.destroy
-    redirect_to [:admin, self.class.resource_class], notice: "#{self.class.resource_class.name} deleted"
+    redirect_to [ :admin, self.class.resource_class ], notice: "#{self.class.resource_class.name} deleted"
   end
 
   private

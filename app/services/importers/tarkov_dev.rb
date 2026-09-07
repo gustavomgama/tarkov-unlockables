@@ -30,9 +30,9 @@ module Importers
     private
 
     def import_item(item, raw)
-      item.links = [raw["wikiLink"], raw["link"]].compact if raw["wikiLink"] || raw["link"]
-      item.images = [raw["iconLink"], raw["gridImageLink"], raw["baseImageLink"],
-                     raw["inspectImageLink"], raw["image512pxLink"], raw["image8xLink"]].compact
+      item.links = [ raw["wikiLink"], raw["link"] ].compact if raw["wikiLink"] || raw["link"]
+      item.images = [ raw["iconLink"], raw["gridImageLink"], raw["baseImageLink"],
+                     raw["inspectImageLink"], raw["image512pxLink"], raw["image8xLink"] ].compact
       item.data = item.data.merge(kept_properties(raw))
       item.save!
       import_buy_from_trader(item, raw["buyFromTrader"] || [])

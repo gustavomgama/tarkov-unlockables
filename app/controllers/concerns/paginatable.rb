@@ -5,8 +5,8 @@ module Paginatable
 
   def paginate(scope)
     per_page = (params[:per_page] || 25).to_i
-    per_page = [per_page, 100].min
-    page = [(params[:page] || 1).to_i, 1].max
+    per_page = [ per_page, 100 ].min
+    page = [ (params[:page] || 1).to_i, 1 ].max
     offset = (page - 1) * per_page
 
     @resources = scope.limit(per_page).offset(offset)

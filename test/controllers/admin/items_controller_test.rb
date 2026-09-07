@@ -196,14 +196,14 @@ module Admin
     end
 
     test "update links field" do
-      new_links = ["https://example.com/1", "https://example.com/2"]
+      new_links = [ "https://example.com/1", "https://example.com/2" ]
       patch_auth admin_item_url(@item), params: { item: { links: new_links } }
       @item.reload
       assert_equal new_links, @item.links
     end
 
     test "update images field" do
-      new_images = ["https://img.example.com/item1.png", "https://img.example.com/item2.png"]
+      new_images = [ "https://img.example.com/item1.png", "https://img.example.com/item2.png" ]
       patch_auth admin_item_url(@item), params: { item: { images: new_images } }
       @item.reload
       assert_equal new_images, @item.images
@@ -217,8 +217,8 @@ module Admin
           full_name: "Updated Full Name",
           short_name: "UN",
           categories: %w[armor helmet],
-          links: ["https://wiki.example.com"],
-          images: ["https://img.example.com/updated.png"]
+          links: [ "https://wiki.example.com" ],
+          images: [ "https://img.example.com/updated.png" ]
         }
       }
       @item.reload
@@ -226,8 +226,8 @@ module Admin
       assert_equal "Updated Full Name", @item.full_name
       assert_equal "UN", @item.short_name
       assert_equal %w[armor helmet], @item.categories
-      assert_equal ["https://wiki.example.com"], @item.links
-      assert_equal ["https://img.example.com/updated.png"], @item.images
+      assert_equal [ "https://wiki.example.com" ], @item.links
+      assert_equal [ "https://img.example.com/updated.png" ], @item.images
     end
 
     test "destroy redirects to index" do
@@ -272,7 +272,7 @@ module Admin
     end
 
     test "show page displays categories without error after update" do
-      @item.update!(categories: ["ammo", "weapon"], links: ["https://example.com"], images: ["https://img.com/1.png"])
+      @item.update!(categories: [ "ammo", "weapon" ], links: [ "https://example.com" ], images: [ "https://img.com/1.png" ])
 
       patch_auth admin_item_url(@item), params: {
         item: {
