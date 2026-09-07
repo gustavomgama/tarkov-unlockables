@@ -1,0 +1,14 @@
+<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <% if item.data["type"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Type</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["type"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["effect"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Effect</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["effect"] %></dd>
+    </div>
+  <% end %>
+</dl>

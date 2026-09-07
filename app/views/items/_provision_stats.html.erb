@@ -1,0 +1,14 @@
+<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <% if item.data["effect"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Effect</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["effect"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["use_time"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Use Time</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["use_time"] %></dd>
+    </div>
+  <% end %>
+</dl>

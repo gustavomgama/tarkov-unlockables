@@ -187,6 +187,21 @@ class ItemTest < ActiveSupport::TestCase
     assert_match(/Test Item One x2/, details)
   end
 
+  # --- stats_partial (Task 8) ---
+
+  test "stats_partial returns demodulized class-name partial path" do
+    assert_equal "items/weapon_stats",   Item::Weapon.new.stats_partial
+    assert_equal "items/ammo_stats",     Item::Ammo.new.stats_partial
+    assert_equal "items/armor_stats",    Item::Armor.new.stats_partial
+    assert_equal "items/key_stats",      Item::Key.new.stats_partial
+    assert_equal "items/magazine_stats", Item::Magazine.new.stats_partial
+    assert_equal "items/container_stats", Item::Container.new.stats_partial
+    assert_equal "items/medical_stats",  Item::Medical.new.stats_partial
+    assert_equal "items/provision_stats", Item::Provision.new.stats_partial
+    assert_equal "items/throwable_stats", Item::Throwable.new.stats_partial
+    assert_equal "items/generic_stats",  Item::Generic.new.stats_partial
+  end
+
   # --- search ---
 
   test "search matches slug, full_name, and short_name" do

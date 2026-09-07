@@ -1,0 +1,38 @@
+<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <% if item.data["class"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Armor Class</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["class"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["armor_type"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Armor Type</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["armor_type"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["armor_slots"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Armor Slots</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["armor_slots"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["zones"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Zones</dt>
+      <dd class="font-medium text-[var(--text)]"><%= Array(item.data["zones"]).join(", ") %></dd>
+    </div>
+  <% end %>
+  <% if item.data["default_plates"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Default Plates</dt>
+      <dd class="font-medium text-[var(--text)]"><%= Array(item.data["default_plates"]).join(", ") %></dd>
+    </div>
+  <% end %>
+  <% if item.data["max_uses"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Durability</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["max_uses"] %></dd>
+    </div>
+  <% end %>
+</dl>

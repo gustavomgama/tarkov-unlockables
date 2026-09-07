@@ -57,6 +57,10 @@ class Item < ApplicationRecord
     super({})
   end
 
+  def stats_partial
+    "items/#{self.class.name.demodulize.underscore}_stats"
+  end
+
   # --- obtain graph (uses internal id) ---
 
   ObtainEntry = Struct.new(:type, :source, keyword_init: true)

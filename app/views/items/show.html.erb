@@ -29,38 +29,7 @@
   <% if @item.data.present? %>
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
       <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Details</h2>
-      <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <% if @item.data["class"].present? %>
-          <div>
-            <dt class="text-[var(--text-muted)]">Armor Class</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.data["class"] %></dd>
-          </div>
-        <% end %>
-        <% if @item.data["caliber"].present? %>
-          <div>
-            <dt class="text-[var(--text-muted)]">Caliber</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.data["caliber"] %></dd>
-          </div>
-        <% end %>
-        <% if @item.data["damage"].present? %>
-          <div>
-            <dt class="text-[var(--text-muted)]">Damage</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.data["damage"] %></dd>
-          </div>
-        <% end %>
-        <% if @item.data["penetration_power"].present? %>
-          <div>
-            <dt class="text-[var(--text-muted)]">Penetration</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.data["penetration_power"] %></dd>
-          </div>
-        <% end %>
-        <% if @item.data["armor_type"].present? %>
-          <div>
-            <dt class="text-[var(--text-muted)]">Armor Type</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.data["armor_type"] %></dd>
-          </div>
-        <% end %>
-      </dl>
+      <%= render @item.stats_partial, item: @item %>
     </div>
   <% end %>
 

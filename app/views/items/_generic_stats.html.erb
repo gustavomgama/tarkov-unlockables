@@ -1,0 +1,14 @@
+<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <% if item.full_name.present? %>
+    <div class="col-span-2 md:col-span-4">
+      <dt class="text-[var(--text-muted)]">Full Name</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.full_name %></dd>
+    </div>
+  <% end %>
+  <% if item.short_name.present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Short Name</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.short_name %></dd>
+    </div>
+  <% end %>
+</dl>

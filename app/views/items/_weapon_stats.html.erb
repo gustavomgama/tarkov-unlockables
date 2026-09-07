@@ -1,0 +1,74 @@
+<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <% if item.data["caliber"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Caliber</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["caliber"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["default_ammo"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Default Ammo</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["default_ammo"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["fire_modes"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Fire Modes</dt>
+      <dd class="font-medium text-[var(--text)]"><%= Array(item.data["fire_modes"]).join(", ") %></dd>
+    </div>
+  <% end %>
+  <% if item.data["default_preset"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Default Preset</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["default_preset"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["presets"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Presets</dt>
+      <dd class="font-medium text-[var(--text)]"><%= Array(item.data["presets"]).join(", ") %></dd>
+    </div>
+  <% end %>
+  <% if item.data["ergonomics"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Ergonomics</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["ergonomics"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["recoil"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Recoil</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["recoil"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["sightrange"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Sight Range</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["sightrange"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["effective_distance"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Effective Distance</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["effective_distance"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["velocity"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Velocity</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["velocity"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["mods"].present? %>
+    <div class="col-span-2 md:col-span-4">
+      <dt class="text-[var(--text-muted)]">Mods</dt>
+      <dd class="font-medium text-[var(--text)]">
+        <ul class="list-disc list-inside">
+          <% Array(item.data["mods"]).each do |mod| %>
+            <li><%= mod.is_a?(Hash) ? mod["name"] || mod.to_s : mod %></li>
+          <% end %>
+        </ul>
+      </dd>
+    </div>
+  <% end %>
+</dl>

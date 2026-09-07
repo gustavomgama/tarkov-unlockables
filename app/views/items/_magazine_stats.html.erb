@@ -1,0 +1,20 @@
+<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+  <% if item.data["caliber"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Caliber</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["caliber"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["default_ammo"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Default Ammo</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["default_ammo"] %></dd>
+    </div>
+  <% end %>
+  <% if item.data["capacity"].present? %>
+    <div>
+      <dt class="text-[var(--text-muted)]">Capacity</dt>
+      <dd class="font-medium text-[var(--text)]"><%= item.data["capacity"] %></dd>
+    </div>
+  <% end %>
+</dl>
