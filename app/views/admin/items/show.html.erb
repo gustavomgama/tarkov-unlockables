@@ -1,0 +1,50 @@
+<div class="mb-4">
+  <%= link_to "← Back", [:admin, :items], class: "text-[var(--accent)] hover:underline" %>
+</div>
+
+<div class="bg-[var(--bg-panel)] p-6 rounded border border-[var(--border)]">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6"><%= @resource.full_name %></h1>
+
+  <dl class="grid grid-cols-2 gap-6">
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">ID</dt>
+      <dd class="text-[var(--text)]"><%= @resource.id %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">BSG ID</dt>
+      <dd class="text-[var(--text)]"><%= @resource.bsg_id %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Slug</dt>
+      <dd class="text-[var(--text)]"><%= @resource.slug %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Short Name</dt>
+      <dd class="text-[var(--text)]"><%= @resource.short_name %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Categories</dt>
+      <dd class="text-[var(--text)]"><%= @resource.categories&.join(", ") || "—" %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Links</dt>
+      <dd class="text-[var(--text)]"><%= @resource.links&.join(", ") || "—" %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Images</dt>
+      <dd class="text-[var(--text)]"><%= @resource.images&.count || 0 %> images</dd>
+    </div>
+  </dl>
+
+  <% if @resource.property %>
+    <div class="mt-6 pt-6 border-t border-[var(--border)]">
+      <h2 class="text-lg font-bold text-[var(--text-bright)] mb-2">Property</h2>
+      <%= link_to "View Property", [:admin, @resource.property], class: "text-[var(--accent)] hover:underline" %>
+    </div>
+  <% end %>
+
+  <div class="mt-6 flex gap-4">
+    <%= link_to "Edit", [:edit, :admin, @resource], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+    <%= button_to "Delete", [:admin, @resource], method: :delete, data: { turbo_confirm: "Are you sure? This will also delete the property." }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
+  </div>
+</div>

@@ -5,7 +5,6 @@ class ItemsController < ApplicationController
     @item_count = Item.count
 
     items = Item.all.order(full_name: :asc)
-    items = items.search(params[:q]) if params[:q].present?
     items = apply_filters(items) if params[:filters].present?
 
     page = params[:page].to_i
@@ -27,16 +26,10 @@ class ItemsController < ApplicationController
     @item = Item.find(params[:id])
   end
 
-  def autocomplete
-    items = Item.search(params[:q]).limit(10)
-
-    render partial: "autocomplete_results", collection: items, as: :item
-  end
-
   private
 
   def apply_filters(items)
-    filters = params[:filters].permit!
+    filters = params[:filters].permit(:currency, { category: [] }, :armor_class, :caliber, :task_required)
 
     if filters[:currency].present?
       items = items.joins(:item_currencies)
@@ -46,7 +39,9 @@ class ItemsController < ApplicationController
 
     if filters[:category].present?
       categories = filters[:category]
-      items = items.where("categories && ?", categories)
+      # Build PostgreSQL array string like '{headphones,mod}' or single '{headphones}'
+      pg_array = categories.length == 1 ? "{#{categories[0]}}" : "{#{categories.join(',')}}"
+      items = items.where("categories && ?", pg_array)
     end
 
     if filters[:armor_class].present?
@@ -74,7 +69,7 @@ class ItemsController < ApplicationController
   def category_options
     categories = Item.pluck(:categories).flatten.uniq.sort
     categories.map do |c|
-      count = Item.where("categories && ?", ["{#{c}}"]).count
+      count = Item.where("categories && ?", [ "{#{c}}" ]).count
       { value: c, label: c.humanize, count: count }
     end
   end

@@ -18,11 +18,11 @@
 #  fk_rails_...  (barter_unlock_id => barter_unlocks.id)
 #
 one:
-  barter: one
-  trader: one
+  barter_unlock_id: one
+  trader_name: MyString
   trader_level: MyString
 
 two:
-  barter: two
-  trader: two
+  barter_unlock_id: two
+  trader_name: MyString
   trader_level: MyString

@@ -1,0 +1,39 @@
+<%= form_with model: [:admin, model], local: true, data: { turbo: false }, class: "max-w-2xl" do |form| %>
+  <% if model.errors.any? %>
+    <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] rounded text-[var(--danger)]">
+      <ul class="list-disc pl-4">
+        <% model.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-4">
+    <% fields.each do |field| %>
+      <% field_name = field.is_a?(Symbol) ? field : field[:name] %>
+      <% field_type = field.is_a?(Hash) ? field[:type] : :text %>
+      <% label = field.is_a?(Hash) && field[:label] ? field[:label] : field_name.to_s.humanize %>
+
+      <div>
+        <%= form.label field_name, label, class: "block text-sm text-[var(--text-muted)] mb-1" %>
+
+        <% case field_type %>
+        <% when :boolean %>
+          <%= form.check_box field_name, class: "w-4 h-4" %>
+        <% when :number %>
+          <%= form.number_field field_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <% when :text_area %>
+          <%= form.text_area field_name, rows: 3, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <% else %>
+          <%= form.text_field field_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-6 flex gap-4">
+    <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
+    <%= link_to "Cancel", [:admin, model.class], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+  </div>
+<% end %>

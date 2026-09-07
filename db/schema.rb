@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_05_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_05_214828) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -165,7 +165,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_000001) do
     t.string "armor_type"
     t.string "base_item"
     t.string "caliber"
-    t.string "armor_class"
+    t.integer "armor_class"
     t.integer "damage"
     t.boolean "default"
     t.string "default_ammo"
@@ -182,6 +182,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_000001) do
   create_table "requirements", force: :cascade do |t|
     t.bigint "task_id"
     t.integer "player_level"
+    t.integer "previous_tasks_count", default: 0
     t.index ["task_id"], name: "index_requirements_on_task_id"
   end
 
@@ -210,6 +211,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_000001) do
     t.string "given_by"
     t.boolean "kappa_required"
     t.boolean "lightkeeper_required"
+    t.integer "leads_tos_count", default: 0
   end
 
   add_foreign_key "barter_requirement_items", "barter_requirements"

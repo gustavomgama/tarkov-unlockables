@@ -10,6 +10,7 @@
 #  given_by             :string
 #  kappa_required       :boolean
 #  lightkeeper_required :boolean
+#  leads_tos_count      :integer          default(0)
 #
 class Task < ApplicationRecord
   has_many :leads_tos, dependent: :destroy
@@ -20,7 +21,7 @@ class Task < ApplicationRecord
     return [] if visited.include?(id)
     visited << id
 
-    chain = [{ name: name, full_name: full_name, given_by: given_by, level: requirements.first&.player_level }]
+    chain = [ { name: name, full_name: full_name, given_by: given_by, level: requirements.first&.player_level } ]
 
     requirements.each do |req|
       req.previous_tasks.each do |pt|

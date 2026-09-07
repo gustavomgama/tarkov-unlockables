@@ -1,0 +1,33 @@
+<table class="w-full text-sm">
+  <thead>
+    <tr>
+      <% columns.each do |col| %>
+        <th class="text-left p-3 text-[var(--text-muted)] font-medium border-b border-[var(--border)]"><%= col[:label] %></th>
+      <% end %>
+      <th class="text-left p-3 text-[var(--text-muted)] font-medium border-b border-[var(--border)] w-32">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% resources.each do |resource| %>
+      <tr class="border-b border-[var(--border-faint)] hover:bg-[var(--bg-surface)]">
+        <% columns.each do |col| %>
+          <td class="p-3">
+            <% value = resource.public_send(col[:field]) %>
+            <% if value.nil? %>
+              <span class="text-[var(--text-muted)]">—</span>
+            <% elsif col[:truncate] && value.to_s.length > col[:truncate] %>
+              <span title="<%= value %>"><%= truncate(value.to_s, length: col[:truncate]) %></span>
+            <% else %>
+              <%= value %>
+            <% end %>
+          </td>
+        <% end %>
+        <td class="p-3">
+          <%= link_to "Show", [:admin, resource], class: "text-[var(--accent)] hover:underline mr-2" %>
+          <%= link_to "Edit", [:edit, :admin, resource], class: "text-[var(--accent)] hover:underline mr-2" %>
+          <%= button_to "Delete", [:admin, resource], method: :delete, data: { turbo_confirm: "Are you sure you want to delete this #{resource.class.name.underscore.humanize.downcase}?" }, class: "text-[var(--danger)] hover:underline bg-transparent border-none cursor-pointer p-0" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

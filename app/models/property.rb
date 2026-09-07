@@ -11,7 +11,7 @@
 #  armor_type        :string
 #  base_item         :string
 #  caliber           :string
-#  armor_class       :string
+#  armor_class       :integer
 #  damage            :integer
 #  default           :boolean
 #  default_ammo      :string

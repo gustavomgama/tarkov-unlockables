@@ -2,9 +2,10 @@
 #
 # Table name: requirements
 #
-#  id           :bigint           not null, primary key
-#  task_id      :bigint
-#  player_level :integer
+#  id                   :bigint           not null, primary key
+#  task_id              :bigint
+#  player_level         :integer
+#  previous_tasks_count :integer          default(0)
 #
 # Indexes
 #

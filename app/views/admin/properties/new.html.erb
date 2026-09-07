@@ -1,0 +1,8 @@
+<div class="mb-4">
+  <%= link_to "← Back", [:admin, :properties], class: "text-[var(--accent)] hover:underline" %>
+</div>
+<h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">New Property</h1>
+<%= render "admin/shared/form", model: @resource, fields: [
+  :item_id, :properties_type, :armor_type, :caliber, :armor_class,
+  :damage, :penetration_power, :category, :default
+] %>

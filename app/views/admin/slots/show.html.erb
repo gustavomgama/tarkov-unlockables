@@ -1,0 +1,42 @@
+<div class="mb-4">
+  <%= link_to "← Back", [:admin, :slots], class: "text-[var(--accent)] hover:underline" %>
+</div>
+
+<div class="bg-[var(--bg-panel)] p-6 rounded border border-[var(--border)]">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">Slot #<%= @resource.id %></h1>
+
+  <dl class="grid grid-cols-2 gap-6">
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Property ID</dt>
+      <dd class="text-[var(--text)]"><%= @resource.property_id %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Name ID</dt>
+      <dd class="text-[var(--text)]"><%= @resource.name_id %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Required</dt>
+      <dd class="text-[var(--text)]"><%= @resource.required ? "Yes" : "No" %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Allowed Items</dt>
+      <dd class="text-[var(--text)]"><%= @resource.allowed_items.join(", ") %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Allowed Categories</dt>
+      <dd class="text-[var(--text)]"><%= @resource.allowed_categories.join(", ") %></dd>
+    </div>
+  </dl>
+
+  <% if @resource.property %>
+    <div class="mt-6 pt-6 border-t border-[var(--border)]">
+      <h2 class="text-lg font-bold text-[var(--text-bright)] mb-2">Property</h2>
+      <%= link_to "View Property", [:admin, @resource.property], class: "text-[var(--accent)] hover:underline" %>
+    </div>
+  <% end %>
+
+  <div class="mt-6 flex gap-4">
+    <%= link_to "Edit", [:edit, :admin, @resource], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+    <%= button_to "Delete", [:admin, @resource], method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
+  </div>
+</div>

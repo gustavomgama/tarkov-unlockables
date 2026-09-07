@@ -1,0 +1,54 @@
+<%= form_with model: [:admin, item], local: true, data: { turbo: false }, class: "max-w-2xl" do |form| %>
+  <% if item.errors.any? %>
+    <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] rounded text-[var(--danger)]">
+      <ul class="list-disc pl-4">
+        <% item.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-4">
+    <div>
+      <%= form.label :bsg_id, class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_field :bsg_id, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+    </div>
+
+    <div>
+      <%= form.label :slug, class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_field :slug, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+    </div>
+
+    <div>
+      <%= form.label :full_name, class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_field :full_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+    </div>
+
+    <div>
+      <%= form.label :short_name, class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_field :short_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+    </div>
+
+    <div>
+      <%= form.label :categories, "Categories (comma-separated)", class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_field :categories, value: item.categories&.join(", ") || "", class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]", placeholder: "mod, armor, weapon" %>
+      <p class="text-xs text-[var(--text-muted)] mt-1">Separate with commas</p>
+    </div>
+
+    <div>
+      <%= form.label :links, "Links (newline-separated URLs)", class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_area :links, value: item.links&.join("\n") || "", rows: 3, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]", placeholder: "https://..." %>
+    </div>
+
+    <div>
+      <%= form.label :images, "Image URLs (newline-separated)", class: "block text-sm text-[var(--text-muted)] mb-1" %>
+      <%= form.text_area :images, value: item.images&.join("\n") || "", rows: 3, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]", placeholder: "https://..." %>
+    </div>
+  </div>
+
+  <div class="mt-6 flex gap-4">
+    <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
+    <%= link_to "Cancel", [:admin, :items], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+  </div>
+<% end %>

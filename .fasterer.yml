@@ -25,3 +25,4 @@ exclude_paths:
   - 'log/**/*.rb'
   - 'coverage/**/*.rb'
   - 'node_modules/**/*.rb'
+  - 'app/controllers/concerns/admin_crud.rb'

@@ -1,0 +1,7 @@
+<div class="mb-4">
+  <%= link_to "← Back", [:admin, @resource], class: "text-[var(--accent)] hover:underline" %>
+</div>
+<h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">Edit Offer Unlock</h1>
+<%= render "admin/shared/form", model: @resource, fields: [
+  :reward_id, :item_id, :item_name, :trader_name, :trader_level
+] %>

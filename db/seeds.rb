@@ -171,7 +171,7 @@ tasks_data.each do |task_data|
   end
 
   # Create Rewards (start_rewards and finish_rewards)
-  ["start_rewards", "finish_rewards"].each do |reward_type|
+  [ "start_rewards", "finish_rewards" ].each do |reward_type|
     (task_data[reward_type] || []).each do |reward_data|
       next if reward_data.nil?
 

@@ -1,0 +1,54 @@
+<div class="mb-4">
+  <%= link_to "← Back", [:admin, :properties], class: "text-[var(--accent)] hover:underline" %>
+</div>
+
+<div class="bg-[var(--bg-panel)] p-6 rounded border border-[var(--border)]">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">Property #<%= @resource.id %></h1>
+
+  <dl class="grid grid-cols-2 gap-6">
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Item ID</dt>
+      <dd class="text-[var(--text)]"><%= @resource.item_id %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Type</dt>
+      <dd class="text-[var(--text)]"><%= @resource.properties_type %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Armor Type</dt>
+      <dd class="text-[var(--text)]"><%= @resource.armor_type %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Caliber</dt>
+      <dd class="text-[var(--text)]"><%= @resource.caliber %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Armor Class</dt>
+      <dd class="text-[var(--text)]"><%= @resource.armor_class %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Damage</dt>
+      <dd class="text-[var(--text)]"><%= @resource.damage %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Penetration Power</dt>
+      <dd class="text-[var(--text)]"><%= @resource.penetration_power %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Category</dt>
+      <dd class="text-[var(--text)]"><%= @resource.category %></dd>
+    </div>
+  </dl>
+
+  <% if @resource.item %>
+    <div class="mt-6 pt-6 border-t border-[var(--border)]">
+      <h2 class="text-lg font-bold text-[var(--text-bright)] mb-2">Item</h2>
+      <%= link_to @resource.item.full_name, [:admin, @resource.item], class: "text-[var(--accent)] hover:underline" %>
+    </div>
+  <% end %>
+
+  <div class="mt-6 flex gap-4">
+    <%= link_to "Edit", [:edit, :admin, @resource], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+    <%= button_to "Delete", [:admin, @resource], method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
+  </div>
+</div>

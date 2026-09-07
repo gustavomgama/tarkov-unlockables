@@ -59,7 +59,7 @@ class Item < ApplicationRecord
   end
 
   scope :task_gated, -> {
-    where(bsg_id: [OfferUnlock.pluck(:item_id), BarterUnlock.pluck(:item_id), CraftUnlock.pluck(:item_id)].flatten.uniq)
+    where(bsg_id: [ OfferUnlock.pluck(:item_id), BarterUnlock.pluck(:item_id), CraftUnlock.pluck(:item_id) ].flatten.uniq)
   }
 
   def self.search(query)
@@ -72,17 +72,7 @@ class Item < ApplicationRecord
   def how_to_unlock
     paths = []
 
-    item_task_rewards.find_each do |itr|
-      task = Task.find_by(bsg_id: itr.task_id)
-      next unless task
-      paths << UnlockPath.new(
-        task: task,
-        reward_type: itr.reward_type,
-        unlock_method: :task_reward
-      )
-    end
-
-    Reward.joins(:offer_unlocks).where(offer_unlocks: {item_id: bsg_id}).find_each do |reward|
+    Reward.joins(:offer_unlocks).where(offer_unlocks: { item_id: bsg_id }).find_each do |reward|
       paths << UnlockPath.new(
         task: reward.task,
         reward_type: reward.reward_type,
@@ -90,7 +80,7 @@ class Item < ApplicationRecord
       )
     end
 
-    Reward.joins(:barter_unlocks).where(barter_unlocks: {item_id: bsg_id}).find_each do |reward|
+    Reward.joins(:barter_unlocks).where(barter_unlocks: { item_id: bsg_id }).find_each do |reward|
       paths << UnlockPath.new(
         task: reward.task,
         reward_type: reward.reward_type,
@@ -98,7 +88,7 @@ class Item < ApplicationRecord
       )
     end
 
-    Reward.joins(:craft_unlocks).where(craft_unlocks: {item_id: bsg_id}).find_each do |reward|
+    Reward.joins(:craft_unlocks).where(craft_unlocks: { item_id: bsg_id }).find_each do |reward|
       paths << UnlockPath.new(
         task: reward.task,
         reward_type: reward.reward_type,
@@ -106,14 +96,60 @@ class Item < ApplicationRecord
       )
     end
 
-    Reward.joins(:loose_items).where(loose_items: {item_id: bsg_id}).find_each do |reward|
-      paths << UnlockPath.new(
-        task: reward.task,
-        reward_type: reward.reward_type,
-        unlock_method: :loose_item
-      )
-    end
-
     paths.uniq
+  end
+
+  def unlock_details_for(path)
+    reward = path.task.rewards.where(reward_type: path.reward_type).first
+    return nil unless reward
+
+    case path.unlock_method
+    when :craft_unlock
+      craft_unlock = reward.craft_unlocks.where(item_id: bsg_id).first
+      return nil unless craft_unlock
+
+      details = []
+      details << "Craft at #{craft_unlock.hideout_station} Level #{craft_unlock.station_level}"
+
+      craft_unlock.craft_requirements.each do |req|
+        next if req.trader_level.blank?
+        details << "Requires #{req.trader_name.titleize} LL#{req.trader_level}"
+      end
+
+      craft_unlock.craft_requirements.flat_map(&:craft_requirement_items).each do |item|
+        details << "#{item.item_name} x#{item.count}"
+      end
+
+      details.join(" · ")
+
+    when :barter_unlock
+      barter_unlock = reward.barter_unlocks.where(item_id: bsg_id).first
+      return nil unless barter_unlock
+
+      details = []
+      barter_unlock.barter_requirements.each do |req|
+        details << "#{req.trader_name.titleize} LL#{req.trader_level}"
+      end
+
+      items = barter_unlock.barter_results.flat_map(&:barter_result_items).map(&:item_name)
+      if items.any?
+        details << "Gives: #{items.join(", ")}"
+      end
+
+      barter_unlock.barter_requirements.flat_map(&:barter_requirement_items).each do |item|
+        details << "#{item.item_name} x#{item.count}"
+      end
+
+      details.join(" · ")
+
+    when :offer_unlock
+      offer_unlock = reward.offer_unlocks.where(item_id: bsg_id).first
+      return nil unless offer_unlock
+
+      "#{offer_unlock.trader_name.titleize} LL#{offer_unlock.trader_level}"
+
+    else
+      nil
+    end
   end
 end

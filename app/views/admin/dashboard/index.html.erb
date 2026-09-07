@@ -1,0 +1,27 @@
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)]">Dashboard</h1>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+  <% [
+    ["Items", @stats[:items], Item],
+    ["Tasks", @stats[:tasks], Task],
+    ["Properties", @stats[:properties], Property],
+    ["Slots", @stats[:slots], Slot],
+    ["Requirements", @stats[:requirements], Requirement],
+    ["Rewards", @stats[:rewards], Reward],
+    ["Leads To", @stats[:leads_tos], LeadsTo],
+    ["Previous Tasks", @stats[:previous_tasks], PreviousTask],
+    ["Barter Unlocks", @stats[:barter_unlocks], BarterUnlock],
+    ["Craft Unlocks", @stats[:craft_unlocks], CraftUnlock],
+    ["Offer Unlocks", @stats[:offer_unlocks], OfferUnlock]
+  ].each do |label, count, model| %>
+    <div class="bg-[var(--bg-panel)] p-4 rounded border border-[var(--border)]">
+      <div class="text-[var(--text-muted)] text-xs uppercase mb-1"><%= label %></div>
+      <div class="text-2xl font-bold text-[var(--text-bright)]"><%= count %></div>
+      <div class="mt-2">
+        <%= link_to "Manage", [:admin, model], class: "text-xs text-[var(--accent)] hover:underline" %>
+      </div>
+    </div>
+  <% end %>
+</div>

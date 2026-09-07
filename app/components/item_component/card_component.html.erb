@@ -1,5 +1,5 @@
-<%= link_to item_path(card), class: "group block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-500 dark:hover:border-blue-400 transition-colors" do %>
-  <div class="aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
+<%= link_to item_path(card), class: "group block bg-[var(--bg-surface)] border border-[var(--border)] overflow-hidden hover:border-[var(--accent)] transition-colors" do %>
+  <div class="aspect-square bg-[var(--bg-panel)] overflow-hidden">
     <img
       src="<%= image_url %>"
       alt="<%= card.full_name %>"
@@ -8,10 +8,10 @@
     >
   </div>
   <div class="p-4">
-    <h3 class="font-semibold text-sm line-clamp-2 mb-2"><%= card.full_name %></h3>
+    <h3 class="font-semibold text-sm line-clamp-2 mb-2 text-[var(--text-bright)]"><%= card.full_name %></h3>
     <div class="flex flex-wrap gap-1">
       <% category_badges.each do |cat| %>
-        <span class="inline-block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+        <span class="inline-block px-2 py-0.5 text-xs bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)]">
           <%= cat.humanize %>
         </span>
       <% end %>

@@ -1,10 +1,18 @@
 Rails.application.routes.draw do
-  resources :items, only: [:index, :show] do
+  resources :items, only: [ :index, :show ]
+  resources :tasks, only: [ :index, :show ] do
     collection do
-      get :autocomplete
+      get :chains
     end
   end
-  resources :tasks, only: [:index, :show]
+
+  namespace :admin do
+    resources :items, :tasks, :properties, :slots, :requirements, :rewards, :leads_tos,
+              :barter_unlocks, :craft_unlocks, :offer_unlocks, :previous_tasks
+    root to: "dashboard#index"
+  end
+
+  get "/admin", to: redirect("/admin/items")
 
   get "up" => "rails/health#show", as: :rails_health_check
 

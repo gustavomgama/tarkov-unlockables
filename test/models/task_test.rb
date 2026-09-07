@@ -12,6 +12,7 @@ require "test_helper"
 #  given_by             :string
 #  kappa_required       :boolean
 #  lightkeeper_required :boolean
+#  leads_tos_count      :integer          default(0)
 #
 class TaskTest < ActiveSupport::TestCase
   # test "the truth" do

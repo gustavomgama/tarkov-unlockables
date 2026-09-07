@@ -1,0 +1,14 @@
+<div class="mb-6 flex justify-between items-center">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)]">Properties (<%= @total_count %>)</h1>
+  <%= link_to "New Property", [:new, :admin, :property], class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold hover:bg-[var(--accent-hover)] transition-colors" %>
+</div>
+
+<%= admin_table([
+  { label: "ID", field: :id },
+  { label: "Item ID", field: :item_id },
+  { label: "Type", field: :properties_type },
+  { label: "Category", field: :category },
+  { label: "Armor Class", field: :armor_class }
+], @resources) %>
+
+<%= render "admin/shared/pagination" %>

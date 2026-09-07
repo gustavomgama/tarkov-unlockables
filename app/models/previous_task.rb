@@ -16,5 +16,10 @@
 #  fk_rails_...  (requirement_id => requirements.id)
 #
 class PreviousTask < ApplicationRecord
-  belongs_to :requirement, foreign_key: :requirement_id
+  belongs_to :requirement, foreign_key: :requirement_id, counter_cache: true
+
+  def task
+    return nil unless task_name.present?
+    @task ||= Task.find_by(name: task_name)
+  end
 end

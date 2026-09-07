@@ -1,62 +1,62 @@
 <div class="space-y-8">
   <div>
     <div class="flex items-center gap-3 mb-2">
-      <h1 class="text-3xl font-bold"><%= @task.full_name %></h1>
+      <h1 class="text-3xl font-bold text-[var(--text-bright)]"><%= @task.full_name %></h1>
       <% if @task.kappa_required %>
-        <span class="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 rounded">
+        <span class="px-2 py-1 text-xs font-medium bg-[var(--danger)] text-[var(--text-bright)]">
           Kappa Required
         </span>
       <% end %>
     </div>
-    <p class="text-gray-500 dark:text-gray-400">
-      Trader: <%= @task.given_by %>
+    <p class="text-[var(--text-muted)]">
+      Trader: <%= @task.given_by.titleize %>
     </p>
   </div>
 
   <% chain = @task.prerequisite_chain %>
   <% if chain.length > 1 %>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-      <h2 class="text-lg font-semibold mb-4">Prerequisite Chain</h2>
+    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
+      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Prerequisite Chain</h2>
       <div class="flex items-center gap-2 overflow-x-auto pb-2">
         <% chain.each_with_index do |t, i| %>
           <div class="flex items-center gap-2">
             <% if i > 0 %>
-              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             <% end %>
             <div class="flex flex-col items-center">
-              <div class="px-3 py-2 <%= i == chain.length - 1 ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' %> border rounded-lg text-sm whitespace-nowrap">
+              <div class="px-3 py-2 <%= i == chain.length - 1 ? 'bg-[var(--accent)] text-[var(--bg-dark)]' : 'bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]' %> text-sm whitespace-nowrap">
                 <div class="font-medium"><%= t[:name] %></div>
-                <div class="text-xs text-gray-500 dark:text-gray-400"><%= t[:given_by] %></div>
+                <div class="text-xs <%= i == chain.length - 1 ? 'text-[var(--bg-dark)]' : 'text-[var(--text-muted)]' %>"><%= t[:given_by] %></div>
               </div>
             </div>
           </div>
         <% end %>
       </div>
-      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+      <p class="mt-3 text-sm text-[var(--text-muted)]">
         Complete <%= chain.length - 1 %> prerequisite <%= 'task'.pluralize(chain.length - 1) %> to unlock this task.
       </p>
     </div>
   <% end %>
 
   <% if @task.requirements.any? %>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-      <h2 class="text-lg font-semibold mb-4">Requirements</h2>
+    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
+      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Requirements</h2>
       <dl class="space-y-3 text-sm">
         <% @task.requirements.each do |req| %>
           <% if req.player_level.to_i > 0 %>
             <div class="flex items-center gap-2">
-              <dt class="text-gray-500 dark:text-gray-400 w-32">Player Level</dt>
-              <dd class="font-medium"><%= req.player_level %></dd>
+              <dt class="text-[var(--text-muted)] w-32">Player Level</dt>
+              <dd class="font-medium text-[var(--text)]"><%= req.player_level %></dd>
             </div>
           <% end %>
           <% if req.previous_tasks.any? %>
             <div>
-              <dt class="text-gray-500 dark:text-gray-400 mb-2">Previous Tasks</dt>
+              <dt class="text-[var(--text-muted)] mb-2">Previous Tasks</dt>
               <dd class="flex flex-wrap gap-2">
                 <% req.previous_tasks.each do |pt| %>
-                  <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
+                  <span class="px-2 py-1 text-xs bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]">
                     <%= pt.task_name %>
                   </span>
                 <% end %>
@@ -68,58 +68,58 @@
     </div>
   <% end %>
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-    <h2 class="text-lg font-semibold mb-4">Rewards</h2>
+  <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
+    <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Rewards</h2>
     <% @task.rewards.each do |reward| %>
       <div class="mb-4 last:mb-0">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+        <h3 class="text-sm font-medium text-[var(--text-muted)] mb-2">
           <%= reward.reward_type == "start_rewards" ? "Start Rewards" : "Finish Rewards" %>
         </h3>
         <% if reward.loose_items.any? || reward.offer_unlocks.any? || reward.barter_unlocks.any? || reward.craft_unlocks.any? %>
           <div class="space-y-2">
             <% reward.loose_items.each do |li| %>
               <div class="flex items-center gap-2 text-sm">
-                <span class="text-gray-400">Loose:</span>
-                <span><%= li.item_name %> x<%= li.count %></span>
+                <span class="text-[var(--text-muted)]">Loose:</span>
+                <span class="text-[var(--text)]"><%= li.item_name %> x<%= li.count %></span>
               </div>
             <% end %>
             <% reward.offer_unlocks.each do |ou| %>
               <div class="flex items-center gap-2 text-sm">
-                <span class="text-blue-400">Offer:</span>
-                <span><%= ou.item_name %> (<%= ou.trader_name %> LL<%= ou.trader_level %>)</span>
+                <span class="text-[var(--badge-offer)]">Offer:</span>
+                <span class="text-[var(--text)]"><%= ou.item_name %> (<%= ou.trader_name %> LL<%= ou.trader_level %>)</span>
               </div>
             <% end %>
             <% reward.barter_unlocks.each do |bu| %>
               <div class="flex items-center gap-2 text-sm">
-                <span class="text-yellow-400">Barter:</span>
-                <span><%= bu.item_name %></span>
+                <span class="text-[var(--badge-barter)]">Barter:</span>
+                <span class="text-[var(--text)]"><%= bu.item_name %></span>
               </div>
             <% end %>
             <% reward.craft_unlocks.each do |cu| %>
               <div class="flex items-center gap-2 text-sm">
-                <span class="text-green-400">Craft:</span>
-                <span><%= cu.item_name %> (<%= cu.hideout_station %> Lv.<%= cu.station_level %>)</span>
+                <span class="text-[var(--badge-craft)]">Craft:</span>
+                <span class="text-[var(--text)]"><%= cu.item_name %> (<%= cu.hideout_station %> Lv.<%= cu.station_level %>)</span>
               </div>
             <% end %>
           </div>
         <% else %>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">No rewards listed.</p>
+          <p class="text-[var(--text-muted)] text-sm">No rewards listed.</p>
         <% end %>
       </div>
     <% end %>
   </div>
 
   <% if @task.leads_tos.any? %>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-      <h2 class="text-lg font-semibold mb-4">Leads To</h2>
+    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
+      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Leads To</h2>
       <div class="flex flex-wrap gap-2">
         <% @task.leads_tos.each do |lt| %>
           <% if lt.follow_up_task %>
-            <%= link_to task_path(lt.follow_up_task), class: "px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600" do %>
-              <%= lt.follow_up_task_name %>
+            <%= link_to task_path(lt.follow_up_task), class: "px-3 py-1 text-sm bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)] hover:border-[var(--accent)]" do %>
+              <%= lt.follow_up_task.full_name %>
             <% end %>
           <% else %>
-            <span class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg">
+            <span class="px-3 py-1 text-sm bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)]">
               <%= lt.follow_up_task_name %>
             </span>
           <% end %>

@@ -1,14 +1,14 @@
 <div class="space-y-6" data-controller="view-toggle">
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold">Items</h1>
+    <h1 class="text-2xl font-bold text-[var(--text-bright)]">Items</h1>
     <div class="flex items-center gap-4">
-      <span class="text-sm text-gray-500 dark:text-gray-400"><%= @item_count %> total</span>
-      <div class="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+      <span class="text-sm text-[var(--text-muted)]"><%= @item_count %> total</span>
+      <div class="flex gap-1 bg-[var(--bg-surface)] p-1">
         <button
           type="button"
           data-action="view-toggle#toggle"
           data-view="grid"
-          class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-gray-700 transition-colors"
+          class="px-3 py-1 text-sm text-[var(--text)] hover:text-[var(--accent)] transition-colors"
         >
           Grid
         </button>
@@ -16,7 +16,7 @@
           type="button"
           data-action="view-toggle#toggle"
           data-view="table"
-          class="px-3 py-1 text-sm rounded hover:bg-white dark:hover:bg-gray-700 transition-colors"
+          class="px-3 py-1 text-sm text-[var(--text)] hover:text-[var(--accent)] transition-colors"
         >
           Table
         </button>
@@ -24,78 +24,65 @@
     </div>
   </div>
 
-  <div data-controller="search" class="relative max-w-xl">
-    <div class="flex gap-2">
-      <div class="relative flex-1">
-        <input
-          type="text"
-          data-search-target="input"
-          data-action="input->search#search keyup->search#hideResults"
-          placeholder="Search items..."
-          value="<%= params[:q] %>"
-          class="w-full px-4 py-2 pl-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <div data-search-target="loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
-          <svg class="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <div
-      data-search-target="results"
-      class="hidden absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-80 overflow-y-auto"
-    >
-    </div>
-  </div>
-
-  <div class="flex flex-wrap gap-2">
-    <%= render FilterComponent::GroupComponent.new(
-      title: "Currency",
-      name: "currency",
-      options: @filter_options[:currency],
-      selected: params.dig(:filters, :currency) || []
-    ) %>
-
-    <%= render FilterComponent::GroupComponent.new(
-      title: "Category",
-      name: "category",
-      options: @filter_options[:category],
-      selected: params.dig(:filters, :category) || []
-    ) %>
-
-    <%= render FilterComponent::GroupComponent.new(
-      title: "Armor Class",
-      name: "armor_class",
-      options: @filter_options[:armor_class],
-      selected: params.dig(:filters, :armor_class) || []
-    ) %>
-
-    <%= render FilterComponent::GroupComponent.new(
-      title: "Caliber",
-      name: "caliber",
-      options: @filter_options[:caliber],
-      selected: params.dig(:filters, :caliber) || []
-    ) %>
-
-    <%= render FilterComponent::GroupComponent.new(
-      title: "Source",
-      name: "source",
-      options: @filter_options[:source],
-      selected: params.dig(:filters, :source) || []
-    ) %>
-
+  <form id="filter-form" action="<%= items_path %>" method="get">
     <% if params[:filters].present? %>
-      <%= link_to items_path, class: "px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg" do %>
-        Clear filters
-      <% end %>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-[var(--text-muted)]">Active filters:</span>
+        <% params[:filters].each do |filter_type, values| %>
+          <% Array(values).each do |value| %>
+            <span class="inline-flex items-center gap-1 px-2 py-1 text-sm bg-[var(--bg-surface)] text-[var(--text)]">
+              <%= filter_type.humanize %>: <%= value %>
+              <%= link_to "×", items_path(filters: params[:filters].except(filter_type).merge(filter_type => Array(values) - [value])), class: "ml-1 hover:text-[var(--text-bright)]" %>
+            </span>
+          <% end %>
+        <% end %>
+        <%= link_to "Clear all", items_path, class: "text-sm text-[var(--danger)] hover:underline" %>
+      </div>
     <% end %>
-  </div>
+
+    <div class="flex flex-wrap gap-2">
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Currency",
+        name: "currency",
+        options: @filter_options[:currency],
+        selected: params.dig(:filters, :currency) || []
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Category",
+        name: "category",
+        options: @filter_options[:category],
+        selected: params.dig(:filters, :category) || []
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Armor Class",
+        name: "armor_class",
+        options: @filter_options[:armor_class],
+        selected: params.dig(:filters, :armor_class) || []
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Caliber",
+        name: "caliber",
+        options: @filter_options[:caliber],
+        selected: params.dig(:filters, :caliber) || []
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Source",
+        name: "source",
+        options: @filter_options[:source],
+        selected: params.dig(:filters, :source) || []
+      ) %>
+
+      <% if params[:filters].present? %>
+        <%= link_to items_path, class: "px-3 py-2 text-sm text-[var(--danger)] border border-[var(--border)]" do %>
+          Clear filters
+        <% end %>
+      <% end %>
+    </div>
+  </form>
 
   <div data-view-toggle-target="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
     <%= render partial: "items/item_card", collection: @items, as: :card %>
@@ -103,23 +90,21 @@
 
   <div data-view-toggle-target="table" class="hidden overflow-x-auto">
     <table class="w-full text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-800">
+      <thead class="bg-[var(--bg-surface)]">
         <tr>
-          <th class="px-4 py-3 text-left font-medium">Name</th>
-          <th class="px-4 py-3 text-left font-medium">Short Name</th>
-          <th class="px-4 py-3 text-left font-medium">Categories</th>
-          <th class="px-4 py-3 text-left font-medium">BSG ID</th>
+          <th class="px-4 py-3 text-left font-medium text-[var(--text-muted)]">Name</th>
+          <th class="px-4 py-3 text-left font-medium text-[var(--text-muted)]">Short Name</th>
+          <th class="px-4 py-3 text-left font-medium text-[var(--text-muted)]">Categories</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+      <tbody class="divide-y divide-[var(--border)]">
         <% @items.each do |item| %>
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+          <tr class="hover:bg-[var(--bg-surface)]">
             <td class="px-4 py-3">
-              <%= link_to item.full_name, item_path(item), class: "text-blue-600 dark:text-blue-400 hover:underline" %>
+              <%= link_to item.full_name, item_path(item), class: "text-[var(--accent)] hover:text-[var(--accent-hover)]" %>
             </td>
-            <td class="px-4 py-3"><%= item.short_name %></td>
-            <td class="px-4 py-3"><%= item.categories.join(", ") %></td>
-            <td class="px-4 py-3 font-mono text-xs"><%= item.bsg_id %></td>
+            <td class="px-4 py-3 text-[var(--text)]"><%= item.short_name %></td>
+            <td class="px-4 py-3 text-[var(--text)]"><%= item.categories.join(", ") %></td>
           </tr>
         <% end %>
       </tbody>
@@ -128,9 +113,17 @@
 
   <% if @total_pages > 1 %>
     <nav class="flex items-center justify-center gap-2">
-      <%= link_to "Previous", items_path(page: @current_page - 1, q: params[:q]), class: "px-3 py-2 text-sm rounded-lg #{@current_page == 1 ? 'text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}" %>
-      <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">Page <%= @current_page %> of <%= @total_pages %></span>
-      <%= link_to "Next", items_path(page: @current_page + 1, q: params[:q]), class: "px-3 py-2 text-sm rounded-lg #{@current_page == @total_pages ? 'text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}" %>
+      <%= link_to "Previous", items_path(page: @current_page - 1, filters: params[:filters]), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] #{@current_page == 1 ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
+      <span class="px-3 py-2 text-sm text-[var(--text-muted)]">Page <%= @current_page %> of <%= @total_pages %></span>
+      <%= link_to "Next", items_path(page: @current_page + 1, filters: params[:filters]), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] #{@current_page == @total_pages ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
     </nav>
   <% end %>
 </div>
+
+<script>
+document.querySelectorAll('.filter-checkbox').forEach(function(checkbox) {
+  checkbox.addEventListener('change', function() {
+    document.getElementById('filter-form').submit();
+  });
+});
+</script>

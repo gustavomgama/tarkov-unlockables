@@ -1,0 +1,14 @@
+<div class="mb-6 flex justify-between items-center">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)]">Tasks (<%= @total_count %>)</h1>
+  <%= link_to "New Task", [:new, :admin, :task], class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold hover:bg-[var(--accent-hover)] transition-colors" %>
+</div>
+
+<%= admin_table([
+  { label: "ID", field: :id },
+  { label: "BSG ID", field: :bsg_id },
+  { label: "Name", field: :name, truncate: 30 },
+  { label: "Given By", field: :given_by },
+  { label: "Kappa", field: :kappa_required }
+], @resources) %>
+
+<%= render "admin/shared/pagination" %>
