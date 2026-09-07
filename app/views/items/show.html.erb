@@ -26,38 +26,38 @@
     </div>
   </div>
 
-  <% if @item.property %>
+  <% if @item.data.present? %>
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Properties</h2>
+      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Details</h2>
       <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <% if @item.property.armor_class %>
+        <% if @item.data["class"].present? %>
           <div>
             <dt class="text-[var(--text-muted)]">Armor Class</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.property.armor_class %></dd>
+            <dd class="font-medium text-[var(--text)]"><%= @item.data["class"] %></dd>
           </div>
         <% end %>
-        <% if @item.property.caliber %>
+        <% if @item.data["caliber"].present? %>
           <div>
             <dt class="text-[var(--text-muted)]">Caliber</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.property.caliber %></dd>
+            <dd class="font-medium text-[var(--text)]"><%= @item.data["caliber"] %></dd>
           </div>
         <% end %>
-        <% if @item.property.damage %>
+        <% if @item.data["damage"].present? %>
           <div>
             <dt class="text-[var(--text-muted)]">Damage</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.property.damage %></dd>
+            <dd class="font-medium text-[var(--text)]"><%= @item.data["damage"] %></dd>
           </div>
         <% end %>
-        <% if @item.property.penetration_power %>
+        <% if @item.data["penetration_power"].present? %>
           <div>
             <dt class="text-[var(--text-muted)]">Penetration</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.property.penetration_power %></dd>
+            <dd class="font-medium text-[var(--text)]"><%= @item.data["penetration_power"] %></dd>
           </div>
         <% end %>
-        <% if @item.property.armor_type %>
+        <% if @item.data["armor_type"].present? %>
           <div>
             <dt class="text-[var(--text-muted)]">Armor Type</dt>
-            <dd class="font-medium text-[var(--text)]"><%= @item.property.armor_type %></dd>
+            <dd class="font-medium text-[var(--text)]"><%= @item.data["armor_type"] %></dd>
           </div>
         <% end %>
       </dl>
@@ -66,32 +66,30 @@
 
   <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
     <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Where to Get</h2>
-    <% if @item.obtain_from.any? %>
+    <% if @item.item_task_rewards.any? || @item.item_hideouts.any? || @item.item_barters.any? || @item.item_currencies.any? %>
       <div class="space-y-3">
-        <% @item.obtain_from.each do |entry| %>
+        <% @item.item_task_rewards.each do |r| %>
           <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium
-              <%= case entry.type
-                  when :task_reward then 'bg-[var(--badge-task)] text-[var(--text)]'
-                  when :hideout then 'bg-[var(--badge-hideout)] text-[var(--text)]'
-                  when :barter then 'bg-[var(--badge-barter)] text-[var(--text)]'
-                  when :currency then 'bg-[var(--badge-currency)] text-[var(--text)]'
-                  end %>">
-              <%= entry.type.to_s.humanize %>
-            </span>
-            <span class="text-sm text-[var(--text)]">
-              <% case entry.type %>
-              <% when :task_reward %>
-                <%= entry.source.task_name %> (Quest Reward)
-              <% when :hideout %>
-                <%= entry.source.station_name %> Level <%= entry.source.station_level %>
-                <% if entry.source.quantity > 1 %>× <%= entry.source.quantity %><% end %>
-              <% when :barter %>
-                <%= entry.source.trader_name %> LL<%= entry.source.trader_level %>
-              <% when :currency %>
-                <%= entry.source.trader_name %> LL<%= entry.source.trader_level %> - <%= entry.source.currency %>
-              <% end %>
-            </span>
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)]">Task Reward</span>
+            <span class="text-sm text-[var(--text)]"><%= r.task_name %></span>
+          </div>
+        <% end %>
+        <% @item.item_hideouts.each do |h| %>
+          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-hideout)] text-[var(--text)]">Hideout</span>
+            <span class="text-sm text-[var(--text)]"><%= h.station %> Level <%= h.level %></span>
+          </div>
+        <% end %>
+        <% @item.item_barters.each do |b| %>
+          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-barter)] text-[var(--text)]">Barter</span>
+            <span class="text-sm text-[var(--text)]"><%= b.trader %> LL<%= b.trader_level %> - <%= b.currency %> <%= b.cost %></span>
+          </div>
+        <% end %>
+        <% @item.item_currencies.each do |c| %>
+          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-currency)] text-[var(--text)]">Trader</span>
+            <span class="text-sm text-[var(--text)]"><%= c.trader %> LL<%= c.min_trader_level %> - <%= c.currency %></span>
           </div>
         <% end %>
       </div>
@@ -100,36 +98,21 @@
     <% end %>
   </div>
 
-  <% if @item.how_to_unlock.any? %>
+  <% unlocks = OfferUnlock.where(item_id: @item.id) + BarterUnlock.where(item_id: @item.id) + CraftUnlock.where(item_id: @item.id) %>
+  <% if unlocks.any? %>
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
       <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">How to Unlock</h2>
       <div class="space-y-6">
-        <% @item.how_to_unlock.each do |path| %>
+        <% unlocks.each do |unlock| %>
           <div class="border border-[var(--border)] p-4">
             <div class="flex items-center gap-2 mb-3">
-              <span class="px-2 py-1 text-xs font-medium
-                <%= case path.unlock_method
-                    when :offer_unlock then 'bg-[var(--badge-offer)] text-[var(--text)]'
-                    when :barter_unlock then 'bg-[var(--badge-barter)] text-[var(--text)]'
-                    when :craft_unlock then 'bg-[var(--badge-craft)] text-[var(--text)]'
-                    end %>">
-                <%= path.unlock_method.to_s.humanize %>
-              </span>
-              <span class="font-medium text-[var(--text-bright)]"><%= path.task.full_name %></span>
-              <span class="text-sm text-[var(--text-muted)]">
-                · <%= path.task.given_by.titleize %> · <%= path.reward_type == "start_rewards" ? "Start reward" : "Finish reward" %>
-              </span>
+              <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-offer)] text-[var(--text)]"><%= unlock.class.name.demodulize.titleize %></span>
+              <span class="font-medium text-[var(--text-bright)]"><%= unlock.reward&.task&.full_name %></span>
+              <span class="text-sm text-[var(--text-muted)]">· <%= unlock.reward&.task&.given_by&.titleize %></span>
             </div>
 
-            <% unlock_details = @item.unlock_details_for(path) %>
-            <% if unlock_details %>
-              <div class="text-sm text-[var(--text)] mb-3 pl-2 border-l-2 border-[var(--border)]">
-                <%= unlock_details %>
-              </div>
-            <% end %>
-
-            <% chain = path.task.prerequisite_chain %>
-            <% if chain.length > 1 %>
+            <% chain = unlock.reward&.task&.prerequisite_chain %>
+            <% if chain && chain.length > 1 %>
               <div class="mb-2">
                 <p class="text-xs text-[var(--text-muted)] mb-2">
                   Complete <%= chain.length - 1 %> prerequisite <%= 'task'.pluralize(chain.length - 1) %> to unlock:
@@ -153,13 +136,13 @@
                   <% end %>
                 </div>
               </div>
-            <% else %>
+            <% elsif chain %>
               <p class="text-sm text-[var(--text-muted)]">No prerequisites - available from start</p>
             <% end %>
 
-            <% if path.task.wiki_link.present? %>
+            <% if unlock.reward&.task&.wiki_link.present? %>
               <div class="mt-2">
-                <%= link_to path.task.wiki_link, path.task.wiki_link, class: "text-xs text-[var(--accent)] hover:text-[var(--accent-hover)]", target: "_blank", rel: "noopener" %>
+                <%= link_to unlock.reward.task.wiki_link, unlock.reward.task.wiki_link, class: "text-xs text-[var(--accent)] hover:text-[var(--accent-hover)]", target: "_blank", rel: "noopener" %>
               </div>
             <% end %>
           </div>

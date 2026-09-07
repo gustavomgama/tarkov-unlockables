@@ -36,15 +36,8 @@
     </div>
   </dl>
 
-  <% if @resource.property %>
-    <div class="mt-6 pt-6 border-t border-[var(--border)]">
-      <h2 class="text-lg font-bold text-[var(--text-bright)] mb-2">Property</h2>
-      <%= link_to "View Property", [:admin, @resource.property], class: "text-[var(--accent)] hover:underline" %>
-    </div>
-  <% end %>
-
   <div class="mt-6 flex gap-4">
-    <%= link_to "Edit", [:edit, :admin, @resource], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
-    <%= button_to "Delete", [:admin, @resource], method: :delete, data: { turbo_confirm: "Are you sure? This will also delete the property." }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
+    <%= link_to "Edit", edit_admin_item_path(@resource), class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+    <%= button_to "Delete", admin_item_path(@resource), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
   </div>
 </div>

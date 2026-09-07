@@ -1,0 +1,32 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# == Schema Information
+#
+# Table name: craft_result_items
+#
+#  id              :bigint           not null, primary key
+#  craft_result_id :bigint           not null
+#  item_id         :bigint
+#  item_name       :string
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#
+# Indexes
+#
+#  index_craft_result_items_on_craft_result_id  (craft_result_id)
+#  index_craft_result_items_on_item_id          (item_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (craft_result_id => craft_results.id)
+#  fk_rails_...  (item_id => items.id)
+#
+one:
+  craft_result: one
+  item: one
+  item_name: Test Item One
+
+two:
+  craft_result: two
+  item: two
+  item_name: Test Item Two

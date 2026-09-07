@@ -3,7 +3,8 @@ require "test_helper"
 module Admin
   class RewardsControllerTest < ActionDispatch::IntegrationTest
     def setup
-      @resource = Reward.first || Reward.create!(task_id: 1, reward_type: "Item")
+      @task = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
+      @resource = Reward.first || Reward.create!(task_id: @task.id, reward_type: "Item")
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -61,7 +62,7 @@ module Admin
 
     test "create with valid params" do
       assert_difference("Reward.count") do
-        post_auth admin_rewards_path, params: { reward: { task_id: 1, reward_type: "Experience" } }
+        post_auth admin_rewards_path, params: { reward: { task_id: @task.id, reward_type: "Experience" } }
       end
       assert_redirected_to admin_reward_path(Reward.last)
     end
@@ -78,7 +79,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = Reward.create!(task_id: 1, reward_type: "Item")
+      new_resource = Reward.create!(task_id: @task.id, reward_type: "Item")
       delete_auth admin_reward_path(new_resource)
       assert_redirected_to admin_rewards_path
     end

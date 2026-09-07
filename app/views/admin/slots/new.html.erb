@@ -1,7 +1,0 @@
-<div class="mb-4">
-  <%= link_to "← Back", [:admin, :slots], class: "text-[var(--accent)] hover:underline" %>
-</div>
-<h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">New Slot</h1>
-<%= render "admin/shared/form", model: @resource, fields: [
-  :property_id, :name_id, :required
-] %>

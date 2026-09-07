@@ -110,10 +110,6 @@ module AdminTestHelper
     case model_class.name
     when "Item"
       { bsg_id: "test_#{SecureRandom.hex(4)}", full_name: "Test Item", short_name: "TI" }
-    when "Property"
-      { item_id: 1, properties_type: "ItemPropertiesKey" }
-    when "Slot"
-      { property_id: 1, name_id: 1, required: false }
     when "Task"
       { bsg_id: "test_#{SecureRandom.hex(4)}", full_name: "Test Task", name: "Test Task", given_by: "Prapor" }
     when "Requirement"

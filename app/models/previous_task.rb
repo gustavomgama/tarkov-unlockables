@@ -3,23 +3,23 @@
 # Table name: previous_tasks
 #
 #  id             :bigint           not null, primary key
-#  requirement_id :bigint
-#  task_id        :string
+#  requirement_id :bigint           not null
+#  task_id        :bigint
 #  task_name      :string
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
 #
 # Indexes
 #
 #  index_previous_tasks_on_requirement_id  (requirement_id)
+#  index_previous_tasks_on_task_id         (task_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (requirement_id => requirements.id)
+#  fk_rails_...  (task_id => tasks.id)
 #
 class PreviousTask < ApplicationRecord
-  belongs_to :requirement, foreign_key: :requirement_id, counter_cache: true
-
-  def task
-    return nil unless task_name.present?
-    @task ||= Task.find_by(name: task_name)
-  end
+  belongs_to :requirement, counter_cache: :previous_tasks_count
+  belongs_to :task, optional: true
 end

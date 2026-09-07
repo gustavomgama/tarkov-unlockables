@@ -3,8 +3,10 @@ require "test_helper"
 module Admin
   class BarterUnlocksControllerTest < ActionDispatch::IntegrationTest
     def setup
-      @reward = Reward.first || Reward.create!(task_id: 1, reward_type: "Item")
-      @resource = BarterUnlock.first || BarterUnlock.create!(reward_id: @reward.id, item_id: 1, item_name: "Test Item")
+      @task = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
+      @item = Item.create!(bsg_id: "item#{SecureRandom.hex(4)}", full_name: "Test Item", short_name: "TI")
+      @reward = Reward.first || Reward.create!(task_id: @task.id, reward_type: "Item")
+      @resource = BarterUnlock.first || BarterUnlock.create!(reward_id: @reward.id, item_id: @item.id, item_name: "Test Item")
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -62,7 +64,7 @@ module Admin
 
     test "create with valid params" do
       assert_difference("BarterUnlock.count") do
-        post_auth admin_barter_unlocks_path, params: { barter_unlock: { reward_id: @reward.id, item_id: 2, item_name: "New Barter Item" } }
+        post_auth admin_barter_unlocks_path, params: { barter_unlock: { reward_id: @reward.id, item_id: @item.id, item_name: "New Barter Item" } }
       end
       assert_redirected_to admin_barter_unlock_path(BarterUnlock.last)
     end
@@ -79,7 +81,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = BarterUnlock.create!(reward_id: @reward.id, item_id: 1, item_name: "Test")
+      new_resource = BarterUnlock.create!(reward_id: @reward.id, item_id: @item.id, item_name: "Test")
       delete_auth admin_barter_unlock_path(new_resource)
       assert_redirected_to admin_barter_unlocks_path
     end

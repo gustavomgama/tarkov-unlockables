@@ -6,4 +6,14 @@ module Admin::ApplicationHelper
     classes += " bg-[var(--bg-surface)] text-[var(--accent)]" if is_active
     link_to label, [ :admin, model ], class: classes
   end
+
+  # Resolve admin paths via the resource's base class so STI subclasses
+  # (e.g. Item::Generic) don't generate non-existent polymorphic routes.
+  def admin_resource_path(resource)
+    send("admin_#{resource.class.base_class.name.underscore}_path", resource)
+  end
+
+  def edit_admin_resource_path(resource)
+    send("edit_admin_#{resource.class.base_class.name.underscore}_path", resource)
+  end
 end

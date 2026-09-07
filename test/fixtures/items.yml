@@ -5,22 +5,45 @@
 # Table name: items
 #
 #  id         :bigint           not null, primary key
+#  type       :string           default("Item::Generic"), not null
 #  bsg_id     :string
 #  slug       :string
 #  full_name  :string
 #  short_name :string
+#  wiki_title :string
 #  categories :text             default([]), is an Array
 #  links      :text             default([]), is an Array
 #  images     :text             default([]), is an Array
+#  data       :jsonb            not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+# Indexes
+#
+#  index_items_on_bsg_id  (bsg_id) UNIQUE
+#  index_items_on_slug    (slug)
+#  index_items_on_type    (type)
 #
 one:
-  id: MyString
-  slug: MyString
-  full_name: MyString
-  short_name: MyString
+  type: Item::Generic
+  bsg_id: item_one
+  slug: item-one
+  full_name: Test Item One
+  short_name: TIO
+  wiki_title: Test_Item_One
+  categories: [ "general" ]
+  links: [ "https://example.com/item-one" ]
+  images: [ "https://example.com/item-one.png" ]
+  data: {}
 
 two:
-  id: MyString
-  slug: MyString
-  full_name: MyString
-  short_name: MyString
+  type: Item::Generic
+  bsg_id: item_two
+  slug: item-two
+  full_name: Test Item Two
+  short_name: TIT
+  wiki_title: Test_Item_Two
+  categories: [ "general" ]
+  links: [ "https://example.com/item-two" ]
+  images: [ "https://example.com/item-two.png" ]
+  data: {}

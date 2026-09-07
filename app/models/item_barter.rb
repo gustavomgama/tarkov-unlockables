@@ -3,9 +3,14 @@
 # Table name: item_barters
 #
 #  id           :bigint           not null, primary key
-#  item_id      :bigint
-#  trader_name  :string
+#  item_id      :bigint           not null
+#  trader       :string
 #  trader_level :string
+#  currency     :string
+#  cost         :integer
+#  item_name    :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
 #
 # Indexes
 #
@@ -16,5 +21,5 @@
 #  fk_rails_...  (item_id => items.id)
 #
 class ItemBarter < ApplicationRecord
-  belongs_to :item, foreign_key: :item_id
+  belongs_to :item
 end

@@ -2,11 +2,12 @@
 #
 # Table name: item_hideouts
 #
-#  id            :bigint           not null, primary key
-#  item_id       :bigint
-#  station_name  :string
-#  station_level :integer
-#  quantity      :integer
+#  id         :bigint           not null, primary key
+#  item_id    :bigint           not null
+#  station    :string
+#  level      :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
 #
 # Indexes
 #
@@ -17,5 +18,5 @@
 #  fk_rails_...  (item_id => items.id)
 #
 class ItemHideout < ApplicationRecord
-  belongs_to :item, foreign_key: :item_id
+  belongs_to :item
 end

@@ -3,9 +3,11 @@
 # Table name: barter_requirements
 #
 #  id               :bigint           not null, primary key
-#  barter_unlock_id :bigint
+#  barter_unlock_id :bigint           not null
 #  trader_name      :string
 #  trader_level     :string
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
 #
 # Indexes
 #
@@ -16,6 +18,6 @@
 #  fk_rails_...  (barter_unlock_id => barter_unlocks.id)
 #
 class BarterRequirement < ApplicationRecord
-  belongs_to :barter_unlock, foreign_key: :barter_unlock_id
+  belongs_to :barter_unlock
   has_many :barter_requirement_items, dependent: :destroy
 end

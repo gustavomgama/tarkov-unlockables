@@ -20,7 +20,6 @@ module Admin
       assert_match /Dashboard/i, response.body
       assert_match /Items/i, response.body
       assert_match /Tasks/i, response.body
-      assert_match /Properties/i, response.body
     end
 
     test "dashboard shows correct counts" do

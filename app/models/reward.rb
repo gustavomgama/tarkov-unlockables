@@ -3,8 +3,10 @@
 # Table name: rewards
 #
 #  id          :bigint           not null, primary key
-#  task_id     :bigint
+#  task_id     :bigint           not null
 #  reward_type :string
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
 #
 # Indexes
 #
@@ -15,7 +17,7 @@
 #  fk_rails_...  (task_id => tasks.id)
 #
 class Reward < ApplicationRecord
-  belongs_to :task, foreign_key: :task_id
+  belongs_to :task
   has_many :loose_items, dependent: :destroy
   has_many :offer_unlocks, dependent: :destroy
   has_many :barter_unlocks, dependent: :destroy

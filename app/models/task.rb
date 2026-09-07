@@ -10,12 +10,15 @@
 #  given_by             :string
 #  kappa_required       :boolean
 #  lightkeeper_required :boolean
-#  leads_tos_count      :integer          default(0)
+#  leads_tos_count      :integer          default(0), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
 #
 class Task < ApplicationRecord
   has_many :leads_tos, dependent: :destroy
   has_many :requirements, dependent: :destroy
   has_many :rewards, dependent: :destroy
+  has_many :item_task_rewards, dependent: :destroy
 
   def prerequisite_chain(visited = [])
     return [] if visited.include?(id)

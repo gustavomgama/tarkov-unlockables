@@ -12,14 +12,26 @@
 #  given_by             :string
 #  kappa_required       :boolean
 #  lightkeeper_required :boolean
-#  leads_tos_count      :integer          default(0)
+#  leads_tos_count      :integer          default(0), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
 #
 one:
-  bsg_id: MyString
-  name: MyString
-  full_name: MyString
+  bsg_id: task_one
+  full_name: Task One
+  name: Task One
+  wiki_link: https://example.com/task-one
+  given_by: Prapor
+  kappa_required: false
+  lightkeeper_required: false
+  leads_tos_count: 0
 
 two:
-  bsg_id: MyString
-  name: MyString
-  full_name: MyString
+  bsg_id: task_two
+  full_name: Task Two
+  name: Task Two
+  wiki_link: https://example.com/task-two
+  given_by: Therapist
+  kappa_required: false
+  lightkeeper_required: false
+  leads_tos_count: 0

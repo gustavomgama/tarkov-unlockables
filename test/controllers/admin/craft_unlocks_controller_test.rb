@@ -3,8 +3,10 @@ require "test_helper"
 module Admin
   class CraftUnlocksControllerTest < ActionDispatch::IntegrationTest
     def setup
-      @reward = Reward.first || Reward.create!(task_id: 1, reward_type: "Item")
-      @resource = CraftUnlock.first || CraftUnlock.create!(reward_id: @reward.id, item_id: 1, item_name: "Test Item", hideout_station: "Workbench", station_level: 1)
+      @task = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
+      @item = Item.create!(bsg_id: "item#{SecureRandom.hex(4)}", full_name: "Test Item", short_name: "TI")
+      @reward = Reward.first || Reward.create!(task_id: @task.id, reward_type: "Item")
+      @resource = CraftUnlock.first || CraftUnlock.create!(reward_id: @reward.id, item_id: @item.id, item_name: "Test Item", hideout_station: "Workbench", station_level: 1)
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -62,7 +64,7 @@ module Admin
 
     test "create with valid params" do
       assert_difference("CraftUnlock.count") do
-        post_auth admin_craft_unlocks_path, params: { craft_unlock: { reward_id: @reward.id, item_id: 2, item_name: "New Craft", hideout_station: "Workbench", station_level: 2 } }
+        post_auth admin_craft_unlocks_path, params: { craft_unlock: { reward_id: @reward.id, item_id: @item.id, item_name: "New Craft", hideout_station: "Workbench", station_level: 2 } }
       end
       assert_redirected_to admin_craft_unlock_path(CraftUnlock.last)
     end
@@ -79,7 +81,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = CraftUnlock.create!(reward_id: @reward.id, item_id: 1, item_name: "Test", hideout_station: "Workbench", station_level: 1)
+      new_resource = CraftUnlock.create!(reward_id: @reward.id, item_id: @item.id, item_name: "Test", hideout_station: "Workbench", station_level: 1)
       delete_auth admin_craft_unlock_path(new_resource)
       assert_redirected_to admin_craft_unlocks_path
     end

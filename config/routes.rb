@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    resources :items, :tasks, :properties, :slots, :requirements, :rewards, :leads_tos,
+    resources :items, :tasks, :requirements, :rewards, :leads_tos,
               :barter_unlocks, :craft_unlocks, :offer_unlocks, :previous_tasks
     root to: "dashboard#index"
   end

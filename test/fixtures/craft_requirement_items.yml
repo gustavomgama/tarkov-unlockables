@@ -1,0 +1,35 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# == Schema Information
+#
+# Table name: craft_requirement_items
+#
+#  id                   :bigint           not null, primary key
+#  craft_requirement_id :bigint           not null
+#  item_id              :bigint
+#  item_name            :string
+#  count                :integer
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#
+# Indexes
+#
+#  index_craft_requirement_items_on_craft_requirement_id  (craft_requirement_id)
+#  index_craft_requirement_items_on_item_id               (item_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (craft_requirement_id => craft_requirements.id)
+#  fk_rails_...  (item_id => items.id)
+#
+one:
+  craft_requirement: one
+  item: one
+  item_name: Test Item One
+  count: 2
+
+two:
+  craft_requirement: two
+  item: two
+  item_name: Test Item Two
+  count: 3

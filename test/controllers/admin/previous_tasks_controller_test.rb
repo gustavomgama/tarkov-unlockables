@@ -3,8 +3,10 @@ require "test_helper"
 module Admin
   class PreviousTasksControllerTest < ActionDispatch::IntegrationTest
     def setup
-      @requirement = Requirement.first || Requirement.create!(task_id: 1, player_level: 1)
-      @resource = PreviousTask.first || PreviousTask.create!(requirement_id: @requirement.id, task_id: 2, task_name: "Test Task")
+      @task = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
+      @task2 = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task Two", name: "TT2")
+      @requirement = Requirement.first || Requirement.create!(task_id: @task.id, player_level: 1)
+      @resource = PreviousTask.first || PreviousTask.create!(requirement_id: @requirement.id, task_id: @task2.id, task_name: "Test Task")
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -62,7 +64,7 @@ module Admin
 
     test "create with valid params" do
       assert_difference("PreviousTask.count") do
-        post_auth admin_previous_tasks_path, params: { previous_task: { requirement_id: @requirement.id, task_id: 3, task_name: "New Task" } }
+        post_auth admin_previous_tasks_path, params: { previous_task: { requirement_id: @requirement.id, task_id: @task.id, task_name: "New Task" } }
       end
       assert_redirected_to admin_previous_task_path(PreviousTask.last)
     end
@@ -79,7 +81,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = PreviousTask.create!(requirement_id: @requirement.id, task_id: 4, task_name: "Test")
+      new_resource = PreviousTask.create!(requirement_id: @requirement.id, task_id: @task.id, task_name: "Test")
       delete_auth admin_previous_task_path(new_resource)
       assert_redirected_to admin_previous_tasks_path
     end

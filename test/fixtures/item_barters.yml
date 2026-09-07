@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# == Schema Information
+#
+# Table name: item_barters
+#
+#  id           :bigint           not null, primary key
+#  item_id      :bigint           not null
+#  trader       :string
+#  trader_level :string
+#  currency     :string
+#  cost         :integer
+#  item_name    :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#
+# Indexes
+#
+#  index_item_barters_on_item_id  (item_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (item_id => items.id)
+#
+one:
+  item: one
+  trader: Prapor
+  trader_level: LL2
+  currency: RUB
+  cost: 5000
+  item_name: Test Item One
+
+two:
+  item: two
+  trader: Therapist
+  trader_level: LL3
+  currency: USD
+  cost: 100
+  item_name: Test Item Two

@@ -30,7 +30,7 @@ module AdminCrud
   def create
     @resource = self.class.resource_class.new(resource_params)
     if @resource.save
-      redirect_to [:admin, @resource], notice: "#{self.class.resource_class.name} created"
+      redirect_to admin_resource_path(@resource), notice: "#{self.class.resource_class.name} created"
     else
       render :new, status: :unprocessable_entity
     end
@@ -41,7 +41,7 @@ module AdminCrud
 
   def update
     if @resource.update(resource_params)
-      redirect_to [:admin, @resource], notice: "#{self.class.resource_class.name} updated"
+      redirect_to admin_resource_path(@resource), notice: "#{self.class.resource_class.name} updated"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -53,6 +53,13 @@ module AdminCrud
   end
 
   private
+
+  # Resolves the admin show path for a resource using the controller's base
+  # resource class, so STI subclasses (e.g. Item::Generic) don't generate
+  # non-existent polymorphic routes like admin_item_generic_path.
+  def admin_resource_path(resource)
+    send("admin_#{self.class.resource_class.name.underscore}_path", resource)
+  end
 
   def set_resource
     @resource = self.class.resource_class.find(params[:id])

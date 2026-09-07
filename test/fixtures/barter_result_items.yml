@@ -1,0 +1,32 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# == Schema Information
+#
+# Table name: barter_result_items
+#
+#  id               :bigint           not null, primary key
+#  barter_result_id :bigint           not null
+#  item_id          :bigint
+#  item_name        :string
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#
+# Indexes
+#
+#  index_barter_result_items_on_barter_result_id  (barter_result_id)
+#  index_barter_result_items_on_item_id           (item_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (barter_result_id => barter_results.id)
+#  fk_rails_...  (item_id => items.id)
+#
+one:
+  barter_result: one
+  item: one
+  item_name: Test Item One
+
+two:
+  barter_result: two
+  item: two
+  item_name: Test Item Two

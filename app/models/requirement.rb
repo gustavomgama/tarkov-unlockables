@@ -3,9 +3,11 @@
 # Table name: requirements
 #
 #  id                   :bigint           not null, primary key
-#  task_id              :bigint
+#  task_id              :bigint           not null
 #  player_level         :integer
-#  previous_tasks_count :integer          default(0)
+#  previous_tasks_count :integer          default(0), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
 #
 # Indexes
 #
@@ -16,6 +18,6 @@
 #  fk_rails_...  (task_id => tasks.id)
 #
 class Requirement < ApplicationRecord
-  belongs_to :task, foreign_key: :task_id
+  belongs_to :task
   has_many :previous_tasks, dependent: :destroy
 end

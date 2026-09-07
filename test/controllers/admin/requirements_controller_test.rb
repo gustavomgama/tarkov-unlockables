@@ -3,7 +3,8 @@ require "test_helper"
 module Admin
   class RequirementsControllerTest < ActionDispatch::IntegrationTest
     def setup
-      @resource = Requirement.first || Requirement.create!(task_id: 1, player_level: 1)
+      @task = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
+      @resource = Requirement.first || Requirement.create!(task_id: @task.id, player_level: 1)
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -61,7 +62,7 @@ module Admin
 
     test "create with valid params" do
       assert_difference("Requirement.count") do
-        post_auth admin_requirements_path, params: { requirement: { task_id: 1, player_level: 10 } }
+        post_auth admin_requirements_path, params: { requirement: { task_id: @task.id, player_level: 10 } }
       end
       assert_redirected_to admin_requirement_path(Requirement.last)
     end
@@ -78,7 +79,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = Requirement.create!(task_id: 1, player_level: 1)
+      new_resource = Requirement.create!(task_id: @task.id, player_level: 1)
       delete_auth admin_requirement_path(new_resource)
       assert_redirected_to admin_requirements_path
     end

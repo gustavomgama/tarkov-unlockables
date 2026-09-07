@@ -1,0 +1,36 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# == Schema Information
+#
+# Table name: item_currencies
+#
+#  id               :bigint           not null, primary key
+#  item_id          :bigint           not null
+#  trader           :string
+#  currency         :string
+#  min_trader_level :integer
+#  task_unlock      :boolean          default(FALSE), not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#
+# Indexes
+#
+#  index_item_currencies_on_item_id  (item_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (item_id => items.id)
+#
+one:
+  item: one
+  trader: Prapor
+  currency: RUB
+  min_trader_level: 2
+  task_unlock: false
+
+two:
+  item: two
+  trader: Therapist
+  currency: USD
+  min_trader_level: 3
+  task_unlock: true

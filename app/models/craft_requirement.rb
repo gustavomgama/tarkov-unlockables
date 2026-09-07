@@ -3,9 +3,11 @@
 # Table name: craft_requirements
 #
 #  id              :bigint           not null, primary key
-#  craft_unlock_id :bigint
+#  craft_unlock_id :bigint           not null
 #  trader_name     :string
 #  trader_level    :string
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
 #
 # Indexes
 #
@@ -16,6 +18,6 @@
 #  fk_rails_...  (craft_unlock_id => craft_unlocks.id)
 #
 class CraftRequirement < ApplicationRecord
-  belongs_to :craft_unlock, foreign_key: :craft_unlock_id
+  belongs_to :craft_unlock
   has_many :craft_requirement_items, dependent: :destroy
 end

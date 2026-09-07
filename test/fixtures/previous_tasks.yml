@@ -1,0 +1,32 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# == Schema Information
+#
+# Table name: previous_tasks
+#
+#  id             :bigint           not null, primary key
+#  requirement_id :bigint           not null
+#  task_id        :bigint
+#  task_name      :string
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#
+# Indexes
+#
+#  index_previous_tasks_on_requirement_id  (requirement_id)
+#  index_previous_tasks_on_task_id         (task_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (requirement_id => requirements.id)
+#  fk_rails_...  (task_id => tasks.id)
+#
+one:
+  requirement: one
+  task: two
+  task_name: Task Two
+
+two:
+  requirement: two
+  task: one
+  task_name: Task One

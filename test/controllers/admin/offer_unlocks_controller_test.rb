@@ -3,8 +3,10 @@ require "test_helper"
 module Admin
   class OfferUnlocksControllerTest < ActionDispatch::IntegrationTest
     def setup
-      @reward = Reward.first || Reward.create!(task_id: 1, reward_type: "Item")
-      @resource = OfferUnlock.first || OfferUnlock.create!(reward_id: @reward.id, item_id: 1, item_name: "Test Item", trader_name: "Prapor", trader_level: 1)
+      @task = Task.create!(bsg_id: "task#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
+      @item = Item.create!(bsg_id: "item#{SecureRandom.hex(4)}", full_name: "Test Item", short_name: "TI")
+      @reward = Reward.first || Reward.create!(task_id: @task.id, reward_type: "Item")
+      @resource = OfferUnlock.first || OfferUnlock.create!(reward_id: @reward.id, item_id: @item.id, item_name: "Test Item", trader_name: "Prapor", trader_level: 1)
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -62,7 +64,7 @@ module Admin
 
     test "create with valid params" do
       assert_difference("OfferUnlock.count") do
-        post_auth admin_offer_unlocks_path, params: { offer_unlock: { reward_id: @reward.id, item_id: 2, item_name: "New Offer", trader_name: "Therapist", trader_level: 2 } }
+        post_auth admin_offer_unlocks_path, params: { offer_unlock: { reward_id: @reward.id, item_id: @item.id, item_name: "New Offer", trader_name: "Therapist", trader_level: 2 } }
       end
       assert_redirected_to admin_offer_unlock_path(OfferUnlock.last)
     end
@@ -79,7 +81,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = OfferUnlock.create!(reward_id: @reward.id, item_id: 1, item_name: "Test", trader_name: "Prapor", trader_level: 1)
+      new_resource = OfferUnlock.create!(reward_id: @reward.id, item_id: @item.id, item_name: "Test", trader_name: "Prapor", trader_level: 1)
       delete_auth admin_offer_unlock_path(new_resource)
       assert_redirected_to admin_offer_unlocks_path
     end

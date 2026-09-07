@@ -4,7 +4,8 @@ module Admin
   class LeadsTosControllerTest < ActionDispatch::IntegrationTest
     def setup
       @task = Task.first || Task.create!(bsg_id: "test#{SecureRandom.hex(4)}", full_name: "Test Task", name: "TT")
-      @resource = LeadsTo.create!(task_id: @task.id, follow_up_task_id: @task.id + 1, follow_up_task_name: "Test Follow Up")
+      @task2 = Task.create!(bsg_id: "test#{SecureRandom.hex(4)}", full_name: "Test Task Two", name: "TT2")
+      @resource = LeadsTo.create!(task_id: @task.id, follow_up_task_id: @task2.id, follow_up_task_name: "Test Follow Up")
       @admin_password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
       @admin_auth = {
         "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", @admin_password)
@@ -70,7 +71,7 @@ module Admin
     test "create with valid params" do
       assert_difference("LeadsTo.count") do
         post_auth admin_leads_tos_path,
-                      params: { leads_to: { task_id: @task.id, follow_up_task_id: @task.id + 2, follow_up_task_name: "New Follow Up" } }
+                      params: { leads_to: { task_id: @task.id, follow_up_task_id: @task2.id, follow_up_task_name: "New Follow Up" } }
       end
       assert_redirected_to admin_leads_to_path(LeadsTo.last)
     end
@@ -88,7 +89,7 @@ module Admin
     end
 
     test "destroy redirects to index" do
-      new_resource = LeadsTo.create!(task_id: @task.id, follow_up_task_id: @task.id + 3, follow_up_task_name: "Test")
+      new_resource = LeadsTo.create!(task_id: @task.id, follow_up_task_id: @task2.id, follow_up_task_name: "Test")
       delete_auth admin_leads_to_path(new_resource)
       assert_redirected_to admin_leads_tos_path
     end

@@ -45,13 +45,11 @@ class ItemsController < ApplicationController
     end
 
     if filters[:armor_class].present?
-      items = items.joins(:property)
-        .where(properties: { armor_class: filters[:armor_class] })
+      items = items.where("data->>'class' = ?", filters[:armor_class])
     end
 
     if filters[:caliber].present?
-      items = items.joins(:property)
-        .where(properties: { caliber: filters[:caliber] })
+      items = items.where("data->>'caliber' = ?", filters[:caliber])
     end
 
     if filters[:task_required].present? && filters[:task_required] == "1"
@@ -75,17 +73,17 @@ class ItemsController < ApplicationController
   end
 
   def armor_class_options
-    armor_classes = Property.distinct.pluck(:armor_class).compact.sort
+    armor_classes = Item.distinct.pluck(Arel.sql("data->>'class'")).compact.sort
     armor_classes.map do |ac|
-      count = Property.where(armor_class: ac).joins(:item).count
+      count = Item.where("data->>'class' = ?", ac).count
       { value: ac, label: "Class #{ac}", count: count }
     end
   end
 
   def caliber_options
-    calibers = Property.distinct.pluck(:caliber).compact.sort
+    calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
     calibers.map do |c|
-      count = Property.where(caliber: c).joins(:item).count
+      count = Item.where("data->>'caliber' = ?", c).count
       { value: c, label: c.gsub("Caliber", "").humanize, count: count }
     end
   end
