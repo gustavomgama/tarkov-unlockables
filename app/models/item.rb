@@ -28,6 +28,23 @@ class Item < ApplicationRecord
   has_many :item_barters, dependent: :destroy
   has_many :item_currencies, dependent: :destroy
 
+  attr_accessor :data_json_invalid
+
+  accepts_nested_attributes_for :item_currencies, :item_task_rewards, :item_hideouts, :item_barters,
+                                allow_destroy: true
+
+  validate :data_json_must_be_valid
+
+  def data_json_must_be_valid
+    errors.add(:data, "must be valid JSON") if @data_json_invalid
+  end
+
+  validate :data_json_must_be_valid
+
+  def data_json_must_be_valid
+    errors.add(:data, "must be valid JSON") if @data_json_invalid
+  end
+
   TYPE_MAP = {
     "Weapon" => "Item::Weapon",
     "Ammo" => "Item::Ammo",
@@ -51,10 +68,17 @@ class Item < ApplicationRecord
   end
 
   def data=(value)
-    super(value.is_a?(String) ? JSON.parse(value) : value)
-  rescue JSON::ParserError
-    errors.add(:data, "must be valid JSON")
-    super({})
+    if value.is_a?(String)
+      begin
+        super(JSON.parse(value))
+      rescue JSON::ParserError
+        @data_json_invalid = true
+        errors.add(:data, "must be valid JSON")
+        super({})
+      end
+    else
+      super(value)
+    end
   end
 
   def stats_partial

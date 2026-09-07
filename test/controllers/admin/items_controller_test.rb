@@ -316,5 +316,191 @@ module Admin
       assert_response :success
       refute_match /undefined method/, response.body
     end
+
+    # --- Task 9: data JSON, nested obtain attrs, properties/slots gone ---
+
+    test "update item with data JSON string stores it as a hash" do
+      payload = '{"caliber":"5.45x39mm","damage":42}'
+      patch_auth admin_item_url(@item), params: {
+        item: {
+          bsg_id: @item.bsg_id,
+          full_name: @item.full_name,
+          short_name: @item.short_name,
+          data: payload
+        }
+      }
+      @item.reload
+      assert_equal({ "caliber" => "5.45x39mm", "damage" => 42 }, @item.data)
+    end
+
+    test "update item with invalid JSON in data does not save and shows error" do
+      original_data = @item.data
+      patch_auth admin_item_url(@item), params: {
+        item: {
+          bsg_id: @item.bsg_id,
+          full_name: @item.full_name,
+          short_name: @item.short_name,
+          data: "{not valid json"
+        }
+      }
+      assert_response :unprocessable_entity
+      @item.reload
+      assert_equal original_data, @item.data
+    end
+
+    test "create item with invalid JSON in data does not save and shows error" do
+      bsg = "badjson#{SecureRandom.hex(4)}"
+      assert_no_difference("Item.count") do
+        post_auth admin_items_url, params: {
+          item: { bsg_id: bsg, full_name: "Bad", short_name: "B", data: "{broken" }
+        }
+      end
+      assert_response :unprocessable_entity
+    end
+
+    test "update accepts nested item_currencies_attributes and creates rows" do
+      assert_difference("@item.item_currencies.count", 1) do
+        patch_auth admin_item_url(@item), params: {
+          item: {
+            bsg_id: @item.bsg_id,
+            full_name: @item.full_name,
+            short_name: @item.short_name,
+            item_currencies_attributes: {
+              "0" => { trader: "Prapor", currency: "RUB", min_trader_level: 1 }
+            }
+          }
+        }
+      end
+      assert_redirected_to admin_item_url(@item)
+      ic = @item.item_currencies.last
+      assert_equal "Prapor", ic.trader
+      assert_equal "RUB", ic.currency
+      assert_equal 1, ic.min_trader_level
+    end
+
+    test "update accepts nested item_currencies_attributes with _destroy and removes row" do
+      ic = @item.item_currencies.create!(trader: "Therapist", currency: "USD", min_trader_level: 2)
+      assert_difference("@item.item_currencies.count", -1) do
+        patch_auth admin_item_url(@item), params: {
+          item: {
+            bsg_id: @item.bsg_id,
+            full_name: @item.full_name,
+            short_name: @item.short_name,
+            item_currencies_attributes: {
+              "0" => { id: ic.id, _destroy: "1" }
+            }
+          }
+        }
+      end
+      assert_redirected_to admin_item_url(@item)
+      assert_raises(ActiveRecord::RecordNotFound) { ic.reload }
+    end
+
+    test "update accepts nested item_barters_attributes and creates row" do
+      assert_difference("@item.item_barters.count", 1) do
+        patch_auth admin_item_url(@item), params: {
+          item: {
+            bsg_id: @item.bsg_id,
+            full_name: @item.full_name,
+            short_name: @item.short_name,
+            item_barters_attributes: {
+              "0" => { trader: "Therapist", trader_level: "LL2", currency: "USD", cost: 500, item_name: "Barter item" }
+            }
+          }
+        }
+      end
+    end
+
+    test "update accepts nested item_hideouts_attributes and creates row" do
+      assert_difference("@item.item_hideouts.count", 1) do
+        patch_auth admin_item_url(@item), params: {
+          item: {
+            bsg_id: @item.bsg_id,
+            full_name: @item.full_name,
+            short_name: @item.short_name,
+            item_hideouts_attributes: {
+              "0" => { station: "Workbench", level: 2 }
+            }
+          }
+        }
+      end
+    end
+
+    test "update accepts nested item_task_rewards_attributes and creates row" do
+      assert_difference("@item.item_task_rewards.count", 1) do
+        patch_auth admin_item_url(@item), params: {
+          item: {
+            bsg_id: @item.bsg_id,
+            full_name: @item.full_name,
+            short_name: @item.short_name,
+            item_task_rewards_attributes: {
+              "0" => { task_name: "Debut" }
+            }
+          }
+        }
+      end
+    end
+
+    test "properties and slots routes are gone (404)" do
+      get_auth "/admin/properties"
+      assert_response :not_found
+      get_auth "/admin/properties/new"
+      assert_response :not_found
+      get_auth "/admin/slots"
+      assert_response :not_found
+      get_auth "/admin/slots/new"
+      assert_response :not_found
+    end
+
+    test "show pretty-prints data as JSON" do
+      @item.update!(data: { "caliber" => "7.62x39mm", "damage" => 50 })
+      get_auth admin_item_url(@item)
+      assert_response :success
+      assert_match /7\.62x39mm/, response.body
+      assert_match /&quot;caliber&quot;|"caliber"/, response.body
+    end
+
+    test "form renders data textarea with current data JSON" do
+      @item.update!(data: { "caliber" => "5.45x39mm" })
+      get_auth edit_admin_item_url(@item)
+      assert_response :success
+      assert_match /name="item\[data\]"/, response.body
+      assert_match /5\.45x39mm/, response.body
+    end
+
+    test "form renders wiki_title and type select" do
+      get_auth edit_admin_item_url(@item)
+      assert_response :success
+      assert_match /name="item\[wiki_title\]"/, response.body
+      assert_match /name="item\[type\]"/, response.body
+    end
+
+    test "update with type param changes STI class" do
+      patch_auth admin_item_url(@item), params: {
+        item: {
+          bsg_id: @item.bsg_id,
+          full_name: @item.full_name,
+          short_name: @item.short_name,
+          type: "Item::Weapon"
+        }
+      }
+      assert_redirected_to admin_item_url(@item)
+      reloaded = Item.find(@item.id)
+      assert_equal "Item::Weapon", reloaded.type
+      assert_instance_of Item::Weapon, reloaded
+    end
+
+    test "update with wiki_title persists" do
+      patch_auth admin_item_url(@item), params: {
+        item: {
+          bsg_id: @item.bsg_id,
+          full_name: @item.full_name,
+          short_name: @item.short_name,
+          wiki_title: "AK-47"
+        }
+      }
+      @item.reload
+      assert_equal "AK-47", @item.wiki_title
+    end
   end
 end

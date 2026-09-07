@@ -95,5 +95,21 @@ module Admin
       get admin_offer_unlock_path(@resource)
       assert_response :unauthorized
     end
+
+    # --- Task 9: item_id as select ---
+
+    test "new form renders item_id as a select with options" do
+      get_auth new_admin_offer_unlock_path
+      assert_response :success
+      assert_match /<select[^>]*name="offer_unlock\[item_id\]"/, response.body
+      assert_match /<option[^>]*value="#{@item.id}"/, response.body
+    end
+
+    test "edit form renders item_id as a select with selected option" do
+      get_auth edit_admin_offer_unlock_path(@resource)
+      assert_response :success
+      assert_match /<select[^>]*name="offer_unlock\[item_id\]"/, response.body
+      assert_match /<option[^>]*selected="selected"[^>]*value="#{@resource.item_id}"|<option[^>]*value="#{@resource.item_id}"[^>]*selected="selected"/, response.body
+    end
   end
 end

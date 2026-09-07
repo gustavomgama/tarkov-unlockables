@@ -2,6 +2,4 @@
   <%= link_to "← Back", [:admin, @resource], class: "text-[var(--accent)] hover:underline" %>
 </div>
 <h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">Edit Craft Unlock</h1>
-<%= render "admin/shared/form", model: @resource, fields: [
-  :reward_id, :item_id, :item_name, :hideout_station, :station_level
-] %>
+<%= render "admin/shared/unlock_form", record: @resource %>

@@ -11,6 +11,10 @@
       <dd class="text-[var(--text)]"><%= @resource.id %></dd>
     </div>
     <div>
+      <dt class="text-[var(--text-muted)] text-sm">Type</dt>
+      <dd class="text-[var(--text)]"><%= @resource.type %></dd>
+    </div>
+    <div>
       <dt class="text-[var(--text-muted)] text-sm">BSG ID</dt>
       <dd class="text-[var(--text)]"><%= @resource.bsg_id %></dd>
     </div>
@@ -21,6 +25,10 @@
     <div>
       <dt class="text-[var(--text-muted)] text-sm">Short Name</dt>
       <dd class="text-[var(--text)]"><%= @resource.short_name %></dd>
+    </div>
+    <div>
+      <dt class="text-[var(--text-muted)] text-sm">Wiki Title</dt>
+      <dd class="text-[var(--text)]"><%= @resource.wiki_title || "—" %></dd>
     </div>
     <div>
       <dt class="text-[var(--text-muted)] text-sm">Categories</dt>
@@ -35,6 +43,16 @@
       <dd class="text-[var(--text)]"><%= @resource.images&.count || 0 %> images</dd>
     </div>
   </dl>
+
+  <div class="mt-6">
+    <h2 class="text-lg font-bold text-[var(--text-bright)] mb-2">Data</h2>
+    <% data = @resource.data || {} %>
+    <% if data.empty? %>
+      <p class="text-[var(--text-muted)]">No data.</p>
+    <% else %>
+      <pre class="bg-[var(--bg-surface)] border border-[var(--border)] rounded p-3 text-sm text-[var(--text)] overflow-auto"><%= JSON.pretty_generate(data) %></pre>
+    <% end %>
+  </div>
 
   <div class="mt-6 flex gap-4">
     <%= link_to "Edit", edit_admin_item_path(@resource), class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
