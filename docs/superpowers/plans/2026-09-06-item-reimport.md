@@ -6,19 +6,22 @@
 
 **This is a FULL DO-OVER, starting with items:** every existing migration and every existing model is deleted and recreated from scratch. Nothing from the old schema survives. The new schema is built in two migrations (items + full task graph) and every model is written fresh.
 
-**Architecture:** Single `items` table with STI (`type` column) + JSONB `data` column. 10 namespaced type classes (`Item::Weapon`, `Item::Ammo`, ...). Obtain graph as 4 child tables FK'd to `items.id`. Importers merge 4 sources in order: index → tarkovdev → market → wiki (wiki wins).
+**Architecture:** Single `items` table with STI (`type` column) + JSONB `data` column. 10 namespaced type classes (`Item::Weapon`, `Item::Ammo`, ...). Obtain graph as 4 child tables FK'd to `items.id`. Importers merge 3 sources in order: index → tarkovdev → wiki (wiki wins).
 
 **Spec:** This plan implements the approved design from conversation (2026-09-06). Final user decisions are binding and already incorporated:
+
 1. **C — import everything, keep the 119 base weapons** (they are in `items_index.json`; full re-import restores them; NO filter).
 2. **Delete all stale tests** (17 test files referencing non-existent models) — delete outright, no failure-verify step.
-3. **Keep `bsg_id` as a column but never use it for logic** → unlock-graph `item_id` columns are bigint FK to `items.id`, resolved at import via `Item.find_by(bsg_id: raw)&.id` (NULL when item absent); `item_name` kept for display; `Item` logic uses internal `id`.
+3. **Keep** `bsg_id` **as a column but never use it for logic** → unlock-graph `item_id` columns are bigint FK to `items.id`, resolved at import via `Item.find_by(bsg_id: raw)&.id` (NULL when item absent); `item_name` kept for display; `Item` logic uses internal `id`.
 4. **No descriptions/about data — names only** → no `description` column; no wiki Description section.
 
 ---
 
+
+
 ## Global Constraints
 
-- Kill Rails server before schema work: `kill $(lsof -t -i:3000)`
+- Kill Rails server before schema work: `kill $(lsof -t -i:3000)`Unlocks purchase of [7.62x51mm M80](https://escapefromtarkov.fandom.com/wiki/7.62x51mm_M80) at [Peacekeeper](https://escapefromtarkov.fandom.com/wiki/Peacekeeper) LL4
 - **100% TDD: every line of implementation code is written only after a failing test that exercises it.** No implementation code without a preceding failing test. Tests are written "like a person using the app" (integration tests hitting routes, not unit-only). Each task's test-first step is mandatory, not optional.
 - Rails/rake via `bundle exec`; Python via `~/.pyvenv-tarkov/bin/python`
 - AGENTS.md: wikitext parsing MUST use `mwparserfromhell` (Python) — regex only for tabber/table internals and 24-hex id extraction
@@ -29,6 +32,8 @@
 - Commit after each task
 
 ---
+
+
 
 ## Task 0: Commit Working Tree
 
@@ -44,9 +49,12 @@ Run: `git status --short` → expect clean.
 
 ---
 
+
+
 ## Task 1: Full Do-Over — Delete Everything, Recreate Schema + All Models
 
 **Files:**
+
 - Delete ALL migrations: `db/migrate/20260905000000_create_all_tables.rb`, `db/migrate/20260905000001_add_filters_to_slots.rb`, `db/migrate/20260905214724_add_leads_tos_count_to_tasks.rb`, `db/migrate/20260905214828_add_previous_tasks_count_to_requirements.rb`
 - Delete ALL domain models (keep `app/models/application_record.rb`): `property.rb`, `slot.rb`, `item.rb`, `item_currency.rb`, `item_task_reward.rb`, `item_hideout.rb`, `item_barter.rb`, `task.rb`, `leads_to.rb`, `requirement.rb`, `previous_task.rb`, `reward.rb`, `loose_item.rb`, `offer_unlock.rb`, `barter_unlock.rb`, `barter_requirement.rb`, `barter_requirement_item.rb`, `barter_result.rb`, `barter_result_item.rb`, `craft_unlock.rb`, `craft_requirement.rb`, `craft_requirement_item.rb`, `craft_result.rb`, `craft_result_item.rb`
 - Create: `db/migrate/20260906000000_create_items.rb`, `db/migrate/20260906000001_create_task_graph.rb`
@@ -56,6 +64,7 @@ Run: `git status --short` → expect clean.
 - Delete stale tests + fixtures (see Step 6)
 
 **Interfaces:**
+
 - Produces: complete new schema (items + obtain tables + full task graph) and all models
 - Consumes: nothing
 
@@ -278,6 +287,8 @@ end
 
 - [ ] **Step 4: Recreate all models**
 
+
+
 Write failing model tests first (100% TDD), then create:
 
 - `app/models/item.rb` — STI base (full code in Task 2)
@@ -333,20 +344,25 @@ Expected: remaining tests pass (task graph tests, admin tests, items tests — u
 
 ---
 
+
+
 ## Task 2: Item Model + Type Classes
 
 **Files:**
+
 - Rewrite: `app/models/item.rb`
 - Create: `app/models/item/weapon.rb`, `ammo.rb`, `armor.rb`, `key.rb`, `magazine.rb`, `container.rb`, `medical.rb`, `provision.rb`, `throwable.rb`, `generic.rb`
 - Modify: `test/models/item_test.rb`, `test/fixtures/items.yml`
 
 **Interfaces:**
+
 - Produces: `Item` STI base with `type_for`, obtain associations, `requires_task?`/`task_gated`/`how_to_unlock`/`unlock_details_for` using internal `id`
 - Consumes: `Item::*` type classes
 
 - [ ] **Step 1: Write failing tests first**
 
 Tests (integration-style, "like a person using the app"):
+
 - `Item.type_for("ItemPropertiesWeapon", nil)` → `Item::Weapon`; `Item.type_for("ItemPropertiesAmmo", nil)` → `Item::Ammo`; `Item.type_for("ItemPropertiesArmor", nil)` → `Item::Armor`; `Item.type_for("ItemPropertiesKey", nil)` → `Item::Key`; `Item.type_for("ItemPropertiesMagazine", nil)` → `Item::Magazine`; `Item.type_for("ItemPropertiesContainer", nil)` → `Item::Container`; `Item.type_for("ItemPropertiesMedKit", nil)` → `Item::Medical`; `Item.type_for("ItemPropertiesFoodDrink", nil)` → `Item::Provision`; `Item.type_for("ItemPropertiesGrenade", nil)` → `Item::Throwable`; `Item.type_for("ItemPropertiesUnknown", nil)` → `Item::Generic`; `Item.type_for("ItemPropertiesWeapon", "weapon")` → `Item::Weapon` (wiki infobox overrides); `Item.type_for(nil, nil)` → `Item::Generic`
 - `Item::Weapon.new` is an `Item`; `Item::Weapon.sti_name` == "Item::Weapon"
 - `requires_task?`/`task_gated`/`how_to_unlock`/`unlock_details_for` work with internal `id` (fixture item with `item_currencies`/`item_task_rewards` rows referencing `items.id`)
@@ -517,19 +533,24 @@ Expected: all pass.
 
 ---
 
+
+
 ## Task 3: Importers::Index
 
 **Files:**
+
 - Create: `app/services/importers/index.rb`
 - Create: `test/services/importers/index_test.rb`
 
 **Interfaces:**
+
 - Produces: `Importers::Index.import!` — upserts items from `offlinedata/tarkovunlockables/items_index.json`
 - Consumes: `Item`, `Item.type_for`
 
 - [ ] **Step 1: Write failing test first**
 
 Test with a small fixture JSON (temp file) matching the VERIFIED source shape (snake_case keys — see pre-flight scan): creates items with `bsg_id`, `slug`, `full_name`, `short_name`, `categories`, `properties` → `data`, `obtain_from` → obtain rows. Verifies:
+
 - item created with correct type via `Item.type_for(properties_type)` — source uses `ItemPropertiesWeapon` prefix
 - `data` contains kept properties (e.g. weapon `caliber`, `allowed_ammo`, `default_ammo`, `presets`, `slots`; ammo `caliber`, `ammo_type`, `damage`, `penetration_power`; armor `class`, `armor_type`, `armor_slots`, `zones`)
 - `links`/`images` NOT imported (skipped per prune)
@@ -619,19 +640,24 @@ Expected: pass.
 
 ---
 
+
+
 ## Task 4: Importers::TarkovDev
 
 **Files:**
+
 - Create: `app/services/importers/tarkov_dev.rb`
 - Create: `test/services/importers/tarkov_dev_test.rb`
 
 **Interfaces:**
+
 - Produces: `Importers::TarkovDev.import!` — enriches items from `offlinedata/tarkovdev/items.json` (keyed by bsg_id)
 - Consumes: `Item`
 
 - [ ] **Step 1: Write failing test first**
 
 Test with small fixture: item already exists (from Index import); TarkovDev import enriches `data` with kept properties, `containsItems`, `types`, `categories`, `wikiLink`/`link` → `links`, images → `images`, `buyFromTrader` → `item_currencies` (trader/currency/minTraderLevel/taskUnlock). Verifies:
+
 - `data` gets weapon `caliber`, `allowedAmmo`, `slots`, `presets`, `defaultPreset`; ammo `caliber`, `stackMaxSize`, `tracer`, `tracerColor`, `ammoType`, `damage`, `penetrationPower`; armor `class`
 - pruned props NOT stored (ergonomics, recoilVertical, fireRate, ballisticCoeficient, armorDamage, etc.)
 - `containsItems` stored
@@ -715,58 +741,16 @@ Expected: pass.
 
 ---
 
-## Task 5: Importers::Market
 
-**Files:**
-- Create: `app/services/importers/market.rb`
-- Create: `test/services/importers/market_test.rb`
 
-**Interfaces:**
-- Produces: `Importers::Market.import!` — fixes names from `offlinedata/tarkovmarket/items_all.json` (flat array with `bsgId`)
-- Consumes: `Item`
+## Task 5: Importers::Market — CANCELLED (user directive 2026-09-07)
 
-- [ ] **Step 1: Write failing test first**
-
-Test: item exists with wrong/blank name; Market import sets `full_name`/`short_name` from `name`/`shortName`. Verifies NO price fields stored (basePrice, avg24hPrice, etc. all skipped). Idempotent.
-
-- [ ] **Step 2: Implement**
-
-```ruby
-# app/services/importers/market.rb
-module Importers
-  class Market
-    SOURCE = Rails.root.join("offlinedata/tarkovmarket/items_all.json")
-
-    def self.import!
-      new.import!
-    end
-
-    def import!
-      data = JSON.parse(File.read(SOURCE))
-      data.each do |raw|
-        item = Item.find_by(bsg_id: raw["bsgId"])
-        next unless item
-        item.full_name = raw["name"] if raw["name"].present?
-        item.short_name = raw["shortName"] if raw["shortName"].present?
-        item.save!
-      end
-    end
-  end
-end
-```
-
-- [ ] **Step 3: Run tests**
-
-Run: `bundle exec rails test test/services/importers/market_test.rb`
-Expected: pass.
-
-- [ ] **Step 4: Commit**
-
----
+**CANCELLED:** user directive — "Market, prices, flea market will never be wanted." The tarkovmarket source is dropped entirely. Names come from Index + TarkovDev + Wiki. No `app/services/importers/market.rb`, no `test/services/importers/market_test.rb`, no seeds call. `offlinedata/tarkovmarket/` is not read.
 
 ## Task 6: Wiki Parser + Importers::Wiki
 
 **Files:**
+
 - Create: `lib/wiki_parser/parse_itembatches.py`
 - Create: `lib/wiki_parser/test_parse_itembatches.py`
 - Create: `lib/tasks/parse_wiki.rake`
@@ -775,12 +759,14 @@ Expected: pass.
 - Modify: `.gitignore` (add `offlinedata/officialwiki/parsed_items.json`)
 
 **Interfaces:**
+
 - Produces: `parsed_items.json` (bsg_id → { full_name, infobox, sections }); `Importers::Wiki.import!` (wiki wins)
 - Consumes: `mwparserfromhell` (0.7.2, venv `~/.pyvenv-tarkov/bin/python`), `offlinedata/officialwiki/itembatches/wiki_batch_*.json`
 
 - [ ] **Step 1: Write Python parser tests first**
 
 `test_parse_itembatches.py` (unittest, run with `~/.pyvenv-tarkov/bin/python -m unittest`):
+
 - parses a sample batch file → dict keyed by 24-hex node id
 - infobox params extracted with exact wiki spelling: `Weaprecoil`, `fire modes`, `def ammo`, `def mag`, `sightrange`, `MOA`, `rof`, `ID`, `node`, `caliber`, `penetration`, `armor`, `default plates`, `default plates armor class`, `max uses`, `ergonomics`, `recoil`, `range`, `velocity`, `effect`, `type`, `slot`, `trader`
 - values cleaned: units stripped ("0.01 kg" → "0.01", "838 m/s" → "838"), HTML font tags removed
@@ -793,6 +779,7 @@ Expected: pass.
 - [ ] **Step 2: Implement parser**
 
 `lib/wiki_parser/parse_itembatches.py`:
+
 - Input: `offlinedata/officialwiki/itembatches/wiki_batch_*.json` (format: `query.pages[].revisions[0].slots.main.content` wikitext)
 - Output: `offlinedata/officialwiki/parsed_items.json` — `{ bsg_id: { "full_name": ..., "infobox": {...}, "sections": { "mods": [...], "weapon_variants": [...] } } }`
 - Use `mwparserfromhell` for template/wikilink extraction; regex ONLY for tabber/table internals and 24-hex ids (`[0-9a-f]{24}`)
@@ -816,7 +803,8 @@ end
 - [ ] **Step 4: Write Importers::Wiki test first**
 
 Test: item exists (from earlier importers); wiki import overwrites `full_name` (wiki wins), sets `wiki_title`, merges `data` with infobox params (kept set), stores `mods`/`weapon_variants` sections. Verifies:
-- wiki `full_name` beats market name
+
+- wiki `full_name` wins
 - `data["caliber"]`, `data["penetration"]`, `data["armor"]`, `data["maxUses"]`, `data["ergonomics"]`, `data["effect"]` etc. set from infobox
 - `data["mods"]` = [{slot, items: [hex ids]}], `data["weapon_variants"]` = [{name, attachments: [hex ids]}]
 - pruned infobox params NOT stored (image, icon, weight, grid, price, fire modes, sightrange, MOA, rof, etc.)
@@ -870,15 +858,19 @@ Expected: pass.
 
 ---
 
+
+
 ## Task 7: Seeds Orchestration + Full Task Graph Import
 
 **Files:**
+
 - Rewrite: `db/seeds.rb`
 - Create: `test/services/seeds_test.rb` (or extend an existing seed test)
 
 **Interfaces:**
-- Produces: idempotent full import: Index → TarkovDev → Market → Wiki, then the FULL task graph import from `offlinedata/tarkovunlockables/tasks_index.json` (tasks, rewards, requirements, leads_tos, previous_tasks, loose_items, offer_unlocks, barter_unlocks, craft_unlocks + nested requirement/result items) with `item_id`/`task_id` bsg_id → internal id resolved at insert time
-- Consumes: all 4 importers, `Task`, `Reward`, unlock models, `tasks_index.json`
+
+- Produces: idempotent full import: Index → TarkovDev → Wiki, then the FULL task graph import from `offlinedata/tarkovunlockables/tasks_index.json` (tasks, rewards, requirements, leads_tos, previous_tasks, loose_items, offer_unlocks, barter_unlocks, craft_unlocks + nested requirement/result items) with `item_id`/`task_id` bsg_id → internal id resolved at insert time
+- Consumes: all 3 importers, `Task`, `Reward`, unlock models, `tasks_index.json`
 
 - [ ] **Step 1: Write failing test first**
 
@@ -888,10 +880,9 @@ Test: run seeds twice → item count unchanged second run; task graph rows not d
 
 ```ruby
 # db/seeds.rb
-puts "Importing items (index → tarkovdev → market → wiki)..."
+puts "Importing items (index → tarkovdev → wiki)..."
 Importers::Index.import!
 Importers::TarkovDev.import!
-Importers::Market.import!
 Importers::Wiki.import!
 
 puts "Importing task graph..."
@@ -1063,9 +1054,12 @@ Expected: pass.
 
 ---
 
+
+
 ## Task 8: Public UI — JSONB Filters + Type Partials
 
 **Files:**
+
 - Modify: `app/controllers/items_controller.rb` (filters join `data` JSONB instead of `properties`)
 - Modify: `app/views/items/show.html.erb` (render type partial)
 - Create: `app/views/items/_weapon_stats.html.erb`, `_ammo_stats.html.erb`, `_armor_stats.html.erb`, `_key_stats.html.erb`, `_magazine_stats.html.erb`, `_container_stats.html.erb`, `_medical_stats.html.erb`, `_provision_stats.html.erb`, `_throwable_stats.html.erb`, `_generic_stats.html.erb`
@@ -1073,6 +1067,7 @@ Expected: pass.
 - Modify: `test/controllers/items_controller_test.rb`
 
 **Interfaces:**
+
 - Produces: type-specific stat display from `data` JSONB; filters on `data->>'class'`, `data->>'caliber'`
 - Consumes: `Item` STI
 
@@ -1086,6 +1081,7 @@ Expected: pass.
 - [ ] **Step 2: Implement**
 
 `Item#stats_partial`:
+
 ```ruby
 def stats_partial
   "items/#{self.class.name.demodulize.underscore}_stats"
@@ -1093,6 +1089,7 @@ end
 ```
 
 Controller filter:
+
 ```ruby
 def filtered_items
   items = Item.all
@@ -1109,6 +1106,7 @@ Partials render from `item.data` with nil-safe access (e.g. `item.data["caliber"
 - [ ] **Step 3: Update obtain-from display in show.html.erb**
 
 `app/views/items/show.html.erb` references old column names — update to the new schema:
+
 - `entry.source.station_name` → `entry.source.station`; `entry.source.station_level` → `entry.source.level`
 - `entry.source.trader_name` → `entry.source.trader` (item_barters and item_currencies)
 - item_barters: `entry.source.trader_level` stays (string "LL2")
@@ -1124,9 +1122,12 @@ Expected: pass.
 
 ---
 
+
+
 ## Task 9: Admin — Full Edit of Any DB Info
 
 **Files:**
+
 - Modify: `app/controllers/admin/items_controller.rb` (permit `data` as JSON string, nested obtain attributes)
 - Modify: `app/views/admin/items/_form.html.erb` (JSON textarea for `data`, nested fields for item_currencies/item_task_rewards/item_hideouts/item_barters)
 - Modify: `app/views/admin/items/show.html.erb` (render `data` pretty-printed)
@@ -1136,6 +1137,7 @@ Expected: pass.
 - Modify: `test/controllers/admin/items_controller_test.rb`
 
 **Interfaces:**
+
 - Produces: admin can edit ANY info in DB (names, categories, links, images, data JSON, obtain rows)
 - Consumes: `Item#data=` (JSON string setter from Task 2)
 
@@ -1150,12 +1152,14 @@ Expected: pass.
 - [ ] **Step 2: Implement**
 
 `Item`:
+
 ```ruby
 accepts_nested_attributes_for :item_currencies, :item_task_rewards, :item_hideouts, :item_barters,
                               allow_destroy: true
 ```
 
 Controller `resource_params`:
+
 ```ruby
 def resource_params
   params.require(:item).permit(
@@ -1179,6 +1183,8 @@ Expected: pass.
 - [ ] **Step 4: Commit**
 
 ---
+
+
 
 ## Task 10: Full Re-import + Verification + CI
 
@@ -1224,20 +1230,51 @@ Expected: security, lint, fasterer, boot, tests (≥89% coverage), rubycritic (�
 
 ---
 
+
+
+## Task 11: Item Unlock Prerequisite Chain Display (post-reimport, user directive 2026-09-07)
+
+**Context (user):** The system tells the user how to get an item. Items are obtainable by: loose task rewards, hideout craft, trader barters, trader offers. No flea market. All items need at least level 1 trader loyalty. Some items become available only after accepting/completing a task. Tasks appear when the player reaches a certain player level, trader loyalty level, task accept/completion, or all three. Some tasks are direct follow-ups (Wet Job part 1 → part 6; part 6 rewards the unlock). Not all are linear: Wet Job part 6 must be completed for Psycho Sniper and The Guide to appear, and The Guide must be completed for The Cleaner to appear. The Cleaner unlocks purchase of 7.62x51mm M80 at Peacekeeper LL4 — but there is no way to know the player must complete Wet Job 1–6, then The Guide, then The Cleaner. **The system must show the user ALL tasks and requirements needed to access the task that unlocks the item.**
+
+**Verified source facts (tasks_index.json, 519 tasks):**
+- `requirements[].player_level` (string), `requirements[].trader_level` = `[{trader_name, trader_level}]` (91 tasks have it; some entries have empty `trader_name` — display level only), `requirements[].previous_tasks` = `[{task_id (often empty), task_name (slug)}]` (312 tasks).
+- Chain verified: wet-job-part-1 (lvl 14) → wet-job-part-2..6 (each requires previous) → the-guide (requires wet-job-part-6 + LL4) → the-cleaner (requires the-guide + Peacekeeper LL3). psycho-sniper is a sibling branch (requires wet-job-part-6 + Mechanic LL4 + lvl 27).
+
+**Files:**
+- Create: migration adding `trader_level` jsonb (default `[]`) to `requirements`
+- Modify: `app/models/task.rb` — extend `prerequisite_chain` (or add `unlock_chain`) so each node carries player level + trader loyalty requirements; walk `previous_tasks` transitively (already keyed by task slug via `Task.find_by(name:)`)
+- Modify: `db/seeds.rb` task-graph import — populate `requirements.trader_level` from `tasks_index.json`
+- Modify: `app/views/items/show.html.erb` — render the full chain for EVERY task-gated obtain method (item_task_rewards, item_currencies with `task_unlock`, item_barters, and the existing unlock records), not just unlock records
+- Modify: `test/models/task_test.rb`, `test/services/seeds_test.rb`, items show test
+
+**Steps:**
+- [ ] **Step 1: TDD failing tests** — chain includes all transitive prerequisites (wet-job-part-1..6 → the-guide → the-cleaner); each node shows player level + trader loyalty; sibling branches included; item show renders chain for task-gated currency/barter/task-reward obtain methods; "available from start" when no prerequisites.
+- [ ] **Step 2: Migration** — add `trader_level` jsonb default `[]` to `requirements`.
+- [ ] **Step 3: Model** — extend chain to include trader loyalty + player level per node.
+- [ ] **Step 4: Seeds** — populate `requirements.trader_level` from source.
+- [ ] **Step 5: View** — items/show.html.erb chain display for all task-gated obtain methods.
+- [ ] **Step 6: Run tests** — `bundle exec rails test` all pass.
+- [ ] **Step 7: Commit && Push**
+
+---
+
 ## Task Order Summary
 
-| # | Task | Hours |
-|---|------|-------|
-| 0 | Commit working tree | 0.1 |
-| 1 | Reset schema from scratch | 1 |
-| 2 | Item model + type classes | 1 |
-| 3 | Importers::Index | 1 |
-| 4 | Importers::TarkovDev | 1 |
-| 5 | Importers::Market | 0.5 |
-| 6 | Wiki parser + Importers::Wiki | 2 |
-| 7 | Seeds orchestration + task graph | 1 |
-| 8 | Public UI JSONB filters + type partials | 1 |
-| 9 | Admin full edit | 1.5 |
-| 10 | Full re-import + verification + CI | 1 |
 
-**Total estimated: ~11 hours**
+| #   | Task                                           | Hours |
+| --- | ---------------------------------------------- | ----- |
+| 0   | Commit working tree                            | 0.1   |
+| 1   | Reset schema from scratch                      | 1     |
+| 2   | Item model + type classes                      | 1     |
+| 3   | Importers::Index                               | 1     |
+| 4   | Importers::TarkovDev                           | 1     |
+| 5   | Importers::Market — CANCELLED (user directive) | 0     |
+| 6   | Wiki parser + Importers::Wiki                  | 2     |
+| 7   | Seeds orchestration + task graph               | 1     |
+| 8   | Public UI JSONB filters + type partials        | 1     |
+| 9   | Admin full edit                                | 1.5   |
+| 10  | Full re-import + verification + CI             | 1     |
+| 11  | Item unlock prerequisite chain display         | 1.5   |
+
+
+**Total estimated: ~12 hours**
