@@ -22,4 +22,12 @@
 class PreviousTask < ApplicationRecord
   belongs_to :requirement, counter_cache: :previous_tasks_count
   belongs_to :task, optional: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[task_name]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[requirement task]
+  end
 end

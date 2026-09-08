@@ -7,6 +7,7 @@ gem "importmap-rails"
 gem "image_processing", "~> 1.12"
 gem "propshaft"
 gem "pg", "~> 1.5"
+gem "ransack"
 gem "puma", ">= 5.0"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false

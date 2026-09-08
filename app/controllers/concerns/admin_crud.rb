@@ -10,6 +10,14 @@ module AdminCrud
     def resource_class
       @resource_class
     end
+
+    def searchable_columns(*columns)
+      @searchable_columns = columns
+    end
+
+    def search_columns
+      @searchable_columns || []
+    end
   end
 
   included do
@@ -17,7 +25,11 @@ module AdminCrud
   end
 
   def index
-    paginate(self.class.resource_class.all.order(id: :desc))
+    scope = self.class.resource_class.all.order(id: :desc)
+    if params[:q].present? && self.class.search_columns.any?
+      scope = scope.loose_search(params[:q], columns: self.class.search_columns.map(&:to_s))
+    end
+    paginate(scope)
   end
 
   def show

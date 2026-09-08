@@ -2,10 +2,10 @@ class ItemsController < ApplicationController
   PER_PAGE = 20
 
   def index
-    @item_count = Item.count
-
     items = Item.all.order(full_name: :asc)
+    items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
     items = apply_filters(items) if params[:filters].present?
+    @item_count = items.count
 
     page = params[:page].to_i
     page = 1 if page < 1
@@ -23,7 +23,11 @@ class ItemsController < ApplicationController
   end
 
   def show
-    @item = Item.find(params[:id])
+    @item = Item.includes(
+      :item_task_rewards, :item_hideouts, :item_barters, :item_currencies,
+      :loose_items, :offer_unlocks, :barter_unlocks, :craft_unlocks,
+      offer_unlocks: { reward: :task }
+    ).find(params[:id])
   end
 
   private

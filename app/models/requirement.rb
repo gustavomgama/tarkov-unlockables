@@ -21,4 +21,12 @@
 class Requirement < ApplicationRecord
   belongs_to :task
   has_many :previous_tasks, dependent: :destroy
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[player_level]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[previous_tasks task]
+  end
 end

@@ -23,21 +23,23 @@
 #  index_items_on_type    (type)
 #
 class Item < ApplicationRecord
-  has_many :item_task_rewards, dependent: :destroy
-  has_many :item_hideouts, dependent: :destroy
-  has_many :item_barters, dependent: :destroy
-  has_many :item_currencies, dependent: :destroy
+  has_many :item_task_rewards, dependent: :delete_all
+  has_many :item_hideouts, dependent: :delete_all
+  has_many :item_barters, dependent: :delete_all
+  has_many :item_currencies, dependent: :delete_all
+  has_many :loose_items, dependent: :delete_all
+  has_many :offer_unlocks, dependent: :delete_all
+  has_many :barter_unlocks, dependent: :delete_all
+  has_many :craft_unlocks, dependent: :delete_all
+  has_many :barter_requirement_items, dependent: :delete_all
+  has_many :barter_result_items, dependent: :delete_all
+  has_many :craft_requirement_items, dependent: :delete_all
+  has_many :craft_result_items, dependent: :delete_all
 
   attr_accessor :data_json_invalid
 
   accepts_nested_attributes_for :item_currencies, :item_task_rewards, :item_hideouts, :item_barters,
-                                allow_destroy: true
-
-  validate :data_json_must_be_valid
-
-  def data_json_must_be_valid
-    errors.add(:data, "must be valid JSON") if @data_json_invalid
-  end
+                                allow_destroy: true, reject_if: :all_blank
 
   validate :data_json_must_be_valid
 
@@ -128,6 +130,14 @@ class Item < ApplicationRecord
   scope :task_gated, -> {
     where(id: [ OfferUnlock.pluck(:item_id), BarterUnlock.pluck(:item_id), CraftUnlock.pluck(:item_id) ].flatten.uniq)
   }
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[full_name short_name slug categories type]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[item_barters item_currencies item_hideouts item_task_rewards]
+  end
 
   def self.search(query)
     return all if query.blank?

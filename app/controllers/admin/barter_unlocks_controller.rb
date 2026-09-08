@@ -1,6 +1,7 @@
 class Admin::BarterUnlocksController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: BarterUnlock
+  searchable_columns :item_name
 
   private
 

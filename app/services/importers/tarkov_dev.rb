@@ -3,18 +3,21 @@
 module Importers
   class TarkovDev
     SOURCE = Rails.root.join("offlinedata/tarkovdev/items.json")
+    TRADERS_SOURCE = Rails.root.join("offlinedata/tarkovdev/traders.json")
 
     WEAPON_PROPS = %w[caliber allowedAmmo slots presets defaultPreset].freeze
     AMMO_PROPS = %w[caliber stackMaxSize tracer tracerColor ammoType damage penetrationPower].freeze
     ARMOR_PROPS = %w[class].freeze
     COMMON_PROPS = %w[types categories containsItems].freeze
 
-    def self.import!(source: SOURCE)
-      new(source).import!
+    def self.import!(source: SOURCE, traders_source: TRADERS_SOURCE)
+      new(source, traders_source).import!
     end
 
-    def initialize(source)
+    def initialize(source, traders_source = TRADERS_SOURCE)
       @source = source
+      @traders_source = traders_source
+      @trader_names = load_trader_names
     end
 
     def import!
@@ -28,6 +31,16 @@ module Importers
     end
 
     private
+
+    def load_trader_names
+      data = JSON.parse(File.read(@traders_source))
+      data.dig("data") || {}
+    end
+
+    def trader_name(trader_id)
+      trader = @trader_names[trader_id]
+      trader ? trader["normalizedName"].capitalize : trader_id
+    end
 
     def import_item(item, raw)
       item.links = [ raw["wikiLink"], raw["link"] ].compact if raw["wikiLink"] || raw["link"]
@@ -57,7 +70,7 @@ module Importers
     def import_buy_from_trader(item, entries)
       entries.each do |entry|
         item.item_currencies.find_or_create_by!(
-          trader: entry["trader"],
+          trader: trader_name(entry["trader"]),
           currency: entry["currency"],
           min_trader_level: entry["minTraderLevel"],
           task_unlock: entry["taskUnlock"] || false

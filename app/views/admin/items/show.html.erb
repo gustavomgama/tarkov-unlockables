@@ -36,7 +36,15 @@
     </div>
     <div>
       <dt class="text-[var(--text-muted)] text-sm">Links</dt>
-      <dd class="text-[var(--text)]"><%= @resource.links&.join(", ") || "—" %></dd>
+      <dd class="text-[var(--text)]">
+        <% if @resource.links&.any? %>
+          <% @resource.links.each do |link| %>
+            <%= link_to link, link, class: "text-[var(--accent)] hover:underline mr-2", target: "_blank", rel: "noopener" %>
+          <% end %>
+        <% else %>
+          —
+        <% end %>
+      </dd>
     </div>
     <div>
       <dt class="text-[var(--text-muted)] text-sm">Images</dt>

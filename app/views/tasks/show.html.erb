@@ -27,7 +27,14 @@
             <% end %>
             <div class="flex flex-col items-center">
               <div class="px-3 py-2 <%= i == chain.length - 1 ? 'bg-[var(--accent)] text-[var(--bg-dark)]' : 'bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]' %> text-sm whitespace-nowrap">
-                <div class="font-medium"><%= t[:name] %></div>
+                <div class="font-medium">
+                  <% chain_task = Task.find_by(name: t[:name]) %>
+                  <% if chain_task %>
+                    <%= link_to t[:name], task_path(chain_task), class: "text-[var(--accent)] hover:underline" %>
+                  <% else %>
+                    <%= t[:name] %>
+                  <% end %>
+                </div>
                 <div class="text-xs <%= i == chain.length - 1 ? 'text-[var(--bg-dark)]' : 'text-[var(--text-muted)]' %>"><%= t[:given_by] %></div>
               </div>
             </div>
@@ -57,7 +64,11 @@
               <dd class="flex flex-wrap gap-2">
                 <% req.previous_tasks.each do |pt| %>
                   <span class="px-2 py-1 text-xs bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]">
-                    <%= pt.task_name %>
+                    <% if pt.task %>
+                      <%= link_to pt.task_name, task_path(pt.task), class: "text-[var(--accent)] hover:underline" %>
+                    <% else %>
+                      <%= pt.task_name %>
+                    <% end %>
                   </span>
                 <% end %>
               </dd>
@@ -80,25 +91,52 @@
             <% reward.loose_items.each do |li| %>
               <div class="flex items-center gap-2 text-sm">
                 <span class="text-[var(--text-muted)]">Loose:</span>
-                <span class="text-[var(--text)]"><%= li.item_name %> x<%= li.count %></span>
+                <span class="text-[var(--text)]">
+                  <% if li.item %>
+                    <%= link_to li.item_name, item_path(li.item), class: "text-[var(--accent)] hover:underline" %>
+                  <% else %>
+                    <%= li.item_name %>
+                  <% end %>
+                  x<%= li.count %>
+                </span>
               </div>
             <% end %>
             <% reward.offer_unlocks.each do |ou| %>
               <div class="flex items-center gap-2 text-sm">
                 <span class="text-[var(--badge-offer)]">Offer:</span>
-                <span class="text-[var(--text)]"><%= ou.item_name %> (<%= ou.trader_name %> LL<%= ou.trader_level %>)</span>
+                <span class="text-[var(--text)]">
+                  <% if ou.item %>
+                    <%= link_to ou.item_name, item_path(ou.item), class: "text-[var(--accent)] hover:underline" %>
+                  <% else %>
+                    <%= ou.item_name %>
+                  <% end %>
+                  (<%= ou.trader_name %> LL<%= ou.trader_level %>)
+                </span>
               </div>
             <% end %>
             <% reward.barter_unlocks.each do |bu| %>
               <div class="flex items-center gap-2 text-sm">
                 <span class="text-[var(--badge-barter)]">Barter:</span>
-                <span class="text-[var(--text)]"><%= bu.item_name %></span>
+                <span class="text-[var(--text)]">
+                  <% if bu.item %>
+                    <%= link_to bu.item_name, item_path(bu.item), class: "text-[var(--accent)] hover:underline" %>
+                  <% else %>
+                    <%= bu.item_name %>
+                  <% end %>
+                </span>
               </div>
             <% end %>
             <% reward.craft_unlocks.each do |cu| %>
               <div class="flex items-center gap-2 text-sm">
                 <span class="text-[var(--badge-craft)]">Craft:</span>
-                <span class="text-[var(--text)]"><%= cu.item_name %> (<%= cu.hideout_station %> Lv.<%= cu.station_level %>)</span>
+                <span class="text-[var(--text)]">
+                  <% if cu.item %>
+                    <%= link_to cu.item_name, item_path(cu.item), class: "text-[var(--accent)] hover:underline" %>
+                  <% else %>
+                    <%= cu.item_name %>
+                  <% end %>
+                  (<%= cu.hideout_station %> Lv.<%= cu.station_level %>)
+                </span>
               </div>
             <% end %>
           </div>

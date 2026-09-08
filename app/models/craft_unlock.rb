@@ -26,4 +26,12 @@ class CraftUnlock < ApplicationRecord
   belongs_to :item, optional: true
   has_many :craft_requirements, dependent: :destroy
   has_many :craft_results, dependent: :destroy
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[item_name hideout_station]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[craft_requirements craft_results item reward]
+  end
 end

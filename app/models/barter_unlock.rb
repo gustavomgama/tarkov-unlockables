@@ -24,4 +24,12 @@ class BarterUnlock < ApplicationRecord
   belongs_to :item, optional: true
   has_many :barter_requirements, dependent: :destroy
   has_many :barter_results, dependent: :destroy
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[item_name]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[barter_requirements barter_results item reward]
+  end
 end

@@ -1,6 +1,7 @@
 class Admin::PreviousTasksController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: PreviousTask
+  searchable_columns :task_name
 
   private
 

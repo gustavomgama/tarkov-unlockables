@@ -1,6 +1,7 @@
 class Admin::RewardsController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: Reward
+  searchable_columns :reward_type
 
   private
 

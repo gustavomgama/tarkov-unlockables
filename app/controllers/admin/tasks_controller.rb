@@ -1,6 +1,7 @@
 class Admin::TasksController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: Task
+  searchable_columns :full_name, :name, :given_by
 
   private
 

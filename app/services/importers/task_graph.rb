@@ -115,7 +115,7 @@ module Importers
         reward.offer_unlocks.create!(
           item_id:      item_id_for(ou["item_id"]),
           item_name:    ou["item_name"],
-          trader_name:  ou["trader_name"],
+          trader_name:  ou["trader_name"].to_s.capitalize,
           trader_level: strip_ll(ou["trader_level"])
         )
       end
@@ -132,7 +132,7 @@ module Importers
 
         (bu["requirements"] || []).each do |req|
           barter_req = barter_unlock.barter_requirements.create!(
-            trader_name:  req["trader_name"],
+            trader_name:  req["trader_name"].to_s.capitalize,
             trader_level: strip_ll(req["trader_level"])
           )
 
@@ -172,7 +172,7 @@ module Importers
 
         (cu["requirements"] || []).each do |req|
           craft_req = craft_unlock.craft_requirements.create!(
-            trader_name:  req["trader_name"],
+            trader_name:  req["trader_name"].to_s.capitalize,
             trader_level: strip_ll(req["trader_level"])
           )
 

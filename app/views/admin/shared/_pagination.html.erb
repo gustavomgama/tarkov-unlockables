@@ -1,11 +1,15 @@
 <% if @total_pages > 1 %>
+  <%
+    # Preserve current query params (search, filters) across pagination links
+    base_params = request.query_parameters.except("page")
+  %>
   <div class="flex items-center justify-between mt-6">
     <div class="text-sm text-[var(--text-muted)]">
       Showing <%= ((@current_page - 1) * @per_page) + 1 %> to <%= [@current_page * @per_page, @total_count].min %> of <%= @total_count %> entries
     </div>
     <div class="flex gap-1">
       <% if @current_page > 1 %>
-        <%= link_to "Previous", url_for(page: @current_page - 1, per_page: @per_page), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)]" %>
+        <%= link_to "Previous", url_for(base_params.merge(page: @current_page - 1, per_page: @per_page)), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)]" %>
       <% else %>
         <span class="px-3 py-1 text-sm text-[var(--text-muted)] border border-[var(--border)] rounded">Previous</span>
       <% end %>
@@ -14,7 +18,7 @@
         <% if p == @current_page %>
           <span class="px-3 py-1 text-sm bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold"><%= p %></span>
         <% elsif p <= 3 || p > @total_pages - 3 || (p - @current_page).abs <= 1 %>
-          <%= link_to p, url_for(page: p, per_page: @per_page), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)]" %>
+          <%= link_to p, url_for(base_params.merge(page: p, per_page: @per_page)), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)]" %>
         <% elsif p == 4 && @current_page > 5 %>
           <span class="px-2 text-[var(--text-muted)]">...</span>
         <% elsif p == @total_pages - 3 && @current_page < @total_pages - 4 %>
@@ -23,7 +27,7 @@
       <% end %>
 
       <% if @current_page < @total_pages %>
-        <%= link_to "Next", url_for(page: @current_page + 1, per_page: @per_page), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)]" %>
+        <%= link_to "Next", url_for(base_params.merge(page: @current_page + 1, per_page: @per_page)), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)]" %>
       <% else %>
         <span class="px-3 py-1 text-sm text-[var(--text-muted)] border border-[var(--border)] rounded">Next</span>
       <% end %>

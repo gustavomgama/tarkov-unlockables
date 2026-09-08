@@ -3,11 +3,18 @@
   <%= link_to "New Previous Task", [:new, :admin, :previous_task], class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold hover:bg-[var(--accent-hover)] transition-colors" %>
 </div>
 
+<%= form_tag admin_previous_tasks_path, method: :get, class: "mb-4 flex items-center gap-2" do %>
+  <%= text_field_tag :q, params[:q], placeholder: "Search previous tasks...", class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
+  <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]">
+    Search
+  </button>
+<% end %>
+
 <%= admin_table([
   { label: "ID", field: :id },
   { label: "Requirement ID", field: :requirement_id },
   { label: "Task ID", field: :task_id },
-  { label: "Task Name", field: :task_name, truncate: 30 }
+  { label: "Task Name", field: :task_name, truncate: 30, link: true }
 ], @resources) %>
 
 <%= render "admin/shared/pagination" %>

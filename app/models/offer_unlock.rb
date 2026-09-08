@@ -24,4 +24,12 @@
 class OfferUnlock < ApplicationRecord
   belongs_to :reward
   belongs_to :item, optional: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[item_name trader_name]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[item reward]
+  end
 end

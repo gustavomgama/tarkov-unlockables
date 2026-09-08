@@ -24,7 +24,13 @@
     </div>
     <div>
       <dt class="text-[var(--text-muted)] text-sm">Wiki Link</dt>
-      <dd class="text-[var(--text)]"><%= @resource.wiki_link %></dd>
+      <dd class="text-[var(--text)]">
+        <% if @resource.wiki_link.present? %>
+          <%= link_to @resource.wiki_link, @resource.wiki_link, class: "text-[var(--accent)] hover:underline", target: "_blank", rel: "noopener" %>
+        <% else %>
+          —
+        <% end %>
+      </dd>
     </div>
     <div>
       <dt class="text-[var(--text-muted)] text-sm">Kappa Required</dt>

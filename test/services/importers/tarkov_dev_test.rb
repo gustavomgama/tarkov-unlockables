@@ -160,7 +160,7 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
 
     weapon = Item.find_by(bsg_id: "weapon_bsg_1")
     currency = weapon.item_currencies.first
-    assert_equal "5a7c2eca46aef81a7ca2145d", currency.trader
+    assert_equal "Mechanic", currency.trader
     assert_equal "RUB", currency.currency
     assert_equal 3, currency.min_trader_level
     assert_equal false, currency.task_unlock

@@ -1,6 +1,7 @@
 class Admin::LeadsTosController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: LeadsTo
+  searchable_columns :follow_up_task_name
 
   private
 

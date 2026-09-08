@@ -1,6 +1,7 @@
 class Admin::RequirementsController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: Requirement
+  searchable_columns :player_level
 
   private
 

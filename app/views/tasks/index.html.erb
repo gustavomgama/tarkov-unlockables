@@ -4,6 +4,13 @@
     <span class="text-sm text-[var(--text-muted)]"><%= @task_count %> total</span>
   </div>
 
+  <%= form_tag tasks_path, method: :get, class: "mb-4 flex items-center gap-2" do %>
+    <%= text_field_tag :q, params[:q], placeholder: "Search tasks...", class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
+    <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]">
+      Search
+    </button>
+  <% end %>
+
   <div id="task-list" class="space-y-2">
     <% @tasks.each do |task| %>
       <%= link_to task_path(task), class: "block bg-[var(--bg-surface)] border border-[var(--border)] p-4 hover:border-[var(--accent)] transition-colors" do %>

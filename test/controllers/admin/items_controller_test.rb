@@ -502,5 +502,23 @@ module Admin
       @item.reload
       assert_equal "AK-47", @item.wiki_title
     end
+
+    # --- Ransack search tests ---
+
+    test "index search by full_name returns matching items" do
+      item1 = Item.create!(bsg_id: "search_a_#{SecureRandom.hex(4)}", full_name: "AK-74M Assault Rifle", short_name: "AK-74M")
+      item2 = Item.create!(bsg_id: "search_b_#{SecureRandom.hex(4)}", full_name: "M4A1 Carbine", short_name: "M4A1")
+
+      get_auth admin_items_url(q: "AK-74")
+      assert_response :success
+      assert_match /AK-74M/, response.body
+      refute_match /M4A1/, response.body
+    end
+
+    test "index search with no results shows empty table" do
+      get_auth admin_items_url(q: "ZZZZNONEXISTENT")
+      assert_response :success
+      assert_match /Items/, response.body
+    end
   end
 end

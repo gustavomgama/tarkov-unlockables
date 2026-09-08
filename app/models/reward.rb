@@ -22,4 +22,12 @@ class Reward < ApplicationRecord
   has_many :offer_unlocks, dependent: :destroy
   has_many :barter_unlocks, dependent: :destroy
   has_many :craft_unlocks, dependent: :destroy
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[reward_type]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[barter_unlocks craft_unlocks loose_items offer_unlocks task]
+  end
 end

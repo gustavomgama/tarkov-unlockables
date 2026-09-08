@@ -60,11 +60,11 @@ module Importers
           item.item_hideouts.create!(station: h["station_name"], level: h["station_level"])
         end
         (entry["barter"] || []).each do |b|
-          item.item_barters.create!(trader: b["trader_name"], trader_level: b["trader_level"].to_s.gsub(/LL/i, ""))
+          item.item_barters.create!(trader: b["trader_name"].to_s.capitalize, trader_level: b["trader_level"].to_s.gsub(/LL/i, ""))
         end
         (entry["currency"] || []).each do |c|
           item.item_currencies.create!(
-            trader: c["trader_name"],
+            trader: c["trader_name"].to_s.capitalize,
             currency: c["currency"],
             min_trader_level: c["trader_level"].to_s.gsub(/LL/i, "").to_i
           )

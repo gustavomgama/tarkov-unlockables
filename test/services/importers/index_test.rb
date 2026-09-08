@@ -185,10 +185,23 @@ class Importers::IndexTest < ActiveSupport::TestCase
     currency = weapon.item_currencies.first
     assert_equal "Peacekeeper", currency.trader
     assert_equal "USD", currency.currency
-    assert_equal 3, currency.min_trader_level
-  end
+     assert_equal 3, currency.min_trader_level
+   end
 
-  test "is idempotent when run twice" do
+   test "normalizes lowercase trader names to proper case" do
+     write_fixture([ {
+       "bsg_id" => "norm_bsg_1", "slug" => "norm-item", "full_name" => "Norm Item",
+       "short_name" => "N", "categories" => [], "properties" => { "properties_type" => "ItemPropertiesWeapon", "caliber" => "9x19mm", "allowedAmmo" => [], "defaultAmmo" => "", "defaultPreset" => "", "presets" => [], "slots" => [], "ammoType" => "", "damage" => 0, "penetrationPower" => 0, "class" => "", "armorType" => "", "armorSlots" => [], "zones" => [], "slashDamage" => 0, "stabDamage" => 0, "baseItem" => "", "default" => false, "type" => "" },
+       "obtain_from" => [ { "task_rewards" => [], "hideout" => [], "barter" => [ { "trader_name" => "prapor", "trader_level" => "LL2" } ], "currency" => [ { "trader_name" => "peacekeeper", "trader_level" => "3", "currency" => "RUB" } ] } ]
+     } ])
+     run_import!
+
+     item = Item.find_by(bsg_id: "norm_bsg_1")
+     assert_equal "Prapor", item.item_barters.first.trader
+     assert_equal "Peacekeeper", item.item_currencies.first.trader
+   end
+
+   test "is idempotent when run twice" do
     run_import!
     run_import!
 

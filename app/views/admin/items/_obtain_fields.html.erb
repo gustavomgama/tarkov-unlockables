@@ -1,4 +1,4 @@
-<%# Nested fields for the 4 obtain tables. Existing rows are editable + removable via _destroy; one blank new row rendered for each. %>
+<%# Nested fields for the 4 obtain tables. Existing rows are editable + removable via _destroy. %>
 <%
   obtain_associations = [
     { name: :item_currencies,    label: "Currencies",     fields: [:trader, :currency, :min_trader_level, :task_unlock] },
@@ -12,49 +12,34 @@
   <% obtain_associations.each do |oa| %>
     <div class="bg-[var(--bg-panel)] p-4 rounded border border-[var(--border)]">
       <h3 class="text-lg font-bold text-[var(--text-bright)] mb-4"><%= oa[:label] %></h3>
-      <%= form.fields_for oa[:name] do |ff| %>
-        <div class="space-y-2 mb-4 p-2 border border-[var(--border-faint)] rounded">
-          <% if ff.object.persisted? %>
-            <%= ff.hidden_field :id %>
-          <% end %>
-          <div class="flex flex-wrap gap-2 items-center">
-            <% oa[:fields].each do |f| %>
-              <div class="flex-1 min-w-[8rem]">
-                <%= ff.label f, f.to_s.humanize, class: "block text-xs text-[var(--text-muted)] mb-1" %>
-                <% if f == :task_unlock %>
-                  <%= ff.check_box f, class: "w-4 h-4" %>
-                <% else %>
-                  <%= ff.text_field f, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-1 text-sm text-[var(--text)]" %>
-                <% end %>
-              </div>
-            <% end %>
+      <% records = item.send(oa[:name]) %>
+      <% if records.any? %>
+        <%= form.fields_for oa[:name] do |ff| %>
+          <div class="space-y-2 mb-4 p-2 border border-[var(--border-faint)] rounded">
             <% if ff.object.persisted? %>
+              <%= ff.hidden_field :id %>
+            <% end %>
+            <div class="flex flex-wrap gap-2 items-center">
+              <% oa[:fields].each do |f| %>
+                <div class="flex-1 min-w-[8rem]">
+                  <%= ff.label f, f.to_s.humanize, class: "block text-xs text-[var(--text-muted)] mb-1" %>
+                  <% if f == :task_unlock %>
+                    <%= ff.check_box f, class: "w-4 h-4" %>
+                  <% else %>
+                    <%= ff.text_field f, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-1 text-sm text-[var(--text)]" %>
+                  <% end %>
+                </div>
+              <% end %>
               <div class="flex items-end">
                 <label class="text-xs text-[var(--danger)] flex items-center gap-1">
                   <%= ff.check_box :_destroy, class: "w-4 h-4" %> Remove
                 </label>
               </div>
-            <% end %>
+            </div>
           </div>
-        </div>
-      <% end %>
-      <%# Blank row for adding a new entry; child_index ensures Rails generates a non-persisted placeholder %>
-      <%= form.fields_for oa[:name], oa[:name].to_s.classify.constantize.new, child_index: "NEW_#{oa[:name].to_s.upcase}" do |ff| %>
-        <div class="space-y-2 p-2 border border-dashed border-[var(--border)] rounded">
-          <p class="text-xs text-[var(--text-muted)]">Add new:</p>
-          <div class="flex flex-wrap gap-2 items-center">
-            <% oa[:fields].each do |f| %>
-              <div class="flex-1 min-w-[8rem]">
-                <%= ff.label f, f.to_s.humanize, class: "block text-xs text-[var(--text-muted)] mb-1" %>
-                <% if f == :task_unlock %>
-                  <%= ff.check_box f, class: "w-4 h-4" %>
-                <% else %>
-                  <%= ff.text_field f, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-1 text-sm text-[var(--text)]" %>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-        </div>
+        <% end %>
+      <% else %>
+        <p class="text-xs text-[var(--text-muted)]">No records. Managed by importers.</p>
       <% end %>
     </div>
   <% end %>

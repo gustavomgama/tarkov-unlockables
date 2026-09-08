@@ -3,10 +3,17 @@
   <%= link_to "New Item", [:new, :admin, :item], class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold hover:bg-[var(--accent-hover)] transition-colors" %>
 </div>
 
+<%= form_tag admin_items_path, method: :get, class: "mb-4 flex items-center gap-2" do %>
+  <%= text_field_tag :q, params[:q], placeholder: "Search items...", class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
+  <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]">
+    Search
+  </button>
+<% end %>
+
 <%= admin_table([
   { label: "ID", field: :id },
   { label: "BSG ID", field: :bsg_id },
-  { label: "Full Name", field: :full_name, truncate: 40 },
+  { label: "Full Name", field: :full_name, truncate: 40, link: true },
   { label: "Short Name", field: :short_name },
   { label: "Categories", field: :categories }
 ], @resources) %>

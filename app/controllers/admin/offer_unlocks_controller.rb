@@ -1,6 +1,7 @@
 class Admin::OfferUnlocksController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: OfferUnlock
+  searchable_columns :item_name, :trader_name
 
   private
 

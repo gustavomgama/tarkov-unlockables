@@ -40,7 +40,14 @@
         <% @item.item_task_rewards.each do |r| %>
           <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
             <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)]">Task Reward</span>
-            <span class="text-sm text-[var(--text)]"><%= r.task_name %></span>
+            <span class="text-sm text-[var(--text)]">
+              <% task = Task.find_by(name: r.task_name) %>
+              <% if task %>
+                <%= link_to r.task_name, task_path(task), class: "text-[var(--accent)] hover:underline" %>
+              <% else %>
+                <%= r.task_name %>
+              <% end %>
+            </span>
           </div>
         <% end %>
         <% @item.item_hideouts.each do |h| %>
@@ -91,7 +98,11 @@
           <div class="border border-[var(--border)] p-4">
             <div class="flex items-center gap-2 mb-3">
               <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-offer)] text-[var(--text)]"><%= unlock.class.name.demodulize.titleize %></span>
-              <span class="font-medium text-[var(--text-bright)]"><%= unlock.reward&.task&.full_name %></span>
+              <span class="font-medium text-[var(--text-bright)]">
+                <% if unlock.reward&.task %>
+                  <%= link_to unlock.reward.task.full_name, task_path(unlock.reward.task), class: "text-[var(--text-bright)] hover:underline" %>
+                <% end %>
+              </span>
               <span class="text-sm text-[var(--text-muted)]">· <%= unlock.reward&.task&.given_by&.titleize %></span>
             </div>
 

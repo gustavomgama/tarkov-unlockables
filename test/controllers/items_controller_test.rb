@@ -290,6 +290,34 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  # --- Ransack search ---
+
+  test "index search by full_name returns matching items" do
+    alpha = Item.create!(bsg_id: "alpha-#{SecureRandom.hex(4)}", full_name: "Alpha Scope", short_name: "AS")
+    beta = Item.create!(bsg_id: "beta-#{SecureRandom.hex(4)}", full_name: "Beta Grip", short_name: "BG")
+
+    get items_url(q: "Alpha")
+
+    assert_response :success
+    assert_select "td a", text: "Alpha Scope"
+    assert_no_match(/Beta Grip/, response.body)
+  ensure
+    [ alpha, beta ].each { |i| i&.destroy }
+  end
+
+  test "index search by short_name returns matching items" do
+    alpha = Item.create!(bsg_id: "alpha2-#{SecureRandom.hex(4)}", full_name: "Alpha Scope 2", short_name: "ALF")
+    beta = Item.create!(bsg_id: "beta2-#{SecureRandom.hex(4)}", full_name: "Beta Grip 2", short_name: "BTA")
+
+    get items_url(q: "ALF")
+
+    assert_response :success
+    assert_select "td", text: "ALF"
+    assert_no_match(/BTA/, response.body)
+  ensure
+    [ alpha, beta ].each { |i| i&.destroy }
+  end
+
   test "show renders 'unlocking task not found' for task_currency when no OfferUnlock" do
     item = Item.create!(bsg_id: "m80d-#{SecureRandom.hex(4)}", full_name: "M80d", short_name: "M80d")
     item.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 4, task_unlock: true)

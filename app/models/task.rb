@@ -20,6 +20,10 @@ class Task < ApplicationRecord
   has_many :rewards, dependent: :destroy
   has_many :item_task_rewards, dependent: :destroy
 
+  def self.ransackable_associations(auth_object = nil)
+    %w[item_task_rewards leads_tos requirements rewards]
+  end
+
   def prerequisite_chain(visited = [])
     return [] if visited.include?(id)
     visited << id
@@ -41,5 +45,9 @@ class Task < ApplicationRecord
     end
 
     chain
+  end
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[full_name name given_by]
   end
 end

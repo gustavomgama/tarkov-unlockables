@@ -1,6 +1,7 @@
 class Admin::CraftUnlocksController < Admin::ApplicationController
   include AdminCrud
   crud_actions model: CraftUnlock
+  searchable_columns :item_name, :hideout_station
 
   private
 

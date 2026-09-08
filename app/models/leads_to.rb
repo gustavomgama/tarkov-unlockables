@@ -22,4 +22,12 @@
 class LeadsTo < ApplicationRecord
   belongs_to :task, counter_cache: :leads_tos_count
   belongs_to :follow_up_task, class_name: "Task", optional: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[follow_up_task_name]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[follow_up_task task]
+  end
 end
