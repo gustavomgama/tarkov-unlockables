@@ -29,7 +29,7 @@
 
   <div id="task-list" class="space-y-2">
     <% if @tasks.none? %>
-      <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-8 text-center">
+      <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6 text-center">
         <p class="text-[var(--text-muted)]">No tasks match your search.</p>
         <%= link_to "Clear search", tasks_path, class: "text-sm text-[var(--accent)] hover:underline mt-2 inline-block" %>
       </div>

@@ -37,7 +37,7 @@
     </div>
   </div>
 
-  <div class="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-8 lg:items-start">
+  <div class="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-6 lg:items-start">
     <aside class="lg:sticky lg:top-20">
       <form id="filter-form" action="<%= items_path %>" method="get">
         <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
@@ -104,6 +104,17 @@
               Clear filters
             <% end %>
           <% end %>
+
+          <label class="flex items-center gap-2 px-3 py-2 text-sm text-[var(--text)] hover:bg-[var(--bg-elevated)] cursor-pointer border border-[var(--border)]">
+            <input
+              type="checkbox"
+              name="filters[exclude_ref][]"
+              value="1"
+              <%= 'checked' if Array(params.dig(:filters, :exclude_ref)).include?("1") %>
+              class="filter-checkbox border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
+            >
+            <span>Exclude Ref items</span>
+          </label>
         </div>
       </form>
 
@@ -131,19 +142,19 @@
         <table class="w-full text-sm">
           <thead class="bg-[var(--bg-surface)]">
             <tr>
-              <th class="px-4 py-3 text-left font-medium text-[var(--text-muted)]">Name</th>
-              <th class="px-4 py-3 text-left font-medium text-[var(--text-muted)]">Short Name</th>
-              <th class="px-4 py-3 text-left font-medium text-[var(--text-muted)]">Categories</th>
+              <th class="px-3 py-2 text-left font-medium text-[var(--text-muted)]">Name</th>
+              <th class="px-3 py-2 text-left font-medium text-[var(--text-muted)]">Short Name</th>
+              <th class="px-3 py-2 text-left font-medium text-[var(--text-muted)]">Categories</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--border)]">
             <% @items.each do |item| %>
               <tr class="hover:bg-[var(--bg-surface)]">
-                <td class="px-4 py-3">
+                <td class="px-3 py-2">
                   <%= link_to item.full_name, item_path(item), class: "text-[var(--accent)] hover:text-[var(--accent-hover)]" %>
                 </td>
-                <td class="px-4 py-3 text-[var(--text)]"><%= item.short_name %></td>
-                <td class="px-4 py-3 text-[var(--text)]"><%= item.categories.join(", ") %></td>
+                <td class="px-3 py-2 text-[var(--text)]"><%= item.short_name %></td>
+                <td class="px-3 py-2 text-[var(--text)]"><%= item.categories.join(", ") %></td>
               </tr>
             <% end %>
           </tbody>

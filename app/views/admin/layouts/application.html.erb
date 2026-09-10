@@ -1,95 +1,95 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
-  <head>
-    <title>Admin // Tarkov DB</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "application", "tailwind" %>
-    <%= javascript_importmap_tags %>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://tarkov.dev" crossorigin>
-    <link rel="preload" href="https://tarkov.dev/fonts/bender.woff2" as="font" type="font/woff2" crossorigin="">
-    <style>
-      @font-face {
-        font-family: 'bender';
-        font-display: block;
-        font-style: normal;
-        font-weight: 400;
-        src: local('Bender Regular'), url('https://tarkov.dev/fonts/bender.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'bender';
-        font-display: swap;
-        font-style: normal;
-        font-weight: 700;
-        src: local('Bender Bold'), url('https://tarkov.dev/fonts/bender-bold.woff2') format('woff2');
-      }
-      @layer base {
-        :root {
-          --bg-dark: #0a0a0a;
-          --bg-panel: #12161c;
-          --bg-surface: #1a1a1a;
-          --bg-elevated: #22252a;
-          --text: #e0e0e0;
-          --text-bright: #ffffff;
-          --text-muted: #9a9a9a;
-          --accent: #d2af78;
-          --accent-hover: #e6c58c;
-          --border: #333333;
-          --border-faint: rgba(255,255,255,0.08);
-          --success: #00a700;
-          --danger: #cd1e2f;
-        }
-        html { background-color: var(--bg-dark); }
-        body {
-          background-color: var(--bg-dark);
-          color: var(--text);
-          font-family: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-          word-spacing: 1px;
-          -webkit-font-smoothing: antialiased;
-        }
-        h1, h2, h3, h4, .font-bold, .font-semibold { font-weight: 700; }
-        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      }
-    </style>
-  </head>
-  <body class="min-h-screen flex">
-    <aside class="w-56 bg-[var(--bg-panel)] border-r border-[var(--border)] flex-shrink-0 flex flex-col">
-      <div class="p-4 border-b border-[var(--border)]">
-        <%= link_to "Admin Panel", admin_root_path, class: "text-lg font-bold text-[var(--accent)]" %>
-      </div>
-      <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-        <div class="text-xs uppercase text-[var(--text-muted)] mb-2 px-3">Items</div>
-        <%= admin_nav_link("Items", Item) %>
+ <head>
+  <title>Admin // Tarkov DB</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", "tailwind" %>
+  <%= javascript_importmap_tags %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://tarkov.dev" crossorigin>
+  <link rel="preload" href="https://tarkov.dev/fonts/bender.woff2" as="font" type="font/woff2" crossorigin="">
+  <style>
+   @font-face {
+    font-family: 'bender';
+    font-display: block;
+    font-style: normal;
+    font-weight: 400;
+    src: local('Bender Regular'), url('https://tarkov.dev/fonts/bender.woff2') format('woff2');
+   }
+   @font-face {
+    font-family: 'bender';
+    font-display: swap;
+    font-style: normal;
+    font-weight: 700;
+    src: local('Bender Bold'), url('https://tarkov.dev/fonts/bender-bold.woff2') format('woff2');
+   }
+   @layer base {
+    :root {
+     --bg-dark: #0a0a0a;
+     --bg-panel: #12161c;
+     --bg-surface: #1a1a1a;
+     --bg-elevated: #22252a;
+     --text: #e0e0e0;
+     --text-bright: #ffffff;
+     --text-muted: #9a9a9a;
+     --accent: #d2af78;
+     --accent-hover: #e6c58c;
+     --border: #333333;
+     --border-faint: rgba(255,255,255,0.08);
+     --success: #00a700;
+     --danger: #cd1e2f;
+    }
+    html { background-color: var(--bg-dark); }
+    body {
+     background-color: var(--bg-dark);
+     color: var(--text);
+     font-family: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+     font-weight: 400;
+     word-spacing: 1px;
+     -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4, .font-bold, .font-semibold { font-weight: 700; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+   }
+  </style>
+ </head>
+ <body class="min-h-screen flex">
+  <aside class="w-56 bg-[var(--bg-panel)] border-r border-[var(--border)] flex-shrink-0 flex flex-col">
+   <div class="p-4 border-b border-[var(--border)]">
+    <%= link_to "Admin Panel", admin_root_path, class: "text-lg font-bold text-[var(--accent)]" %>
+   </div>
+   <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+    <div class="text-xs uppercase text-[var(--text-muted)] mb-2 px-3">Items</div>
+    <%= admin_nav_link("Items", Item) %>
 
-        <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Tasks</div>
-        <%= admin_nav_link("Tasks", Task) %>
-        <%= admin_nav_link("Requirements", Requirement) %>
-        <%= admin_nav_link("Rewards", Reward) %>
-        <%= admin_nav_link("Leads To", LeadsTo) %>
-        <%= admin_nav_link("Previous Tasks", PreviousTask) %>
+    <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Tasks</div>
+    <%= admin_nav_link("Tasks", Task) %>
+    <%= admin_nav_link("Requirements", Requirement) %>
+    <%= admin_nav_link("Rewards", Reward) %>
+    <%= admin_nav_link("Leads To", LeadsTo) %>
+    <%= admin_nav_link("Previous Tasks", PreviousTask) %>
 
-        <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Barters</div>
-        <%= admin_nav_link("Barter Unlocks", BarterUnlock) %>
+    <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Barters</div>
+    <%= admin_nav_link("Barter Unlocks", BarterUnlock) %>
 
-        <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Crafts</div>
-        <%= admin_nav_link("Craft Unlocks", CraftUnlock) %>
+    <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Crafts</div>
+    <%= admin_nav_link("Craft Unlocks", CraftUnlock) %>
 
-        <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Offers</div>
-        <%= admin_nav_link("Offer Unlocks", OfferUnlock) %>
-      </nav>
-    </aside>
+    <div class="text-xs uppercase text-[var(--text-muted)] mt-4 mb-2 px-3">Offers</div>
+    <%= admin_nav_link("Offer Unlocks", OfferUnlock) %>
+   </nav>
+  </aside>
 
-    <main class="flex-1 p-6 overflow-auto">
-      <% if notice %>
-        <div class="mb-4 p-3 bg-[var(--success)]/20 border border-[var(--success)] rounded text-[var(--success)] text-sm">
-          <%= notice %>
-        </div>
-      <% end %>
-      <%= yield %>
-    </main>
-  </body>
+  <main class="flex-1 p-6 overflow-auto">
+   <% if notice %>
+    <div class="mb-4 p-3 bg-[var(--success)]/20 border border-[var(--success)] text-[var(--success)] text-sm">
+     <%= notice %>
+    </div>
+   <% end %>
+   <%= yield %>
+  </main>
+ </body>
 </html>

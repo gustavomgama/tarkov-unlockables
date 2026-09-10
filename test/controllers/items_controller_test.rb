@@ -348,6 +348,25 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ rub_item, usd_item ].each { |i| i&.destroy }
   end
 
+  test "index exclude_ref filter hides items sold by Ref" do
+    ref_item = Item.create!(bsg_id: "ref1-#{SecureRandom.hex(4)}", full_name: "Ref Item", short_name: "RF")
+    other_item = Item.create!(bsg_id: "ref2-#{SecureRandom.hex(4)}", full_name: "Other Item", short_name: "OI")
+    ref_item.item_currencies.create!(trader: "Ref", currency: "EUR", min_trader_level: 1)
+    other_item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { exclude_ref: [ "1" ] })
+    assert_response :success
+    assert_select "td a", text: "Other Item"
+    assert_no_match(/Ref Item/, response.body)
+
+    # Without the filter both show
+    get items_url
+    assert_select "td a", text: "Ref Item"
+  ensure
+    ItemCurrency.destroy_all
+    [ ref_item, other_item ].each { |i| i&.destroy }
+  end
+
   test "index filters by category" do
     head_item = Item.create!(bsg_id: "cat1-#{SecureRandom.hex(4)}", full_name: "Headphones Pro", short_name: "HP", categories: [ "headphones" ])
     gun_item = Item.create!(bsg_id: "cat2-#{SecureRandom.hex(4)}", full_name: "AK-74", short_name: "AK", categories: [ "assault_rifles" ])

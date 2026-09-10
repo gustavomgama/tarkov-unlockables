@@ -1,2 +1,9 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+APP_ROOT = File.expand_path("..", __dir__)
+
+unless system("foreman --version", out: File::NULL)
+  warn "bin/dev requires foreman: gem install foreman"
+  exit 1
+end
+
+exec "foreman", "start", "-f", "Procfile.dev", "--root", APP_ROOT, *ARGV

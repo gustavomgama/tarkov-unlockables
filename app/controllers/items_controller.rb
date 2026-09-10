@@ -51,8 +51,14 @@ class ItemsController < ApplicationController
   def apply_filters(items)
     filters = params[:filters].permit(
       { currency: [] }, { category: [] }, { armor_class: [] },
-      { caliber: [] }, { task_required: [] }, { source: [] }
+      { caliber: [] }, { task_required: [] }, { source: [] },
+      { exclude_ref: [] }
     )
+
+    # Exclude Ref: drop items obtainable from the Ref trader
+    if Array(filters[:exclude_ref]).include?("1")
+      items = items.where.not(id: ItemCurrency.where(trader: "Ref").select(:item_id))
+    end
 
     # Currency: skip if all selected
     currencies = Array(filters[:currency]).reject(&:blank?)
