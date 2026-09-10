@@ -47,8 +47,22 @@ module Importers
       item.images = [ raw["iconLink"], raw["gridImageLink"], raw["baseImageLink"],
                      raw["inspectImageLink"], raw["image512pxLink"], raw["image8xLink"] ].compact
       item.data = item.data.merge(kept_properties(raw))
+      # Preset items come from the index with only ["preset"]; resolve their
+      # BSG category IDs into real categories (armor, equipment, ...).
+      if item.categories.include?("preset")
+        item.categories = item.categories | resolved_categories(raw)
+      end
       item.save!
       import_buy_from_trader(item, raw["buyFromTrader"] || [])
+    end
+
+    def resolved_categories(raw)
+      Array(raw["categories"]).filter_map { |id| item_categories[id] }
+        .map { |c| c["normalizedName"].tr("-", "_") }.uniq - [ "item" ]
+    end
+
+    def item_categories
+      @item_categories ||= JSON.parse(File.read(@source)).dig("data", "itemCategories") || {}
     end
 
     def kept_properties(raw)

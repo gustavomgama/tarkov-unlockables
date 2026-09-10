@@ -92,10 +92,11 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
-    assert_select "dt", text: "Armor Type"
-    assert_select "dt", text: "Armor Slots"
-    assert_select "dt", text: "Zones"
     assert_select "dt", text: "Durability"
+    # armor type / slots / zones are intentionally not shown
+    assert_select "dt", text: "Armor Type", count: 0
+    assert_select "dt", text: "Armor Slots", count: 0
+    assert_select "dt", text: "Zones", count: 0
   ensure
     armor&.destroy
   end
