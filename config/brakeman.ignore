@@ -1,51 +1,15 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 4,
-      "fingerprint": "6671d0f7128314481e09156848bf5fda113f48a1df5a35fbd5b974f7e58484bd",
-      "check_name": "LinkToHref",
-      "message": "Potentially unsafe model attribute in `link_to` href",
-      "file": "app/views/tasks/show.html.erb",
-      "line": 31,
-      "link_path": "https://brakemanscanner.org/docs/warning_types/link_to_href",
-      "text": "wiki_link is normalized via ApplicationRecord::HTTP_LINK (http/https only) before persistence.",
-      "trust": true
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "cf6faeaa647ebd15fe5d170ba9edf41c6ad5ed24999c3ebb23ac46d03bbc8d91",
+      "fingerprint": "5c32b97ca768d25790a088e230ddd395b97275f724f6eae2fcca33d630d15413",
       "check_name": "SQL",
       "message": "Possible SQL injection",
-      "file": "app/models/application_record.rb",
-      "line": 11,
+      "file": "app/controllers/concerns/loose_searchable.rb",
+      "line": 22,
       "link_path": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "text": "Attribute name comes from internal callers with fixed symbol args; tokens are bound as placeholders.",
-      "trust": true
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "cbc2f4d62e2a5dd278badeb132af66b32830023d0d0dd957282c86f6bb352692",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/controllers/concerns/sortable_paginatable.rb",
-      "line": 17,
-      "link_path": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "text": "Sort column comes from a frozen whitelist hash (SORTS.fetch); direction is a ternary forced to ASC/DESC. No user input reaches the SQL string.",
-      "trust": true
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 4,
-      "fingerprint": "f815659b4a9b2bca7832a2b67c0ab12200c8e49032561592ad84ac1ed4ed27d6",
-      "check_name": "LinkToHref",
-      "message": "Potentially unsafe model attribute in `link_to` href",
-      "file": "app/views/traders/show.html.erb",
-      "line": 8,
-      "link_path": "https://brakemanscanner.org/docs/warning_types/link_to_href",
-      "text": "wiki_link normalized via HTTP_LINK (http/https only) before persistence.",
+      "text": "col is hardcoded column name from caller (e.g., 'full_name'); like_value parameterized with ? placeholder.",
       "trust": true
     }
   ]

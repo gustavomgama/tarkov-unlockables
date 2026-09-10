@@ -15,6 +15,8 @@
 #  updated_at           :datetime         not null
 #
 class Task < ApplicationRecord
+  normalizes_links :wiki_link
+
   has_many :leads_tos, dependent: :destroy
   has_many :requirements, dependent: :destroy
   has_many :rewards, dependent: :destroy

@@ -17,6 +17,8 @@ module LooseSearchable
 
       like_value = "%#{stripped_query}%"
       conditions = columns.map do |col|
+        # brakeman:ignore SQL
+        # col is a hardcoded column name from caller (e.g., "full_name"); never user input
         Arel.sql("regexp_replace(#{col}::text, '[^a-zA-Z0-9]', '', 'g') ILIKE ?")
       end
 

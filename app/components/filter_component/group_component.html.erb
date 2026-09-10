@@ -1,4 +1,4 @@
-<div class="relative" data-controller="filter-group">
+<div class="relative inline-block" data-controller="filter-group">
   <button
     type="button"
     data-action="filter-group#toggle"
@@ -17,7 +17,8 @@
 
   <div
     data-filter-group-target="dropdown"
-    class="hidden absolute z-10 top-full left-0 mt-1 w-56 bg-[var(--bg-surface)] border border-[var(--border)] p-3"
+    class="hidden"
+    style="position:fixed; z-index:9999; width:14rem; max-height:18rem; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border); padding:0.75rem;"
   >
     <div class="space-y-1">
       <% @options.each do |option| %>

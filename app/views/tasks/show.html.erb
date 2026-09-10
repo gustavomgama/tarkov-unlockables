@@ -30,7 +30,7 @@
                 <div class="font-medium">
                   <% chain_task = Task.find_by(name: t[:name]) %>
                   <% if chain_task %>
-                    <%= link_to t[:name], task_path(chain_task), class: "text-[var(--accent)] hover:underline" %>
+                    <%= link_to chain_task.full_name || t[:name], task_path(chain_task), class: "text-[var(--accent)] hover:underline" %>
                   <% else %>
                     <%= t[:name] %>
                   <% end %>

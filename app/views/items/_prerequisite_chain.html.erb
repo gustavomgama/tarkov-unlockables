@@ -20,7 +20,7 @@
         <span class="px-2 py-1 text-xs <%= i == ordered.length - 1 ? 'font-medium bg-[var(--accent)] text-[var(--bg-dark)]' : 'bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]' %>">
           <% chain_task = Task.find_by(name: t[:name]) %>
           <% if chain_task %>
-            <%= link_to t[:name], task_path(chain_task), class: "text-[var(--accent)] hover:underline" %>
+            <%= link_to t[:name], task_path(chain_task), class: (i == ordered.length - 1 ? "text-[var(--bg-dark)] hover:underline font-medium" : "text-[var(--accent)] hover:underline") %>
           <% else %>
             <%= t[:name] %>
           <% end %>

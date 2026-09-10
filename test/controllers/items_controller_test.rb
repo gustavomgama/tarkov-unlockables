@@ -330,4 +330,172 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.item_currencies&.destroy_all
     item&.destroy
   end
+
+  # --- Filter tests ---
+
+  test "index filters by currency" do
+    rub_item = Item.create!(bsg_id: "cur1-#{SecureRandom.hex(4)}", full_name: "Ruble Item", short_name: "RI")
+    usd_item = Item.create!(bsg_id: "cur2-#{SecureRandom.hex(4)}", full_name: "Dollar Item", short_name: "DI")
+    rub_item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    usd_item.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 2)
+
+    get items_url(filters: { currency: [ "RUB" ] })
+    assert_response :success
+    assert_select "td a", text: "Ruble Item"
+    assert_no_match(/Dollar Item/, response.body)
+  ensure
+    ItemCurrency.destroy_all
+    [ rub_item, usd_item ].each { |i| i&.destroy }
+  end
+
+  test "index filters by category" do
+    head_item = Item.create!(bsg_id: "cat1-#{SecureRandom.hex(4)}", full_name: "Headphones Pro", short_name: "HP", categories: [ "headphones" ])
+    gun_item = Item.create!(bsg_id: "cat2-#{SecureRandom.hex(4)}", full_name: "AK-74", short_name: "AK", categories: [ "assault_rifles" ])
+
+    get items_url(filters: { category: [ "headphones" ] })
+    assert_response :success
+    assert_select "td a", text: "Headphones Pro"
+    assert_no_match(/AK-74/, response.body)
+  ensure
+    [ head_item, gun_item ].each { |i| i&.destroy }
+  end
+
+  test "index filters by caliber" do
+    ammo545 = Item::Ammo.create!(bsg_id: "cal1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BP", short_name: "BP", data: { "caliber" => "5.45x39mm", "damage" => 40 })
+    ammo762 = Item::Ammo.create!(bsg_id: "cal2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm", "damage" => 50 })
+
+    get items_url(filters: { caliber: [ "5.45x39mm" ] })
+    assert_response :success
+    assert_select "td a", text: "5.45x39mm BP"
+    assert_no_match(/7.62x39mm PS/, response.body)
+  ensure
+    [ ammo545, ammo762 ].each { |i| i&.destroy }
+  end
+
+  test "index filters by armor class" do
+    armor4 = Item::Armor.create!(bsg_id: "arm1-#{SecureRandom.hex(4)}", full_name: "Trooper Class 4", short_name: "T4", data: { "class" => "4" })
+    armor6 = Item::Armor.create!(bsg_id: "arm2-#{SecureRandom.hex(4)}", full_name: "Zabralo Class 6", short_name: "Z6", data: { "class" => "6" })
+
+    get items_url(filters: { armor_class: [ "4" ] })
+    assert_response :success
+    assert_select "td a", text: "Trooper Class 4"
+    assert_no_match(/Zabralo Class 6/, response.body)
+  ensure
+    [ armor4, armor6 ].each { |i| i&.destroy }
+  end
+
+  test "index filters by task_required" do
+    gated = Item.create!(bsg_id: "tg1-#{SecureRandom.hex(4)}", full_name: "Task Gated Item", short_name: "TGI")
+    free = Item.create!(bsg_id: "tg2-#{SecureRandom.hex(4)}", full_name: "Free Item", short_name: "FI")
+    task = Task.create!(bsg_id: "t-tg-#{SecureRandom.hex(4)}", full_name: "Gate Task", name: "gate-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+    reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
+
+    get items_url(filters: { task_required: [ "1" ] })
+    assert_response :success
+    assert_select "td a", text: "Task Gated Item"
+    assert_no_match(/Free Item/, response.body)
+  ensure
+    OfferUnlock.where(item_id: gated&.id).destroy_all
+    Reward.where(task_id: task&.id).destroy_all
+    task&.destroy
+    [ gated, free ].each { |i| i&.destroy }
+  end
+
+  test "index handles multiple filters combined" do
+    rub_head = Item.create!(bsg_id: "mf1-#{SecureRandom.hex(4)}", full_name: "Rub Head", short_name: "RH", categories: [ "headphones" ])
+    rub_gun = Item.create!(bsg_id: "mf2-#{SecureRandom.hex(4)}", full_name: "Rub Gun", short_name: "RG", categories: [ "assault_rifles" ])
+    usd_head = Item.create!(bsg_id: "mf3-#{SecureRandom.hex(4)}", full_name: "USD Head", short_name: "UH", categories: [ "headphones" ])
+    rub_head.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    rub_gun.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    usd_head.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 2)
+
+    get items_url(filters: { currency: [ "RUB" ], category: [ "headphones" ] })
+    assert_response :success
+    assert_select "td a", text: "Rub Head"
+    assert_no_match(/Rub Gun/, response.body)
+    assert_no_match(/USD Head/, response.body)
+  ensure
+    ItemCurrency.destroy_all
+    [ rub_head, rub_gun, usd_head ].each { |i| i&.destroy }
+  end
+
+  test "index with empty filter values does not crash" do
+    get items_url(filters: { currency: [ "" ], caliber: [ "" ], category: [ "" ] })
+    assert_response :success
+  end
+
+  test "index filters by source task_gated" do
+    gated = Item.create!(bsg_id: "src1-#{SecureRandom.hex(4)}", full_name: "Gated Source", short_name: "GS")
+    free = Item.create!(bsg_id: "src2-#{SecureRandom.hex(4)}", full_name: "Free Source", short_name: "FS")
+    task = Task.create!(bsg_id: "t-src-#{SecureRandom.hex(4)}", full_name: "Source Task", name: "source-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+    reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
+
+    get items_url(filters: { source: [ "task_gated" ] })
+    assert_response :success
+    assert_select "td a", text: "Gated Source"
+    assert_no_match(/Free Source/, response.body)
+  ensure
+    OfferUnlock.where(item_id: gated&.id).destroy_all
+    Reward.where(task_id: task&.id).destroy_all
+    task&.destroy
+    [ gated, free ].each { |i| i&.destroy }
+  end
+
+  test "index filters by source trader" do
+    trader_item = Item.create!(bsg_id: "src3-#{SecureRandom.hex(4)}", full_name: "Trader Item", short_name: "TI")
+    other_item = Item.create!(bsg_id: "src4-#{SecureRandom.hex(4)}", full_name: "Other Item", short_name: "OI")
+    trader_item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { source: [ "trader" ] })
+    assert_response :success
+    assert_select "td a", text: "Trader Item"
+    assert_no_match(/Other Item/, response.body)
+  ensure
+    ItemCurrency.destroy_all
+    [ trader_item, other_item ].each { |i| i&.destroy }
+  end
+
+  test "index filters with source and category combined" do
+    item_a = Item.create!(bsg_id: "src5-#{SecureRandom.hex(4)}", full_name: "Trader Headphone", short_name: "TH", categories: [ "headphones" ])
+    item_b = Item.create!(bsg_id: "src6-#{SecureRandom.hex(4)}", full_name: "Trader Gun", short_name: "TG", categories: [ "assault_rifles" ])
+    item_c = Item.create!(bsg_id: "src7-#{SecureRandom.hex(4)}", full_name: "No Trader Headphone", short_name: "NH", categories: [ "headphones" ])
+    item_a.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    item_b.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { source: [ "trader" ], category: [ "headphones" ] })
+    assert_response :success
+    assert_select "td a", text: "Trader Headphone"
+    assert_no_match(/Trader Gun/, response.body)
+    assert_no_match(/No Trader Headphone/, response.body)
+  ensure
+    ItemCurrency.destroy_all
+    [ item_a, item_b, item_c ].each { |i| i&.destroy }
+  end
+
+  test "index with all filter options checked returns all items" do
+    total_before = Item.count
+
+    all_currencies = ItemCurrency.distinct.pluck(:currency).compact
+    all_armor_classes = Item.distinct.pluck(Arel.sql("data->>'class'")).compact
+    all_calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact
+
+    # Build category base values (merged pack/box/bundle)
+    raw_cats = Item.pluck(:categories).flatten.uniq
+    all_category_bases = raw_cats.map { |c| c.sub(/_(pack|box|bundle)\z/, "") }.uniq
+
+    all_sources = %w[barter craft trader hideout task_gated]
+
+    get items_url(filters: {
+      currency: all_currencies,
+      category: all_category_bases,
+      armor_class: all_armor_classes,
+      caliber: all_calibers,
+      source: all_sources
+    })
+    assert_response :success
+    # All items should be present — every checked group is skipped since all values selected
+    assert_select "table tbody tr", count: total_before
+  end
 end

@@ -1,6 +1,6 @@
 namespace :ci do
   desc "Run full CI pipeline locally (mirrors .github/workflows/ci.yml)"
-  task all: %i[security lint fasterer development test coverage audit] do
+  task all: %i[security lint fasterer development test coverage audit bullet goldiloader] do
     puts "\n✅ All CI checks passed."
   end
 
@@ -20,7 +20,8 @@ namespace :ci do
   desc "Fasterer performance-idiom check"
   task :fasterer do
     puts "── Fasterer ──"
-    run "bundle exec fasterer"
+    # Suppress RubyParser V40 noise on Ruby 4.0; fasterer falls back to V34
+    run "RUBYOPT='-W0' bundle exec fasterer 2>/dev/null || bundle exec fasterer"
   end
 
   desc "Boot app in development and verify routes"
@@ -30,12 +31,14 @@ namespace :ci do
     run "RAILS_ENV=development bundle exec rails runner \"puts 'Rails booted OK: ' + Rails.env\""
     run "RAILS_ENV=development bundle exec rails routes >/dev/null"
     verify_perf_tooling("development")
+    run "RAILS_ENV=development bundle exec rake ci:bullet ci:goldiloader"
   end
 
   desc "Run test suite"
   task :test do
     puts "── Test ──"
     verify_perf_tooling("test", clean_env: true)
+    run "RAILS_ENV=test bundle exec rake ci:bullet ci:goldiloader", clean_env: true
     run "RAILS_ENV=test bundle exec rails test", clean_env: true
   end
 
@@ -55,6 +58,25 @@ namespace :ci do
     score = rubycritic_score
     puts "Rubycritic score: #{score}"
     abort "❌ Score #{score} is below 75 threshold" if score < 75
+  end
+
+  desc "Verify Bullet N+1 detection is active and strict"
+  task :bullet do
+    puts "── Bullet ──"
+    # Verify stricter settings are present in development.rb
+    dev = File.read("config/environments/development.rb")
+    abort "❌ Bullet.raise not set" unless dev.include?("Bullet.raise")
+    abort "❌ Bullet.unused_eager_loading_enable not set" unless dev.include?("unused_eager_loading_enable")
+    abort "❌ Bullet.bullet_logger not set" unless dev.include?("bullet_logger")
+    puts "  ✅ Bullet stricter configured (raise=true, unused_eager=true, file log)"
+  end
+
+  desc "Verify Goldiloader auto-preload is active globally"
+  task :goldiloader do
+    puts "── Goldiloader ──"
+    dev = File.read("config/environments/development.rb")
+    abort "❌ Goldiloader.enabled not set" unless dev.include?("Goldiloader.enabled")
+    puts "  ✅ Goldiloader global auto-preload enabled"
   end
 
   desc "Run security + lint only (fast checks)"

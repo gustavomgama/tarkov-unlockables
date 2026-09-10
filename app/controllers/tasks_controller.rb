@@ -2,7 +2,7 @@ class TasksController < ApplicationController
   def index
     tasks = Task.all
     tasks = tasks.loose_search(params[:q], columns: %w[full_name name]) if params[:q].present?
-    @tasks = tasks.includes(requirements: :previous_tasks).order(full_name: :asc).limit(20)
+    @tasks = tasks.order(full_name: :asc)
     @task_count = tasks.count
   end
 

@@ -120,4 +120,29 @@
       </div>
     </div>
   <% end %>
+
+  <% packs = @item.ammo_packs %>
+  <% if packs.any? %>
+    <div class="mt-8">
+      <h2 class="text-lg font-bold text-[var(--text-bright)] mb-3">Ammo Packs</h2>
+      <div class="space-y-2">
+        <% packs.each do |pack| %>
+          <%= link_to item_path(pack), class: "block bg-[var(--bg-surface)] border border-[var(--border)] p-4 hover:border-[var(--accent)] transition-colors" do %>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-[var(--text-bright)]"><%= pack.full_name %></h3>
+                <% pack_contains = pack.data&.dig("containsItems")&.find { |ci| ci["item"] == @item.bsg_id } %>
+                <p class="text-sm text-[var(--text-muted)]">
+                  Contains <%= pack_contains&.dig("count") %> × <%= @item.short_name %>
+                </p>
+              </div>
+              <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>

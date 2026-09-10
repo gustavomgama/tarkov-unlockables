@@ -38,3 +38,5 @@ end
 
 gem "tailwindcss-rails", "~> 4.6"
 gem "view_component", "~> 4.15"
+
+gem "solargraph", "~> 0.60.1"

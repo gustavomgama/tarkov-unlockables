@@ -9,6 +9,9 @@ Importers::Wiki.import!
 puts "Importing task graph..."
 Importers::TaskGraph.import!
 
+puts "Backfilling calibers from gun/preset names..."
+Item.populate_calibers_from_names
+
 puts "Resolving item_task_rewards.task_id..."
 ItemTaskReward.where(task_id: nil).find_each do |itr|
   task = Task.find_by(full_name: itr.task_name) || Task.find_by(name: itr.task_name)

@@ -2,7 +2,7 @@
   <% if item.data["caliber"].present? %>
     <div>
       <dt class="text-[var(--text-muted)]">Caliber</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["caliber"] %></dd>
+      <dd class="font-medium text-[var(--text)]"><%= caliber_display(item.data["caliber"]) %></dd>
     </div>
   <% end %>
   <% if item.data["default_ammo"].present? %>

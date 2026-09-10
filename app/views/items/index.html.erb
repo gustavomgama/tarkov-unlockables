@@ -3,6 +3,7 @@
     <h1 class="text-2xl font-bold text-[var(--text-bright)]">Items</h1>
     <div class="flex items-center gap-4">
       <span class="text-sm text-[var(--text-muted)]"><%= @item_count %> total</span>
+      <%= select_tag :per_page, options_for_select([20, 50, 100], @per_page || 20), class: "text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] px-2 py-1" %>
       <div class="flex gap-1 bg-[var(--bg-surface)] p-1">
         <button
           type="button"
@@ -25,9 +26,10 @@
   </div>
 
   <%= form_tag items_path, method: :get, class: "flex items-center gap-2" do %>
+    <%= hidden_field_tag :per_page, @per_page || 20 %>
     <%= text_field_tag :q, params[:q], placeholder: "Search items...", class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
     <% if params[:filters].present? %>
-      <% params[:filters].each do |filter_type, values| %>
+      <% params[:filters].to_unsafe_h.each do |filter_type, values| %>
         <% Array(values).each do |value| %>
           <%= hidden_field_tag "filters[#{filter_type}][]", value %>
         <% end %>
@@ -40,19 +42,20 @@
 
   <form id="filter-form" action="<%= items_path %>" method="get">
     <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
-    <% if params[:filters].present? %>
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm text-[var(--text-muted)]">Active filters:</span>
-        <% params[:filters].each do |filter_type, values| %>
-          <% Array(values).each do |value| %>
-            <span class="inline-flex items-center gap-1 px-2 py-1 text-sm bg-[var(--bg-surface)] text-[var(--text)]">
-              <%= filter_type.humanize %>: <%= value %>
-              <%= link_to "×", items_path(q: params[:q], filters: params[:filters].except(filter_type).merge(filter_type => Array(values) - [value])), class: "ml-1 hover:text-[var(--text-bright)]" %>
-            </span>
-          <% end %>
+  <% active_filters = params[:filters].to_unsafe_h.deep_symbolize_keys rescue {} %>
+  <% if active_filters.present? %>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-sm text-[var(--text-muted)]">Active filters:</span>
+      <% active_filters.each do |filter_type, values| %>
+        <% Array(values).each do |value| %>
+          <span class="inline-flex items-center gap-1 px-2 py-1 text-sm bg-[var(--bg-surface)] text-[var(--text)]">
+            <%= filter_type.to_s.humanize %>: <%= value %>
+            <%= link_to "×", items_path(q: params[:q], filters: active_filters.except(filter_type).merge(filter_type => Array(values) - [value])), class: "ml-1 hover:text-[var(--text-bright)]" %>
+          </span>
         <% end %>
-        <%= link_to "Clear all", items_path(q: params[:q]), class: "text-sm text-[var(--danger)] hover:underline" %>
-      </div>
+      <% end %>
+      <%= link_to "Clear all", items_path(q: params[:q]), class: "text-sm text-[var(--danger)] hover:underline" %>
+    </div>
     <% end %>
 
     <div class="flex flex-wrap gap-2">
@@ -60,35 +63,35 @@
         title: "Currency",
         name: "currency",
         options: @filter_options[:currency],
-        selected: params.dig(:filters, :currency) || []
+        selected: Array(params.dig(:filters, :currency))
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Category",
         name: "category",
         options: @filter_options[:category],
-        selected: params.dig(:filters, :category) || []
+        selected: Array(params.dig(:filters, :category))
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Armor Class",
         name: "armor_class",
         options: @filter_options[:armor_class],
-        selected: params.dig(:filters, :armor_class) || []
+        selected: Array(params.dig(:filters, :armor_class))
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Caliber",
         name: "caliber",
         options: @filter_options[:caliber],
-        selected: params.dig(:filters, :caliber) || []
+        selected: Array(params.dig(:filters, :caliber))
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Source",
         name: "source",
         options: @filter_options[:source],
-        selected: params.dig(:filters, :source) || []
+        selected: Array(params.dig(:filters, :source))
       ) %>
 
       <% if params[:filters].present? %>
@@ -127,10 +130,11 @@
   </div>
 
   <% if @total_pages > 1 %>
+    <% safe_filters = params[:filters].to_unsafe_h.deep_symbolize_keys rescue {} %>
     <nav class="flex items-center justify-center gap-2">
-      <%= link_to "Previous", items_path(page: @current_page - 1, q: params[:q], filters: params[:filters]), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] #{@current_page == 1 ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
+      <%= link_to "Previous", items_path(page: @current_page - 1, q: params[:q], per_page: @per_page, filters: safe_filters), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] #{@current_page == 1 ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
       <span class="px-3 py-2 text-sm text-[var(--text-muted)]">Page <%= @current_page %> of <%= @total_pages %></span>
-      <%= link_to "Next", items_path(page: @current_page + 1, q: params[:q], filters: params[:filters]), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] #{@current_page == @total_pages ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
+      <%= link_to "Next", items_path(page: @current_page + 1, q: params[:q], per_page: @per_page, filters: safe_filters), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] #{@current_page == @total_pages ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
     </nav>
   <% end %>
 </div>
