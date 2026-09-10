@@ -7,7 +7,25 @@
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "application", "tailwind" %>
     <%= javascript_importmap_tags %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://tarkov.dev" crossorigin>
+    <link rel="preload" href="https://tarkov.dev/fonts/bender.woff2" as="font" type="font/woff2" crossorigin="">
     <style>
+      @font-face {
+        font-family: 'bender';
+        font-display: block;
+        font-style: normal;
+        font-weight: 400;
+        src: local('Bender Regular'), url('https://tarkov.dev/fonts/bender.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'bender';
+        font-display: swap;
+        font-style: normal;
+        font-weight: 700;
+        src: local('Bender Bold'), url('https://tarkov.dev/fonts/bender-bold.woff2') format('woff2');
+      }
       @layer base {
         :root {
           --bg-dark: #0a0a0a;
@@ -16,7 +34,7 @@
           --bg-elevated: #22252a;
           --text: #e0e0e0;
           --text-bright: #ffffff;
-          --text-muted: #888888;
+          --text-muted: #9a9a9a;
           --accent: #d2af78;
           --accent-hover: #e6c58c;
           --border: #333333;
@@ -28,9 +46,13 @@
         body {
           background-color: var(--bg-dark);
           color: var(--text);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-family: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-weight: 400;
+          word-spacing: 1px;
           -webkit-font-smoothing: antialiased;
         }
+        h1, h2, h3, h4, .font-bold, .font-semibold { font-weight: 700; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       }
     </style>
   </head>

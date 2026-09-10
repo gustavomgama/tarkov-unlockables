@@ -4,6 +4,10 @@
 
 <div class="bg-[var(--bg-panel)] p-6 rounded border border-[var(--border)]">
   <h1 class="text-2xl font-bold text-[var(--text-bright)] mb-6">Previous Task #<%= @resource.id %></h1>
+  <div class="mb-6 flex gap-4">
+    <%= link_to "Edit", [:edit, :admin, @resource], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+    <%= button_to "Delete", [:admin, @resource], method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
+  </div>
 
   <dl class="grid grid-cols-2 gap-6">
     <div>
@@ -26,9 +30,4 @@
       <%= link_to "View Requirement", [:admin, @resource.requirement], class: "text-[var(--accent)] hover:underline" %>
     </div>
   <% end %>
-
-  <div class="mt-6 flex gap-4">
-    <%= link_to "Edit", [:edit, :admin, @resource], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
-    <%= button_to "Delete", [:admin, @resource], method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "px-4 py-2 bg-[var(--danger)] text-white rounded hover:opacity-90" %>
-  </div>
 </div>

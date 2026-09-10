@@ -3,7 +3,19 @@
     <h1 class="text-2xl font-bold text-[var(--text-bright)]">Items</h1>
     <div class="flex items-center gap-4">
       <span class="font-data text-sm text-[var(--text-muted)]"><%= @item_count %> total</span>
-      <%= select_tag :per_page, options_for_select([20, 50, 100], @per_page || 20), class: "text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] px-2 py-1" %>
+      <%= form_tag items_path, method: :get do %>
+        <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
+        <% if params[:filters].present? %>
+          <% params[:filters].to_unsafe_h.each do |filter_type, values| %>
+            <% Array(values).each do |value| %>
+              <%= hidden_field_tag "filters[#{filter_type}][]", value %>
+            <% end %>
+          <% end %>
+        <% end %>
+        <%= select_tag :per_page, options_for_select([20, 50, 100], @per_page || 20),
+              class: "text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] px-2 py-1",
+              onchange: "this.form.requestSubmit()" %>
+      <% end %>
       <div class="flex gap-1 bg-[var(--bg-surface)] p-1">
         <button
           type="button"
@@ -47,7 +59,7 @@
                 </span>
               <% end %>
             <% end %>
-            <%= link_to "Clear all", items_path(q: params[:q]), class: "text-sm text-[var(--danger)] hover:underline" %>
+            <%= link_to "Clear all", items_path, class: "text-sm text-[var(--danger)] hover:underline" %>
           </div>
         <% end %>
 
@@ -111,7 +123,7 @@
     </aside>
 
     <div>
-      <div data-view-toggle-target="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div data-view-toggle-target="grid" class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
         <%= render partial: "items/item_card", collection: @items, as: :card %>
       </div>
 
