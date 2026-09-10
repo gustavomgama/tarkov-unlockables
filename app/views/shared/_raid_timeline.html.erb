@@ -1,0 +1,47 @@
+<%# Raid timeline: vertical prerequisite chain with trader-colored nodes.
+    Locals:
+      chain — Array<Hash> from Task#prerequisite_chain (start-to-end order; reversed for display)
+      current_name — optional String; task name to highlight as current (default: last node)
+%>
+<% current_name ||= nil %>
+<% ordered = chain.reverse %>
+<% current_name ||= ordered.last[:name] %>
+<ol class="relative ml-3 border-l border-[var(--border)] space-y-0">
+  <% ordered.each_with_index do |t, i| %>
+    <% is_current = t[:name] == current_name %>
+    <% trader_key = t[:given_by].to_s.parameterize %>
+    <% chain_task = Task.find_by(name: t[:name]) %>
+    <li class="timeline-node relative pl-6 pb-5 last:pb-0">
+      <span
+        class="absolute -left-[7px] top-1 w-3.5 h-3.5 rounded-full border-2 <%= is_current ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]' %>"
+        style="<%= "background: var(--trader-#{trader_key}, var(--bg-elevated));" unless is_current %>"
+        aria-hidden="true"
+      ></span>
+      <div class="flex items-baseline gap-2 flex-wrap">
+        <% if chain_task %>
+          <%= link_to t[:name], task_path(chain_task),
+                class: "text-sm #{is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)] hover:text-[var(--accent-hover)]'}" %>
+        <% else %>
+          <span class="text-sm <%= is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)]' %>"><%= t[:name] %></span>
+        <% end %>
+        <% if t[:given_by].present? %>
+          <span class="text-xs text-[var(--text-muted)]"><%= t[:given_by].titleize %></span>
+        <% end %>
+        <% if t[:player_level].to_i > 0 || (t[:trader_requirements] || []).any? %>
+          <span class="font-data text-[11px] text-[var(--text-muted)]">
+            <% parts = [] %>
+            <% parts << "lvl #{t[:player_level]}" if t[:player_level].to_i > 0 %>
+            <% (t[:trader_requirements] || []).each do |tr| %>
+              <% if tr['trader_name'].to_s.strip.empty? %>
+                <% parts << "LL#{tr['trader_level']}" %>
+              <% else %>
+                <% parts << "#{tr['trader_name'].to_s.titleize} LL#{tr['trader_level']}" %>
+              <% end %>
+            <% end %>
+            <%= parts.join(' · ') %>
+          </span>
+        <% end %>
+      </div>
+    </li>
+  <% end %>
+</ol>

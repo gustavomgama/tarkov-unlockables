@@ -236,15 +236,15 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    # Chain pills include each task name (in reverse order, root first)
-    assert_select "span", text: /wet-job-part-1/
-    assert_select "span", text: /the-guide/
-    assert_select "span", text: /the-cleaner/
+    # Timeline nodes include each task name (in reverse order, root first)
+    assert_select ".timeline-node", text: /wet-job-part-1/
+    assert_select ".timeline-node", text: /the-guide/
+    assert_select ".timeline-node", text: /the-cleaner/
 
     # Per-node requirements rendered
-    assert_select ".prereq-req", minimum: 1, text: /lvl 14/
-    assert_select ".prereq-req", text: /LL4/
-    assert_select ".prereq-req", text: /Peacekeeper LL3/
+    assert_select ".timeline-node .font-data", minimum: 1, text: /lvl 14/
+    assert_select ".timeline-node .font-data", text: /LL4/
+    assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
 
     assert_select "h2", text: /How to Unlock/
   ensure
@@ -272,13 +272,13 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    # Inline chain rendered with class .currency-chain (the Where to Get sub-block)
-    assert_select ".currency-chain", minimum: 1
-    assert_select ".currency-chain span", text: /wet-job-part-1/
-    assert_select ".currency-chain span", text: /the-cleaner/
+    # Inline timeline rendered under the Where to Get sub-block
+    assert_select ".timeline-node", minimum: 1
+    assert_select ".timeline-node", text: /wet-job-part-1/
+    assert_select ".timeline-node", text: /the-cleaner/
     # Inline Task-gated indicator
-    assert_select ".currency-chain .prereq-req", text: /lvl 14/
-    assert_select ".currency-chain .prereq-req", text: /Peacekeeper LL3/
+    assert_select ".timeline-node .font-data", text: /lvl 14/
+    assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
     # Badge in the row itself
     assert_select "span", text: /Task-gated/
   ensure
@@ -325,7 +325,7 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    assert_select ".currency-chain", text: /unlocking task not found/
+    assert_select "p", text: /unlocking task not found/
   ensure
     item&.item_currencies&.destroy_all
     item&.destroy
