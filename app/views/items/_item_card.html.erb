@@ -10,11 +10,11 @@
       height="150"
     >
   </div>
-  <div class="p-3">
-    <h3 class="font-semibold text-sm line-clamp-2 mb-1.5 text-[var(--text-bright)]"><%= card.full_name %></h3>
+  <div class="p-2">
+    <h3 class="font-semibold text-xs leading-snug line-clamp-2 mb-1.5 text-[var(--text-bright)]"><%= card.full_name %></h3>
     <div class="flex flex-wrap gap-1">
       <% card.categories.first(2).each do |cat| %>
-        <span class="inline-block px-1.5 py-0.5 text-xs bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)]">
+        <span class="inline-block px-1.5 py-0.5 text-[11px] bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)]">
           <%= cat.humanize %>
         </span>
       <% end %>
