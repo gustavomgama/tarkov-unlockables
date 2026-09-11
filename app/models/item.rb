@@ -19,6 +19,7 @@
 # Indexes
 #
 #  index_items_on_bsg_id  (bsg_id) UNIQUE
+#  index_items_on_data    (data) USING gin
 #  index_items_on_slug    (slug)
 #  index_items_on_type    (type)
 #
@@ -267,7 +268,9 @@ class Item < ApplicationRecord
   end
 
   scope :task_gated, -> {
-    where(id: [ OfferUnlock.pluck(:item_id), BarterUnlock.pluck(:item_id), CraftUnlock.pluck(:item_id) ].flatten.uniq)
+    where(id: OfferUnlock.select(:item_id))
+      .or(where(id: BarterUnlock.select(:item_id)))
+      .or(where(id: CraftUnlock.select(:item_id)))
   }
 
   def self.ransackable_attributes(auth_object = nil)

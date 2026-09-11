@@ -26,12 +26,18 @@ class Task < ApplicationRecord
     %w[item_task_rewards leads_tos requirements rewards]
   end
 
-  def prerequisite_chain(visited = [])
+  # Walks the prerequisite graph without per-level queries: the caller
+  # passes a preloaded name → task map (built once per request in the
+  # controller as @task_map); nested calls share it. Called without a map
+  # (console, tests) it builds one — 3 queries total instead of ~3 per level.
+  def prerequisite_chain(visited = [], task_map = nil)
+    task_map ||= Task.includes(requirements: :previous_tasks).index_by(&:name)
     return [] if visited.include?(id)
     visited << id
 
     first_req = requirements.first
     chain = [ {
+      id:                  id,
       name:                name,
       full_name:           full_name,
       given_by:            given_by,
@@ -41,8 +47,8 @@ class Task < ApplicationRecord
 
     requirements.each do |req|
       req.previous_tasks.each do |pt|
-        prev = Task.find_by(name: pt.task_name)
-        chain += prev.prerequisite_chain(visited) if prev
+        prev = task_map[pt.task_name]
+        chain += prev.prerequisite_chain(visited, task_map) if prev
       end
     end
 

@@ -45,7 +45,7 @@
           <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
             <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)] flex-shrink-0">Task Reward</span>
             <span class="text-sm text-[var(--text)]">
-              <% task = Task.find_by(name: r.task_name) %>
+              <% task = r.task || Task.find_by(name: r.task_name) %>
               <% if task %>
                 <%= link_to r.task_name, task_path(task), class: "text-[var(--accent)] hover:underline" %>
               <% else %>
@@ -76,9 +76,9 @@
               <% end %>
             </div>
             <% if c.task_unlock? %>
-              <% unlocking_task = OfferUnlock.find_by(item_id: @item.id)&.reward&.task %>
+              <% unlocking_task = @item.offer_unlocks.first&.reward&.task %>
               <% if unlocking_task %>
-                <%= render "shared/raid_timeline", chain: unlocking_task.prerequisite_chain, current_name: unlocking_task.name %>
+                <%= render "shared/raid_timeline", chain: unlocking_task.prerequisite_chain([], task_map), current_name: unlocking_task.name %>
               <% else %>
                 <p class="text-xs text-[var(--text-muted)] mt-2 ml-1">unlocking task not found</p>
               <% end %>
@@ -91,7 +91,7 @@
     <% end %>
   </div>
 
-  <% unlocks = OfferUnlock.where(item_id: @item.id) + BarterUnlock.where(item_id: @item.id) + CraftUnlock.where(item_id: @item.id) %>
+  <% unlocks = @item.offer_unlocks + @item.barter_unlocks + @item.craft_unlocks %>
   <% if unlocks.any? %>
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
       <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">How to Unlock</h2>
@@ -109,7 +109,7 @@
             </div>
 
             <% if unlock.reward&.task %>
-              <%= render "shared/raid_timeline", chain: unlock.reward.task.prerequisite_chain, current_name: unlock.reward.task.name %>
+              <%= render "shared/raid_timeline", chain: unlock.reward.task.prerequisite_chain([], task_map), current_name: unlock.reward.task.name %>
             <% end %>
 
             <% if unlock.reward&.task&.wiki_link.present? %>

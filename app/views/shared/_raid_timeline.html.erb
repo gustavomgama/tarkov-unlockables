@@ -10,7 +10,6 @@
   <% ordered.each_with_index do |t, i| %>
     <% is_current = t[:name] == current_name %>
     <% trader_key = t[:given_by].to_s.parameterize %>
-    <% chain_task = Task.find_by(name: t[:name]) %>
     <li class="timeline-node relative pl-6 pb-5 last:pb-0">
       <span
         class="absolute -left-[7px] top-1 w-3.5 h-3.5 rounded-full border-2 <%= is_current ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]' %>"
@@ -18,8 +17,8 @@
         aria-hidden="true"
       ></span>
       <div class="flex items-baseline gap-2 flex-wrap">
-        <% if chain_task %>
-          <%= link_to t[:name], task_path(chain_task),
+        <% if t[:id] %>
+          <%= link_to t[:name], task_path(t[:id]),
                 class: "text-sm #{is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)] hover:text-[var(--accent-hover)]'}" %>
         <% else %>
           <span class="text-sm <%= is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)]' %>"><%= t[:name] %></span>

@@ -17,7 +17,7 @@
     </p>
   </div>
 
-  <% chain = @task.prerequisite_chain %>
+  <% chain = @task.prerequisite_chain([], task_map) %>
   <% if chain.length > 1 %>
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
       <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Unlock Path</h2>

@@ -18,21 +18,29 @@ class ItemsController < ApplicationController
     @per_page = per_page
     @total_pages = (@item_count.to_f / per_page).ceil
 
-    @filter_options = {
-      currency: currency_options,
-      category: category_options,
-      armor_class: armor_class_options,
-      caliber: caliber_options,
-      source: source_options
-    }
+    # Filter dropdowns only change on seed/import: cache the whole block so
+    # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
+    # once per hour instead of on every index request.
+    @filter_options = Rails.cache.fetch("items/filter_options", expires_in: 1.hour) do
+      {
+        currency: currency_options,
+        category: category_options,
+        armor_class: armor_class_options,
+        caliber: caliber_options,
+        source: source_options
+      }
+    end
   end
 
   def show
-    # offer_unlocks is loaded lazily by Goldiloader on first access in the
-    # view — most items (ammo, generics) have none, so eager loading it
-    # just trips Bullet's unused-eager-loading check.
+    # Unlock associations carry reward → task so the view renders the
+    # "How to Unlock" section and raid timelines with zero extra queries.
     @item = Item.includes(
-      :item_task_rewards, :item_hideouts, :item_barters, :item_currencies
+      :item_task_rewards, :item_hideouts, :item_barters, :item_currencies,
+      { item_task_rewards: :task },
+      { offer_unlocks: { reward: :task } },
+      { barter_unlocks: { reward: :task } },
+      { craft_unlocks: { reward: :task } }
     ).find(params[:id])
   end
 
@@ -128,47 +136,54 @@ class ItemsController < ApplicationController
   end
 
   def currency_options
-    counts = ItemCurrency.group(:currency).count
-    counts.sort_by { |c, _| c }.map do |c, count|
-      { value: c, label: c, count: count }
+    @currency_options ||= begin
+      counts = ItemCurrency.group(:currency).count
+      counts.sort_by { |c, _| c }.map do |c, count|
+        { value: c, label: c, count: count }
+      end
     end
   end
 
   def category_options
-    categories = Item.pluck(:categories).flatten.uniq
-    grouped = {}
-    categories.each do |c|
-      base = c.sub(/_(pack|box|bundle)\z/, "")
-      grouped[base] ||= []
-      grouped[base] << c
-    end
-    # Exclude caliber-like categories (they're in the caliber filter now)
-    caliber_bases = caliber_map_bases
-    grouped.reject! { |base, _| caliber_bases.include?(base) }
+    @category_options ||= begin
+      categories = Item.pluck(:categories).flatten.uniq
+      grouped = {}
+      categories.each do |c|
+        base = c.sub(/_(pack|box|bundle)\z/, "")
+        grouped[base] ||= []
+        grouped[base] << c
+      end
+      # Exclude caliber-like categories (they're in the caliber filter now)
+      caliber_bases = caliber_map_bases
+      grouped.reject! { |base, _| caliber_bases.include?(base) }
 
-    # One grouped query for all variant counts instead of one per category
-    all_variants = grouped.values.flatten
-    variant_counts = all_variants.each_with_object(Hash.new(0)) { |v, h| h[v] = 0 }
-    if all_variants.any?
-      Item.where("categories && ?", "{#{all_variants.join(',')}}")
-          .group(Arel.sql("unnest(categories)")).count
-          .each { |cat, count| variant_counts[cat] = count if variant_counts.key?(cat) }
-    end
+      # One grouped query for all variant counts instead of one per category
+      all_variants = grouped.values.flatten
+      variant_counts = all_variants.each_with_object(Hash.new(0)) { |v, h| h[v] = 0 }
+      if all_variants.any?
+        Item.where("categories && ?", "{#{all_variants.join(',')}}")
+            .group(Arel.sql("unnest(categories)")).count
+            .each { |cat, count| variant_counts[cat] = count if variant_counts.key?(cat) }
+      end
 
-    grouped.sort_by { |base, _| base }.map do |base, variants|
-      { value: base, label: base.humanize, count: variants.sum { |v| variant_counts[v] } }
+      grouped.sort_by { |base, _| base }.map do |base, variants|
+        { value: base, label: base.humanize, count: variants.sum { |v| variant_counts[v] } }
+      end
     end
   end
 
   def armor_class_options
-    counts = Item.where("data->>'class' IS NOT NULL").group(Arel.sql("data->>'class'")).count
-    counts.sort_by { |ac, _| ac }.map do |ac, count|
-      { value: ac, label: "Class #{ac}", count: count }
+    @armor_class_options ||= begin
+      counts = Item.where("data->>'class' IS NOT NULL").group(Arel.sql("data->>'class'")).count
+      counts.sort_by { |ac, _| ac }.map do |ac, count|
+        { value: ac, label: "Class #{ac}", count: count }
+      end
     end
   end
 
   def caliber_options
-    calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
+    @caliber_options ||= begin
+      calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
     # One grouped query for data-field counts
     data_counts = Item.where("data->>'caliber' IS NOT NULL")
                       .group(Arel.sql("data->>'caliber'")).count
@@ -181,18 +196,19 @@ class ItemsController < ApplicationController
           .each { |cat, count| cat_counts[cat] = count }
     end
 
-    calibers.map do |c|
-      cats = caliber_map[c] || []
-      # Union of data-matched and category-matched items (deduplicated by id)
-      count = Item.where("data->>'caliber' = ?", c).or(
-        cats.any? ? Item.where("categories && ?", "{#{cats.join(',')}}") : Item.none
-      ).count
-      { value: c, label: Item.caliber_display(c), count: count }
+      calibers.map do |c|
+        cats = caliber_map[c] || []
+        # Union of data-matched and category-matched items (deduplicated by id)
+        count = Item.where("data->>'caliber' = ?", c).or(
+          cats.any? ? Item.where("categories && ?", "{#{cats.join(',')}}") : Item.none
+        ).count
+        { value: c, label: Item.caliber_display(c), count: count }
+      end
     end
   end
 
   def source_options
-    [
+    @source_options ||= [
       { value: "barter", label: "Barter", count: Item.joins(:item_barters).distinct.count },
       { value: "craft", label: "Craft", count: Item.joins(:item_task_rewards).distinct.count },
       { value: "trader", label: "Trader", count: Item.joins(:item_currencies).distinct.count },

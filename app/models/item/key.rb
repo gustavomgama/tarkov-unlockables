@@ -19,6 +19,7 @@
 # Indexes
 #
 #  index_items_on_bsg_id  (bsg_id) UNIQUE
+#  index_items_on_data    (data) USING gin
 #  index_items_on_slug    (slug)
 #  index_items_on_type    (type)
 #

@@ -11,9 +11,9 @@
   <% tasks_by_trader = @tasks.group_by(&:given_by).sort_by { |trader, _| trader.to_s } %>
   <% tasks_by_trader.each do |trader, trader_tasks| %>
     <% # deepest chain per trader: task with the longest prerequisite chain %>
-    <% deepest = trader_tasks.max_by { |t| t.prerequisite_chain.length } %>
+    <% chains_by_task = trader_tasks.map { |t| [ t, t.prerequisite_chain([], task_map) ] }.to_h %>
+    <% deepest, chain = chains_by_task.max_by { |_, c| c.length } %>
     <% next unless deepest %>
-    <% chain = deepest.prerequisite_chain %>
     <% next unless chain.length > 1 %>
 
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">

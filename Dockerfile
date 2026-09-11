@@ -7,7 +7,8 @@ ENV BUNDLE_DEPLOYMENT=1 \
     BUNDLE_WITHOUT="development:test" \
     BUNDLE_JOBS=4 \
     BUNDLE_RETRY=3 \
-    RAILS_ENV=production
+    RAILS_ENV=production \
+    RAILS_LOG_TO_STDOUT=1
 
 # Runtime-only deps (kept in final image)
 RUN apt-get update -qq && \
@@ -28,6 +29,7 @@ COPY . .
 
 # Precompile bootsnap + assets. Propshaft needs no secret at build time.
 RUN SECRET_KEY_BASE_DUMMY=1 bin/rails assets:precompile && \
+    bundle exec bootsnap precompile --gemfile app/ lib/ && \
     rm -rf log tmp/storage
 
 # ── Final stage: runtime only, non-root ─────────────────────────────
