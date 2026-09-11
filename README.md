@@ -15,7 +15,26 @@ bundle install
 rails db:create db:migrate db:seed
 ```
 
-## Run with Docker
+## Run with Docker (development)
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:3000`. First boot installs gems, runs
+`db:prepare` (create + migrate), then starts Puma with live reload
+(code is bind-mounted, gems cached in a volume).
+
+Seed separately — the dev DB starts empty:
+
+```bash
+docker compose exec web bin/rails db:seed
+```
+
+Stop with `docker compose down`. Wipe the dev DB with
+`docker compose down -v`.
+
+## Run with Docker (production)
 
 Needs only Docker Engine. The app serves on port 80 inside the image
 (Thruster in front of Puma); first boot migrates and seeds automatically.

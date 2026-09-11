@@ -14,7 +14,7 @@ if !Rails.env.production?
     rescue URI::InvalidURIError
       nil
     end
-    next if host.blank? || %w[localhost 127.0.0.1 ::1].include?(host)
+    next if host.blank? || %w[localhost 127.0.0.1 ::1 db].include?(host)
 
     abort "Refusing to boot #{Rails.env} against remote DB #{host} from #{key}. " \
           "Unset it — Neon URLs belong in .env.production.local (loaded only in production)."
