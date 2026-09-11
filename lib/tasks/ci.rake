@@ -94,15 +94,31 @@ namespace :ci do
   def run(command, clean_env: false)
     puts "  $ #{command}"
     if clean_env
+      # Drop REMOTE database URLs so a stray Neon URL can't hijack the
+      # suite, but keep localhost URLs — CI connects via DATABASE_URL.
       env = ENV.to_h.merge(
-        "DATABASE_URL" => nil,
-        "DATABASE_URL_POOLED" => nil,
-        "DATABASE_URL_UNPOOLED" => nil
+        "DATABASE_URL" => local_db_url(ENV["DATABASE_URL"]),
+        "DATABASE_URL_POOLED" => local_db_url(ENV["DATABASE_URL_POOLED"]),
+        "DATABASE_URL_UNPOOLED" => local_db_url(ENV["DATABASE_URL_UNPOOLED"])
       )
       system(env, command) || abort("❌ Command failed: #{command}")
     else
       system(command) || abort("❌ Command failed: #{command}")
     end
+  end
+
+  # Returns the URL only when it points at a local database (same hosts
+  # as config/initializers/local_database_guard.rb, plus the compose
+  # service name); remote URLs come back nil so they're unset.
+  def local_db_url(url)
+    return nil if url.nil? || url.empty?
+
+    host = begin
+      URI.parse(url).host
+    rescue URI::InvalidURIError
+      nil
+    end
+    %w[localhost 127.0.0.1 ::1 db].include?(host) ? url : nil
   end
 
   # Confirms the dev/test-only performance gems (bullet, goldiloader) are

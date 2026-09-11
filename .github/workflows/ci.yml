@@ -187,37 +187,18 @@ jobs:
   # Mirrors render.yaml: production Dockerfile, db:migrate preDeployCommand,
   # Puma via dockerCommand + Render env, /up healthCheckPath, direct
   # (non-pooled) DATABASE_URL against postgres:18 like Neon production.
+  # Fully containerized (own pg on a dedicated network) so it exercises the
+  # same container-to-container networking shape as Kamal/Render + Neon.
   docker:
     runs-on: ubuntu-latest
-    env:
-      RAILS_ENV: production
-      PORT: 3001
-      RAILS_LOG_TO_STDOUT: "1"
-      RAILS_SERVE_STATIC_FILES: "1"
-      RAILS_LOG_LEVEL: info
-      WEB_CONCURRENCY: "1"
-      RAILS_MAX_THREADS: "5"
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/tarkov_db_prod
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: tarkov_db_prod
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
       - name: Throwaway secrets (master.key is never committed)
         run: |
-          echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" >> $GITHUB_ENV
+          SECRET_KEY_BASE=$(openssl rand -hex 64)
+          echo "::add-mask::$SECRET_KEY_BASE"
+          echo "SECRET_KEY_BASE=$SECRET_KEY_BASE" >> $GITHUB_ENV
           echo "ADMIN_PASSWORD=ci-dummy" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
@@ -232,16 +213,41 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Migrate (mirrors preDeployCommand)
+      - name: Start postgres:18 (Neon production major)
         run: |
-          docker run --rm --network host \
+          docker network create ci-net
+          docker run -d --name pg --network ci-net \
+            -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=tarkov_db_prod \
+            postgres:18
+          for i in $(seq 1 24); do
+            sleep 5
+            docker exec pg pg_isready -U postgres && break
+          done
+          docker exec pg pg_isready -U postgres
+
+      - name: Migrate (mirrors preDeployCommand)
+        env:
+          RAILS_ENV: production
+          DATABASE_URL: postgres://postgres:postgres@pg:5432/tarkov_db_prod
+          RAILS_LOG_TO_STDOUT: "1"
+        run: |
+          docker run --rm --network ci-net \
             -e RAILS_ENV -e DATABASE_URL -e SECRET_KEY_BASE -e ADMIN_PASSWORD \
             -e RAILS_LOG_TO_STDOUT \
             tarkov-db:${{ github.sha }} bundle exec rails db:migrate
 
       - name: Boot with Render's command, poll /up (mirrors healthCheckPath)
+        env:
+          RAILS_ENV: production
+          PORT: 3001
+          DATABASE_URL: postgres://postgres:postgres@pg:5432/tarkov_db_prod
+          RAILS_LOG_TO_STDOUT: "1"
+          RAILS_SERVE_STATIC_FILES: "1"
+          RAILS_LOG_LEVEL: info
+          WEB_CONCURRENCY: "1"
+          RAILS_MAX_THREADS: "5"
         run: |
-          docker run -d --name app --network host \
+          docker run -d --name app --network ci-net -p 3001:3001 \
             -e RAILS_ENV -e PORT -e DATABASE_URL -e SECRET_KEY_BASE -e ADMIN_PASSWORD \
             -e RAILS_LOG_TO_STDOUT -e RAILS_SERVE_STATIC_FILES -e RAILS_LOG_LEVEL \
             -e WEB_CONCURRENCY -e RAILS_MAX_THREADS \
