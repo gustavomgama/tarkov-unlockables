@@ -225,6 +225,11 @@ jobs:
           done
           docker exec pg pg_isready -U postgres
 
+      - name: Diagnose container networking (DNS vs TCP vs auth)
+        run: |
+          docker run --rm --network ci-net postgres:18 pg_isready -h pg -U postgres -t 10 || true
+          PGPASSWORD=postgres docker run --rm --network ci-net postgres:18 psql -h pg -U postgres -d tarkov_db_prod -tAc 'select 1' || true
+
       - name: Migrate (mirrors preDeployCommand)
         env:
           RAILS_ENV: production
