@@ -1,20 +1,21 @@
-<%= link_to item_path(card), class: "group block bg-[var(--bg-surface)] border border-[var(--border)] border-l-2 border-l-[var(--accent)] overflow-hidden hover:border-[var(--accent)] transition-colors" do %>
-  <div class="aspect-square bg-[var(--bg-panel)] overflow-hidden">
+<%= link_to item_path(card), class: "group block bg-[var(--bg-surface)] border border-[var(--border)] border-l-[3px] border-l-[var(--accent)] overflow-hidden hover-card hover-glow rounded-sm" do %>
+  <div class="aspect-[4/3] bg-[var(--bg-panel)] overflow-hidden relative">
     <% largest_img = card.images.find { |img| img.include?('512') } || card.images.find { |img| img.include?('8x') } || card.images.first %>
     <img
       src="<%= largest_img || "https://via.placeholder.com/150" %>"
       alt="<%= card.full_name %>"
-      class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+      class="w-full h-full object-contain group-hover:scale-[1.06] transition-transform duration-150 ease-out"
       loading="lazy"
       width="150"
       height="150"
     >
+    <div class="absolute top-1.5 right-1.5 bg-[var(--tactical-olive)] text-[var(--text-bright)] text-[10px] font-bold px-1.5 py-0.5 uppercase tracking-wider">Item</div>
   </div>
-  <div class="p-2">
-    <h3 class="font-semibold text-xs leading-snug line-clamp-2 mb-1.5 text-[var(--text-bright)]"><%= card.full_name %></h3>
+  <div class="p-2.5">
+    <h3 class="font-bold text-sm leading-snug line-clamp-2 mb-2 text-[var(--text-bright)] tracking-tight"><%= card.full_name %></h3>
     <div class="flex flex-wrap gap-1">
       <% card.categories.first(2).each do |cat| %>
-        <span class="inline-block px-1.5 py-0.5 text-[11px] bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)]">
+        <span class="inline-block px-1.5 py-0.5 text-[10px] bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)] uppercase tracking-wide font-bold">
           <%= cat.humanize %>
         </span>
       <% end %>

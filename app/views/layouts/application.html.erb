@@ -31,19 +31,21 @@
       }
       @layer base {
         :root {
-          --bg-dark: #0a0a0a;
-          --bg-panel: #12161c;
-          --bg-surface: #1a1a1a;
-          --bg-elevated: #22252a;
-          --text: #e0e0e0;
-          --text-bright: #ffffff;
-          --text-muted: #9a9a9a;
-          --accent: #d2af78;
-          --accent-hover: #e6c58c;
-          --border: #333333;
-          --border-faint: rgba(255,255,255,0.08);
-          --success: #00a700;
-          --danger: #cd1e2f;
+          --bg-dark: #06080a;
+          --bg-panel: #0d1117;
+          --bg-surface: #12161c;
+          --bg-elevated: #1a1f26;
+          --text: #e8e4d8;
+          --text-bright: #f0ebe3;
+          --text-muted: #8a8578;
+          --accent: #c9a84c;
+          --accent-hover: #d4b85e;
+          --border: #2a2f36;
+          --border-faint: rgba(255,255,255,0.06);
+          --success: #5a9a3a;
+          --danger: #b83a2a;
+          --tactical-olive: #4a5a2a;
+          --tactical-rust: #8a3c2a;
           --badge-task: #7a6b8a;
           --badge-barter: #5a8a8a;
           --badge-craft: #6a8a6a;
@@ -68,7 +70,7 @@
           background-color: var(--bg-dark);
           color: var(--text);
           font-family: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
+          font-weight: 700;
           word-spacing: 1px;
           -webkit-font-smoothing: antialiased;
         }
@@ -96,6 +98,18 @@
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .anim-fade-up { animation: fade-up 180ms ease-out both; }
+        .anim-delay-1 { animation-delay: 60ms; }
+        .anim-delay-2 { animation-delay: 120ms; }
+        .anim-delay-3 { animation-delay: 180ms; }
+        .anim-delay-4 { animation-delay: 240ms; }
+        .hover-card { transition: transform 120ms ease-out, box-shadow 120ms ease-out; }
+        .hover-card:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 8px 24px rgba(201,168,76,0.12); }
+        .hover-glow:hover { box-shadow: 0 0 0 1px var(--accent), 0 4px 16px rgba(201,168,76,0.15); }
       }
     </style>
   </head>

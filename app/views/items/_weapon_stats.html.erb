@@ -31,14 +31,20 @@
   <% end %>
   <% if item.data["ergonomics"].present? %>
     <div>
-      <dt class="text-[var(--text-muted)]">Ergonomics</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["ergonomics"] %></dd>
+      <dt class="text-[var(--text-muted)] text-xs uppercase tracking-wider font-bold mb-1">Ergonomics</dt>
+      <dd class="font-bold text-[var(--text-bright)] text-lg"><%= item.data["ergonomics"] %></dd>
+      <div class="w-full h-1.5 bg-[var(--bg-elevated)] mt-1.5 rounded-full overflow-hidden">
+        <div class="h-full bg-[var(--tactical-olive)] rounded-full" style="width: <%= [item.data["ergonomics"].to_f / 100.0 * 100, 100].min %>%"></div>
+      </div>
     </div>
   <% end %>
   <% if item.data["recoil"].present? %>
     <div>
-      <dt class="text-[var(--text-muted)]">Recoil</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["recoil"] %></dd>
+      <dt class="text-[var(--text-muted)] text-xs uppercase tracking-wider font-bold mb-1">Recoil</dt>
+      <dd class="font-bold text-[var(--text-bright)] text-lg"><%= item.data["recoil"] %></dd>
+      <div class="w-full h-1.5 bg-[var(--bg-elevated)] mt-1.5 rounded-full overflow-hidden">
+        <div class="h-full bg-[var(--tactical-rust)] rounded-full" style="width: <%= [item.data["recoil"].to_f / 100.0 * 100, 100].min %>%"></div>
+      </div>
     </div>
   <% end %>
   <% if item.data["sightrange"].present? %>
