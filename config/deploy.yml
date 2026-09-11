@@ -24,7 +24,9 @@ servers:
       memory-swap: "1g"
 
 proxy:
-  app_port: 3000
+  # Thruster listens on 80 inside the image and forwards to Puma on 3000,
+  # so the proxy targets 80 (gets caching, compression, X-Sendfile).
+  app_port: 80
   healthcheck:
     path: /up
     interval: 5
