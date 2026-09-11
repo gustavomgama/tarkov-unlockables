@@ -1,0 +1,18 @@
+#!/bin/bash -e
+
+# Enable jemalloc for reduced memory usage and latency.
+if [ -z "${JEMALLOC_ENABLED}" ]; then
+  export LD_PRELOAD="$(find /usr/lib -name libjemalloc.so.2 -print -quit)"
+  export JEMALLOC_ENABLED=true
+fi
+
+# As long as the app is running, wait for the database to be ready.
+# Fail fast after a bounded wait so a broken DB config is visible, not silent.
+if [ -n "${DATABASE_URL}" ]; then
+  timeout 60 bash -c 'until ./bin/rails db:prepare; do sleep 2; done' || {
+    echo "ERROR: database not reachable after 60s — refusing to start" >&2
+    exit 1
+  }
+fi
+
+exec "${@}"

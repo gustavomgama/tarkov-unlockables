@@ -1,0 +1,25 @@
+# Kamal build-context exclusions
+.git
+.github
+.cursor
+.vscode
+.superpowers
+.ruby-lsp
+coverage
+log
+tmp
+node_modules
+test
+docs
+skills-lock.json
+SKILLS.md
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+LICENSE
+README.md
+Procfile
+.env*
+config/master.key
+config/credentials/*.key
+*.sqlite3

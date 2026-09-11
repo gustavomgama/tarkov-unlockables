@@ -9,6 +9,7 @@ gem "propshaft"
 gem "pg", "~> 1.5"
 gem "ransack"
 gem "puma", ">= 5.0"
+gem "thruster"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 gem "annotaterb", "~> 4.24"
@@ -28,6 +29,7 @@ end
 group :development do
   gem "web-console"
   gem "fasterer", require: false
+  gem "solargraph", "~> 0.60.1"
 end
 
 group :test do
@@ -38,5 +40,3 @@ end
 
 gem "tailwindcss-rails", "~> 4.6"
 gem "view_component", "~> 4.15"
-
-gem "solargraph", "~> 0.60.1"

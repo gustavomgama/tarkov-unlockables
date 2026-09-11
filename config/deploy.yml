@@ -1,0 +1,76 @@
+# Kamal 2 deployment config — https://kamal-deploy.org
+#
+# Secrets are read from the local .env (never committed):
+#   KAMAL_REGISTRY_PASSWORD  — registry token (ghcr.io PAT with write:packages)
+#   RAILS_MASTER_KEY         — app master key
+#   ADMIN_PASSWORD           — admin panel HTTP Basic password
+#   POSTGRES_PASSWORD        — accessory DB password
+#   DATABASE_URL             — postgres://postgres:<POSTGRES_PASSWORD>@tarkov-db-postgres:5432/tarkov_db_prod
+#
+# First deploy:  kamal setup
+# Subsequent:    kamal deploy
+# One-time seed: kamal app exec --reuse 'bin/rails db:seed'
+
+service: tarkov-db
+image: gustavomgama/tarkov-db
+
+# Single web host. Add more under `servers: web:` to scale out.
+servers:
+  web:
+    hosts:
+      - <VPS_IP>
+    options:
+      memory: 1g
+      memory-swap: "1g"
+
+proxy:
+  app_port: 3000
+  healthcheck:
+    path: /up
+    interval: 5
+    timeout: 3
+  # Auto Let's Encrypt once a domain points at the host (also add the domain
+  # under proxy so SSL has a host to serve):
+  # ssl: true
+  response_timeout: 30
+
+registry:
+  server: ghcr.io
+  username: gustavomgama
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+
+env:
+  clear:
+    RAILS_LOG_TO_STDOUT: "1"
+    RAILS_LOG_LEVEL: "info"
+  secret:
+    - RAILS_MASTER_KEY
+    - ADMIN_PASSWORD
+    - DATABASE_URL
+
+volumes:
+  - "tarkov-db-storage:/rails/storage"
+
+# Postgres runs as a Kamal accessory on the same host, on the app's docker
+# network. Data persists in /var/lib/kamal/postgres on the host.
+accessories:
+  postgres:
+    image: postgres:17
+    host: <VPS_IP>
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_DB: tarkov_db_prod
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - postgres:/var/lib/postgresql/data
+
+# DATABASE_URL is assembled at runtime so the password lives only in secrets.
+# The app container reaches the accessory over the shared docker network.
+boot:
+  limit: 1

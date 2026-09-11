@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 # Puma Configuration
-# Optimized for Render native runtime
 
 # Workers: number of processes (default: 2 for 1-2GB RAM)
-# Set WEB_CONCURRENCY=2 in Render env for production
+# Set WEB_CONCURRENCY=2 on the host for production
 workers ENV.fetch("WEB_CONCURRENCY") { 2 }
 
 # Threads: per-worker thread pool (default: 5)
-# Set RAILS_MAX_THREADS=5 in Render env for production
+# Set RAILS_MAX_THREADS=5 on the host for production
 threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
 threads threads_count, threads_count
 
