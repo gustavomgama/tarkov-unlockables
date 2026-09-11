@@ -1,6 +1,6 @@
 class FavoritesController < ApplicationController
   def index
-    @favorite_items = FavoriteItem.includes(:item).map { |f| f.item }.compact
+    @favorite_items = FavoriteItem.includes(:item).map(&:item).compact
   end
 
   def create
