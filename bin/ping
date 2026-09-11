@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Keep Render free web service warm: hit every public GET route, 60s apart.
+# ponytail: sample /:id only (item 1, task 1); full sweep if warmup needs it.
+set -u
+base="${APP_URL:-https://tarkov-unlockables.onrender.com}"
+paths=(/ /up /items /items/1 /tasks /tasks/chains /tasks/1)
+last=$(( ${#paths[@]} - 1 ))
+for i in "${!paths[@]}"; do
+  curl -fsS -m 50 -o /dev/null -w "%{http_code} ${paths[$i]}\n" "$base${paths[$i]}" || true
+  [ "$i" -lt "$last" ] && sleep "${PING_SLEEP:-60}"
+done
