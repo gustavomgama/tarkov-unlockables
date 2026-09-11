@@ -1,0 +1,5 @@
+<% if FavoriteItem.exists?(item_id: item.id) %>
+  <%= button_to "Remove favorite", favorite_path(item_id: item.id), method: :delete, class: "btn btn-sm btn-outline-danger" %>
+<% else %>
+  <%= button_to "Add favorite", favorites_path(item_id: item.id), method: :post, class: "btn btn-sm btn-outline-primary" %>
+<% end %>
