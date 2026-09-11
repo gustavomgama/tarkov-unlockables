@@ -15,6 +15,33 @@ bundle install
 rails db:create db:migrate db:seed
 ```
 
+## Run with Docker
+
+Needs only Docker Engine. The app serves on port 80 inside the image
+(Thruster in front of Puma); first boot migrates and seeds automatically.
+
+```bash
+# Postgres (once)
+docker network create tarkov-net
+docker run -d --name tarkov-db-postgres --network tarkov-net \
+  -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=tarkov_db_prod postgres:17
+
+# Build (once, rebuild after code changes)
+docker build -t tarkov-db .
+
+# Run
+docker run -d --name tarkov-db --network tarkov-net -p 3000:80 \
+  -e DATABASE_URL=postgres://postgres:secret@tarkov-db-postgres:5432/tarkov_db_prod \
+  -e RAILS_MASTER_KEY=$(cat config/master.key) \
+  -e ADMIN_PASSWORD=changeme \
+  tarkov-db
+
+curl localhost:3000/up   # 200 when ready (first boot takes ~1 min: seed import)
+```
+
+Open `http://localhost:3000`. Stop with
+`docker stop tarkov-db tarkov-db-postgres`.
+
 ## Queries
 
 ### Items

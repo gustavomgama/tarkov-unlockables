@@ -1,0 +1,49 @@
+# Render Blueprint — app on a Docker web service, DB on Neon.
+#
+# Setup (dashboard, once):
+#   1. Neon: create project → copy the DIRECT connection string
+#      (pooled `-pooler` strings break migrations and session SETs).
+#   2. Render → New → Blueprint → select this repo.
+#   3. When prompted, paste sync:false values:
+#        DATABASE_URL     — Neon direct string (?sslmode=require)
+#        RAILS_MASTER_KEY — output of `bin/rails credentials:edit` key
+#        ADMIN_PASSWORD   — admin panel HTTP Basic password
+#
+# Notes:
+#   - dockerCommand runs Puma directly (not Thruster): Thruster listens on
+#     a fixed port, Render requires $PORT (default 10000).
+#   - preDeployCommand migrates before traffic cutover; a failed migration
+#     cancels the deploy. The entrypoint's db:prepare is a backstop.
+#   - WEB_CONCURRENCY=1 fits the starter 512MB instance; raise with plan.
+#   - If you later switch DATABASE_URL to a pooled string, migrations must
+#     run against the direct string (Neon docs).
+
+services:
+  - type: web
+    name: tarkov-db
+    runtime: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: bundle exec puma -C config/puma.rb
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    preDeployCommand: bundle exec rails db:migrate
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "1"
+      - key: RAILS_LOG_LEVEL
+        value: info
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: RAILS_MAX_THREADS
+        value: "5"
+      - key: DATABASE_URL
+        sync: false
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false

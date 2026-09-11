@@ -12,14 +12,13 @@ default: &default
   idle_timeout: 300
   reaping_frequency: 60
 
-  # Statement timeouts (ms)
+  # Statement timeouts via SET — development/test only. Neon pooled
+  # connections (PgBouncer transaction mode) reject session SETs, and the
+  # memory tuning below was sized for a 1GB VPS, not Neon, so production
+  # stays minimal: pool + connect timeouts + prepared_statements off.
   variables:
     statement_timeout: 5000
     idle_in_transaction_session_timeout: 10000
-    work_mem: "64MB"
-    maintenance_work_mem: "256MB"
-    effective_cache_size: "1GB"
-    random_page_cost: 1.1
 
 development:
   <<: *default
@@ -35,3 +34,4 @@ production:
   <<: *default
   url: <%= ENV["DATABASE_URL"] %>
   prepared_statements: false
+  variables: {}

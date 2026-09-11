@@ -37,6 +37,13 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
+  # Render terminates TLS at the edge; the app receives plain HTTP.
+  config.assume_ssl = true
+  config.force_ssl = true
+
+  # Allow Render's hostname (health checks use it as Host).
+  config.hosts << ENV["RENDER_EXTERNAL_HOSTNAME"] if ENV["RENDER_EXTERNAL_HOSTNAME"].present?
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } } if ENV["RENDER_EXTERNAL_HOSTNAME"].present?
 end
