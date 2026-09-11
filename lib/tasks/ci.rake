@@ -1,6 +1,6 @@
 namespace :ci do
   desc "Run full CI pipeline locally (mirrors .github/workflows/ci.yml)"
-  task all: %i[security lint fasterer development test coverage audit bullet goldiloader] do
+  task all: %i[security lint fasterer development test coverage audit docker] do
     puts "\n✅ All CI checks passed."
   end
 
@@ -42,7 +42,7 @@ namespace :ci do
     run "RAILS_ENV=test bundle exec rails test", clean_env: true
   end
 
-  desc "Run tests with 90% line coverage enforcement"
+  desc "Run tests with 89% line coverage enforcement"
   task :coverage do
     puts "── Coverage ──"
     run "RAILS_ENV=test COVERAGE=true bundle exec rails test", clean_env: true
@@ -58,6 +58,13 @@ namespace :ci do
     score = rubycritic_score
     puts "Rubycritic score: #{score}"
     abort "❌ Score #{score} is below 75 threshold" if score < 75
+  end
+
+  desc "Build production Docker image (same Dockerfile Render deploys)"
+  task :docker do
+    puts "── Docker ──"
+    tag = ENV.fetch("CI_IMAGE_TAG", "tarkov-db:ci")
+    run "docker build -t #{tag} ."
   end
 
   desc "Verify Bullet N+1 detection is active and strict"

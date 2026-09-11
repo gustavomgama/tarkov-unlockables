@@ -1,5 +1,15 @@
 name: CI
 
+# Contract: every job below delegates to lib/tasks/ci.rake — the single
+# source of truth shared with local `bin/ci` (config/ci.rb). Do NOT inline
+# tool commands here; change the rake task and all three stay in sync.
+#
+# Deploy parity (Render + Neon): DB jobs run postgres:18 (Neon production
+# major) with a DIRECT, non-pooled DATABASE_URL exactly like render.yaml
+# requires, and the docker job rehearses the Render deploy — build the
+# production Dockerfile, run db:migrate (preDeployCommand), boot Puma with
+# Render's dockerCommand + env, and poll /up (healthCheckPath).
+
 on:
   pull_request:
   push:
@@ -9,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Security scanning ──────────────────────────────────────────────
+  # ── Security scanning (rake ci:security) ─────────────────────────────
   security:
     runs-on: ubuntu-latest
     steps:
@@ -20,13 +30,10 @@ jobs:
           ruby-version: ruby-4.0.6
           bundler-cache: true
 
-      - name: Brakeman (static security analysis)
-        run: bin/brakeman --no-pager --exit-on-warn
+      - name: Brakeman + bundler-audit
+        run: bundle exec rake ci:security
 
-      - name: Bundler-audit (known gem vulnerabilities)
-        run: bin/bundler-audit
-
-  # ── Linting ────────────────────────────────────────────────────────
+  # ── Linting (rake ci:lint + ci:fasterer) ─────────────────────────────
   lint:
     runs-on: ubuntu-latest
     env:
@@ -49,14 +56,13 @@ jobs:
           restore-keys: |
             rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-
 
-      - name: Rubocop
-        run: bin/rubocop -f github
+      - name: RuboCop
+        run: bundle exec rake ci:lint
 
       - name: Fasterer (performance idioms)
-        # Suppress RubyParser V40 noise on Ruby 4.0; falls back like lib/tasks/ci.rake
-        run: RUBYOPT='-W0' bundle exec fasterer 2>/dev/null || bundle exec fasterer
+        run: bundle exec rake ci:fasterer
 
-  # ── Development boot check ─────────────────────────────────────────
+  # ── Development boot check (rake ci:development) ─────────────────────
   development:
     runs-on: ubuntu-latest
     env:
@@ -64,7 +70,7 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/tarkov_db_development
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -84,19 +90,10 @@ jobs:
           ruby-version: ruby-4.0.6
           bundler-cache: true
 
-      - name: Prepare database
-        run: bin/rails db:prepare
+      - name: Boot check (db:prepare, routes, bullet + goldiloader)
+        run: bundle exec rake ci:development
 
-      - name: Boot app and verify routes
-        run: |
-          bin/rails runner "puts 'Rails booted OK: ' + Rails.env"
-          bin/rails routes >/dev/null
-
-      - name: Verify performance tooling (bullet + goldiloader)
-        run: |
-          bin/rails runner "Bullet.enable? && Goldiloader.enabled? ? (puts 'bullet + goldiloader active') : exit(1)"
-
-  # ── Tests ──────────────────────────────────────────────────────────
+  # ── Tests (rake ci:test) ─────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
     env:
@@ -104,7 +101,7 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/tarkov_db_test
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -124,17 +121,10 @@ jobs:
           ruby-version: ruby-4.0.6
           bundler-cache: true
 
-      - name: Prepare database
-        run: bin/rails db:prepare
+      - name: Test suite
+        run: bundle exec rake ci:test
 
-      - name: Verify performance tooling (bullet + goldiloader)
-        run: |
-          bin/rails runner "Bullet.enable? && Goldiloader.enabled? ? (puts 'bullet + goldiloader active') : exit(1)"
-
-      - name: Run tests
-        run: bin/rails test
-
-  # ── Coverage gate (89% line coverage enforced, mirrors ci:coverage) ──────────────────────
+  # ── Coverage gate (rake ci:coverage) ─────────────────────────────────
   coverage:
     runs-on: ubuntu-latest
     env:
@@ -142,7 +132,7 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/tarkov_db_coverage
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -162,20 +152,8 @@ jobs:
           ruby-version: ruby-4.0.6
           bundler-cache: true
 
-      - name: Prepare database
-        run: bin/rails db:prepare
-
-      - name: Run tests with coverage
-        run: COVERAGE=true bin/rails test
-
-      - name: Enforce 90% line coverage
-        run: |
-          COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage.json')); print(d['total']['lines']['percent'])")
-          echo "Line coverage: ${COVERAGE}%"
-          if [ "$(echo "$COVERAGE < 89" | bc -l)" -eq 1 ]; then
-            echo "::error::Coverage is ${COVERAGE}% — requires 89%"
-            exit 1
-          fi
+      - name: Tests with coverage gate
+        run: bundle exec rake ci:coverage
 
       - name: Coverage report
         if: always()
@@ -185,7 +163,7 @@ jobs:
           path: coverage/
           retention-days: 14
 
-  # ── Code quality (rubycritic) ──────────────────────────────────────
+  # ── Code quality (rake ci:audit) ─────────────────────────────────────
   audit:
     runs-on: ubuntu-latest
     steps:
@@ -196,17 +174,8 @@ jobs:
           ruby-version: ruby-4.0.6
           bundler-cache: true
 
-      - name: Run rubycritic
-        run: bundle exec rubycritic --no-browser --format json app/
-
-      - name: Enforce score ≥ 75
-        run: |
-          SCORE=$(python3 -c "import json; d=json.load(open('tmp/rubycritic/report.json')); print(d.get('score','0'))")
-          echo "Rubycritic score: $SCORE"
-          if [ "$(echo "$SCORE < 75" | bc -l)" -eq 1 ]; then
-            echo "::error::Rubycritic score $SCORE is below 75 threshold"
-            exit 1
-          fi
+      - name: Rubycritic (score ≥ 75)
+        run: bundle exec rake ci:audit
 
       - name: Summarize
         if: always()
@@ -214,25 +183,78 @@ jobs:
           SCORE=$(python3 -c "import json; d=json.load(open('tmp/rubycritic/report.json')); print(d.get('score','?'))" 2>/dev/null || echo "?")
           echo "## Rubycritic: $SCORE / 100" >> $GITHUB_STEP_SUMMARY
 
-  # ── Docker image build ─────────────────────────────────────────────
+  # ── Deploy rehearsal: build, migrate, boot, health-check ─────────────
+  # Mirrors render.yaml: production Dockerfile, db:migrate preDeployCommand,
+  # Puma via dockerCommand + Render env, /up healthCheckPath, direct
+  # (non-pooled) DATABASE_URL against postgres:18 like Neon production.
   docker:
     runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: production
+      PORT: 3001
+      RAILS_LOG_TO_STDOUT: "1"
+      RAILS_SERVE_STATIC_FILES: "1"
+      RAILS_LOG_LEVEL: info
+      WEB_CONCURRENCY: "1"
+      RAILS_MAX_THREADS: "5"
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/tarkov_db_prod
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tarkov_db_prod
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
+
+      - name: Throwaway secrets (master.key is never committed)
+        run: |
+          echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" >> $GITHUB_ENV
+          echo "ADMIN_PASSWORD=ci-dummy" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build production image (no push on PRs)
+      - name: Build production image (rake ci:docker)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: false
+          load: true
           tags: tarkov-db:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── Merge gate ─────────────────────────────────────────────────────
+      - name: Migrate (mirrors preDeployCommand)
+        run: |
+          docker run --rm --network host \
+            -e RAILS_ENV -e DATABASE_URL -e SECRET_KEY_BASE -e ADMIN_PASSWORD \
+            -e RAILS_LOG_TO_STDOUT \
+            tarkov-db:${{ github.sha }} bundle exec rails db:migrate
+
+      - name: Boot with Render's command, poll /up (mirrors healthCheckPath)
+        run: |
+          docker run -d --name app --network host \
+            -e RAILS_ENV -e PORT -e DATABASE_URL -e SECRET_KEY_BASE -e ADMIN_PASSWORD \
+            -e RAILS_LOG_TO_STDOUT -e RAILS_SERVE_STATIC_FILES -e RAILS_LOG_LEVEL \
+            -e WEB_CONCURRENCY -e RAILS_MAX_THREADS \
+            tarkov-db:${{ github.sha }} bundle exec puma -C config/puma.rb
+          for i in $(seq 1 24); do
+            sleep 5
+            curl -sf http://localhost:3001/up && break
+          done
+          curl -sf http://localhost:3001/up
+          docker logs --tail 20 app
+          docker stop app
+
+  # ── Merge gate ───────────────────────────────────────────────────────
   gate:
     if: always()
     needs: [security, lint, development, test, coverage, audit, docker]

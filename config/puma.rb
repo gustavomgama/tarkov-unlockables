@@ -34,7 +34,7 @@ pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 
 # Connection handling
 # Allow Puma to handle graceful shutdown
-on_worker_boot do
+before_worker_boot do
   # Re-establish DB connections after fork
   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
 end
@@ -51,9 +51,4 @@ if ENV["RAILS_ENV"] == "production"
 
   # Queue requests when all workers busy
   queue_requests true
-
-  # Low-level socket options for performance
-  # SO_REUSEPORT for better load distribution (Linux 3.9+)
-  # Note: bind with options not supported in Puma 8.0, using default bind
-  bind "tcp://0.0.0.0:#{ENV.fetch('PORT') { 3000 }}"
 end

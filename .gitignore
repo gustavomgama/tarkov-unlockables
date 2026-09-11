@@ -64,4 +64,5 @@ skills-lock.json
 
 /offlinedata/tarkovmarket/*
 offlinedata/officialwiki/itembatches
-offlinedata/officialwiki/parsed_items.json
+# parsed_items.json is required by db:seed (runs in CI via db:prepare),
+# so it stays tracked; regenerate locally with rake wiki:parse.

@@ -14,6 +14,7 @@ CI.run do
   step "Test: Suite + Bullet/Goldiloader", "bundle exec rake ci:test"
   step "Coverage: 89% line gate", "bundle exec rake ci:coverage"
   step "Audit: Rubycritic ≥ 75", "bundle exec rake ci:audit"
+  step "Docker: Build production image", "bundle exec rake ci:docker"
 
   # Optional: set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
