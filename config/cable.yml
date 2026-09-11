@@ -9,6 +9,6 @@ test:
   adapter: test
 
 production:
-  adapter: solid_cable
-  polling_interval: 0.1.seconds
-  message_retention: 1.day
+  # No channels in this app and no solid_cable gem installed; async avoids
+  # a boot crash if Action Cable ever loads in production.
+  adapter: async

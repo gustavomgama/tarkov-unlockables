@@ -8,13 +8,7 @@
     Each trader's task progression, from tasks with no prerequisites to their deepest chains.
   </p>
 
-  <% tasks_by_trader = @tasks.group_by(&:given_by).sort_by { |trader, _| trader.to_s } %>
-  <% tasks_by_trader.each do |trader, trader_tasks| %>
-    <% # deepest chain per trader: task with the longest prerequisite chain %>
-    <% chains_by_task = trader_tasks.map { |t| [ t, t.prerequisite_chain([], task_map) ] }.to_h %>
-    <% deepest, chain = chains_by_task.max_by { |_, c| c.length } %>
-    <% next unless deepest %>
-    <% next unless chain.length > 1 %>
+  <% @trader_chains.each do |trader, deepest, chain| %>
 
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
       <div class="flex items-center gap-2 mb-4">

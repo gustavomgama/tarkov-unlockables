@@ -24,9 +24,10 @@ servers:
       memory-swap: "1g"
 
 proxy:
-  # Thruster listens on 80 inside the image and forwards to Puma on 3000,
-  # so the proxy targets 80 (gets caching, compression, X-Sendfile).
-  app_port: 80
+  # Thruster listens on HTTP_PORT=8080 inside the image (non-root rails user
+  # cannot bind 80) and forwards to Puma on 3000, so the proxy targets 8080
+  # (gets caching, compression, X-Sendfile).
+  app_port: 8080
   healthcheck:
     path: /up
     interval: 5

@@ -15,6 +15,14 @@ require "test_helper"
 #  leads_tos_count      :integer          default(0), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  search_text          :string           default(""), not null
+#
+# Indexes
+#
+#  index_tasks_on_full_name         (full_name)
+#  index_tasks_on_given_by          (given_by)
+#  index_tasks_on_name              (name)
+#  index_tasks_on_search_text_trgm  (search_text) USING gin
 #
 class TaskTest < ActiveSupport::TestCase
   test "has task graph associations" do

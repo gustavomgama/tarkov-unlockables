@@ -1,6 +1,11 @@
 require_relative "boot"
 
-require "rails/all"
+require "active_record/railtie"
+require "action_controller/railtie"
+require "action_view/railtie"
+# Unused frameworks stay unloaded (no mailers, jobs, cable, storage,
+# mailbox, or text in this app): faster boot, less memory, ~27 fewer
+# dead routes from rails/all.
 require "dotenv" unless Rails.env.test?
 
 # Require the gems listed in Gemfile, including any gems

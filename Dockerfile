@@ -8,7 +8,11 @@ ENV BUNDLE_DEPLOYMENT=1 \
     BUNDLE_JOBS=4 \
     BUNDLE_RETRY=3 \
     RAILS_ENV=production \
-    RAILS_LOG_TO_STDOUT=1
+    RAILS_LOG_TO_STDOUT=1 \
+    RUBY_YJIT_ENABLE=1 \
+    MALLOC_ARENA_MAX=2 \
+    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 \
+    HTTP_PORT=8080
 
 # Runtime-only deps (kept in final image)
 RUN apt-get update -qq && \
@@ -45,5 +49,7 @@ RUN groupadd --system --gid 1000 rails && \
 USER 1000:1000
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
-EXPOSE 80
+# Thruster fronts Puma on HTTP_PORT; 8080 because the non-root rails user
+# cannot bind privileged port 80 (deploy.yml proxy app_port must match).
+EXPOSE 8080
 CMD ["./bin/thrust", "./bin/rails", "server"]

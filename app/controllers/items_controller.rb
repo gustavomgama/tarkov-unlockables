@@ -3,6 +3,20 @@ class ItemsController < ApplicationController
   MAX_PER_PAGE = 100
 
   def index
+    # Filter dropdowns only change on seed/import: cache the whole block so
+    # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
+    # once per hour instead of on every index request. Fetched first so
+    # apply_filters can reuse its values instead of re-plucking the tables.
+    @filter_options = Rails.cache.fetch("items/filter_options", expires_in: 1.hour) do
+      {
+        currency: currency_options,
+        category: category_options,
+        armor_class: armor_class_options,
+        caliber: caliber_options,
+        source: source_options
+      }
+    end
+
     items = Item.all.order(full_name: :asc)
     items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
     items = apply_filters(items) if params[:filters].present?
@@ -17,19 +31,6 @@ class ItemsController < ApplicationController
     @current_page = page
     @per_page = per_page
     @total_pages = (@item_count.to_f / per_page).ceil
-
-    # Filter dropdowns only change on seed/import: cache the whole block so
-    # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
-    # once per hour instead of on every index request.
-    @filter_options = Rails.cache.fetch("items/filter_options", expires_in: 1.hour) do
-      {
-        currency: currency_options,
-        category: category_options,
-        armor_class: armor_class_options,
-        caliber: caliber_options,
-        source: source_options
-      }
-    end
   end
 
   def show
@@ -42,6 +43,7 @@ class ItemsController < ApplicationController
       { barter_unlocks: { reward: :task } },
       { craft_unlocks: { reward: :task } }
     ).find(params[:id])
+    fresh_when(@item, public: true)
   end
 
   private
@@ -70,7 +72,7 @@ class ItemsController < ApplicationController
 
     # Currency: skip if all selected
     currencies = Array(filters[:currency]).reject(&:blank?)
-    all_currencies = ItemCurrency.distinct.pluck(:currency).compact
+    all_currencies = @filter_options[:currency].map { |o| o[:value] }
     if currencies.any? && currencies.size < all_currencies.size
       items = items.joins(:item_currencies)
         .where(item_currencies: { currency: currencies })
@@ -79,9 +81,9 @@ class ItemsController < ApplicationController
 
     # Category: skip if all selected; expand pack/box/bundle variants
     categories = Array(filters[:category]).reject(&:blank?)
-    all_category_bases = category_options.map { |o| o[:value] }
+    all_category_bases = @filter_options[:category].map { |o| o[:value] }
     if categories.any? && categories.size < all_category_bases.size
-      all_cats = Item.pluck(:categories).flatten.uniq
+      all_cats = Item.category_list
       expanded = categories.flat_map do |cat|
         [ cat ] + all_cats.select { |c| c.start_with?("#{cat}_") && c != cat }
       end
@@ -91,23 +93,25 @@ class ItemsController < ApplicationController
 
     # Armor class: skip if all selected
     armor_classes = Array(filters[:armor_class]).reject(&:blank?)
-    all_armor_classes = Item.distinct.pluck(Arel.sql("data->>'class'")).compact
+    all_armor_classes = @filter_options[:armor_class].map { |o| o[:value] }
     if armor_classes.any? && armor_classes.size < all_armor_classes.size
       items = items.where("data->>'class' IN (?)", armor_classes)
     end
 
-    # Caliber: skip if all selected — matches data field OR caliber categories
+    # Caliber: skip if all selected — matches data field OR caliber categories.
+    # Subselects keep the id lists in Postgres instead of materializing
+    # thousands of ids into Ruby for a giant IN (...) list.
     calibers = Array(filters[:caliber]).reject(&:blank?)
-    all_calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact
+    all_calibers = @filter_options[:caliber].map { |o| o[:value] }
     if calibers.any? && calibers.size < all_calibers.size
       # Items matching by data->>'caliber'
-      caliber_ids = Item.where("data->>'caliber' IN (?)", calibers).pluck(:id)
+      caliber_ids = Item.where("data->>'caliber' IN (?)", calibers).select(:id)
       # Items matching by caliber category (ammo packs, ammo boxes)
       cats_for_calibers = calibers.flat_map { |c| caliber_map[c] || [] }.uniq
       if cats_for_calibers.any?
         pg_array = "{#{cats_for_calibers.join(',')}}"
-        category_ids = Item.where("categories && ?", pg_array).pluck(:id)
-        items = items.where(id: caliber_ids | category_ids)
+        category_ids = Item.where("categories && ?", pg_array).select(:id)
+        items = items.where(id: caliber_ids).or(items.where(id: category_ids))
       else
         items = items.where(id: caliber_ids)
       end
@@ -146,7 +150,7 @@ class ItemsController < ApplicationController
 
   def category_options
     @category_options ||= begin
-      categories = Item.pluck(:categories).flatten.uniq
+      categories = Item.category_list
       grouped = {}
       categories.each do |c|
         base = c.sub(/_(pack|box|bundle)\z/, "")

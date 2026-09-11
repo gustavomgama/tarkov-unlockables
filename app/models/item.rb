@@ -2,26 +2,30 @@
 #
 # Table name: items
 #
-#  id         :bigint           not null, primary key
-#  type       :string           default("Item::Generic"), not null
-#  bsg_id     :string
-#  slug       :string
-#  full_name  :string
-#  short_name :string
-#  wiki_title :string
-#  categories :text             default([]), is an Array
-#  links      :text             default([]), is an Array
-#  images     :text             default([]), is an Array
-#  data       :jsonb            not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id          :bigint           not null, primary key
+#  type        :string           default("Item::Generic"), not null
+#  bsg_id      :string
+#  slug        :string
+#  full_name   :string
+#  short_name  :string
+#  wiki_title  :string
+#  categories  :text             default([]), is an Array
+#  links       :text             default([]), is an Array
+#  images      :text             default([]), is an Array
+#  data        :jsonb            not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  search_text :string           default(""), not null
 #
 # Indexes
 #
-#  index_items_on_bsg_id  (bsg_id) UNIQUE
-#  index_items_on_data    (data) USING gin
-#  index_items_on_slug    (slug)
-#  index_items_on_type    (type)
+#  index_items_on_bsg_id            (bsg_id) UNIQUE
+#  index_items_on_categories        (categories) USING gin
+#  index_items_on_data              (data) USING gin
+#  index_items_on_full_name         (full_name)
+#  index_items_on_search_text_trgm  (search_text) USING gin
+#  index_items_on_slug              (slug)
+#  index_items_on_type              (type)
 #
 class Item < ApplicationRecord
   has_many :item_task_rewards, dependent: :delete_all
@@ -43,6 +47,13 @@ class Item < ApplicationRecord
                                 allow_destroy: true, reject_if: :all_blank
 
   validate :data_json_must_be_valid
+
+  # Keeps the trigram-indexed search_text column fresh for loose_search.
+  before_validation :set_search_text
+
+  def set_search_text
+    self.search_text = "#{full_name} #{short_name}".gsub(/[^a-zA-Z0-9]/, "").downcase
+  end
 
   def data_json_must_be_valid
     errors.add(:data, "must be valid JSON") if @data_json_invalid
@@ -169,10 +180,23 @@ class Item < ApplicationRecord
   # Computed on demand (not at class load) so boot never touches the DB and
   # re-imported data is reflected immediately.
   def self.caliber_category_map
-    # Normalize: lowercase, strip non-alphanumeric, strip 'x', strip trailing 'mm'
-    norm = ->(s) { s.downcase.gsub(/[^a-z0-9]/, "").gsub("x", "").sub(/mm\z/, "") }
+    Rails.cache.fetch("items/caliber_category_map", expires_in: 1.hour) do
+      build_caliber_category_map
+    end
+  end
 
-    all_cats = Item.pluck(:categories).flatten.uniq
+  # Full category list backing filter expansion. Cached: changes only on import.
+  def self.category_list
+    Rails.cache.fetch("items/category_list", expires_in: 1.hour) do
+      pluck(:categories).flatten.uniq
+    end
+  end
+
+  def self.build_caliber_category_map
+    # Normalize: lowercase, strip non-alphanumeric, strip 'x', strip trailing 'mm'
+    norm = ->(s) { s.downcase.gsub(/[^a-zA-Z0-9]/, "").gsub("x", "").sub(/mm\z/, "") }
+
+    all_cats = category_list
     cal_bases = all_cats.map { |c| c.sub(/_(pack|box|bundle)\z/, "") }
                         .uniq.select { |b| b =~ /^\d/ || b =~ /^\./ }
 

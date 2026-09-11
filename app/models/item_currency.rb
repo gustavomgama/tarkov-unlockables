@@ -13,7 +13,9 @@
 #
 # Indexes
 #
-#  index_item_currencies_on_item_id  (item_id)
+#  index_item_currencies_on_currency  (currency)
+#  index_item_currencies_on_item_id   (item_id)
+#  index_item_currencies_on_trader    (trader)
 #
 # Foreign Keys
 #

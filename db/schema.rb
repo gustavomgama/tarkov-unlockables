@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "barter_requirement_items", force: :cascade do |t|
     t.bigint "barter_requirement_id", null: false
@@ -130,7 +131,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000000) do
     t.boolean "task_unlock", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["currency"], name: "index_item_currencies_on_currency"
     t.index ["item_id"], name: "index_item_currencies_on_item_id"
+    t.index ["trader"], name: "index_item_currencies_on_trader"
   end
 
   create_table "item_hideouts", force: :cascade do |t|
@@ -165,8 +168,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000000) do
     t.jsonb "data", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "search_text", default: "", null: false
     t.index ["bsg_id"], name: "index_items_on_bsg_id", unique: true
+    t.index ["categories"], name: "index_items_on_categories", using: :gin
     t.index ["data"], name: "index_items_on_data", using: :gin
+    t.index ["full_name"], name: "index_items_on_full_name"
+    t.index ["search_text"], name: "index_items_on_search_text_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["slug"], name: "index_items_on_slug"
     t.index ["type"], name: "index_items_on_type"
   end
@@ -243,6 +250,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000000) do
     t.integer "leads_tos_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "search_text", default: "", null: false
+    t.index ["full_name"], name: "index_tasks_on_full_name"
+    t.index ["given_by"], name: "index_tasks_on_given_by"
+    t.index ["name"], name: "index_tasks_on_name"
+    t.index ["search_text"], name: "index_tasks_on_search_text_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   add_foreign_key "barter_requirement_items", "barter_requirements"
