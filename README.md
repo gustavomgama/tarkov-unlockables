@@ -43,7 +43,7 @@ Needs only Docker Engine. The app serves on port 80 inside the image
 # Postgres (once)
 docker network create tarkov-net
 docker run -d --name tarkov-db-postgres --network tarkov-net \
-  -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=tarkov_db_prod postgres:17
+  -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=tarkov_db_prod postgres:18
 
 # Build (once, rebuild after code changes)
 docker build -t tarkov-db .
@@ -60,6 +60,26 @@ curl localhost:3000/up   # 200 when ready (first boot takes ~1 min: seed import)
 
 Open `http://localhost:3000`. Stop with
 `docker stop tarkov-db tarkov-db-postgres`.
+
+## CI
+
+```bash
+bin/ci                      # full pipeline (mirrors GitHub Actions)
+bundle exec rake ci:quick   # security + lint only
+```
+
+Single source of truth: `lib/tasks/ci.rake`. CI also rehearses the Render
+deploy — builds the production image, migrates, boots, hits `/up` —
+against postgres:18, matching Neon production.
+
+## Deploy
+
+- Render + Neon: `render.yaml` blueprint (needs `DATABASE_URL`,
+  `RAILS_MASTER_KEY`, `ADMIN_PASSWORD`).
+- VPS: Kamal via `config/deploy.yml` (`kamal setup`, then `kamal deploy`).
+
+Seed data lives in `offlinedata/` (`parsed_items.json` is tracked because
+`db:seed` needs it); regenerate it with `rake wiki:parse`.
 
 ## Queries
 

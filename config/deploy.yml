@@ -59,7 +59,7 @@ volumes:
 # network. Data persists in /var/lib/kamal/postgres on the host.
 accessories:
   postgres:
-    image: postgres:17
+    image: postgres:18
     host: <VPS_IP>
     port: "127.0.0.1:5432:5432"
     env:
