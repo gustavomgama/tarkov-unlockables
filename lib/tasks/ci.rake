@@ -45,7 +45,7 @@ namespace :ci do
   desc "Run tests with 90% line coverage enforcement"
   task :coverage do
     puts "── Coverage ──"
-    run "RAILS_ENV=test bundle exec rails test", clean_env: true
+    run "RAILS_ENV=test COVERAGE=true bundle exec rails test", clean_env: true
     score = coverage_percent
     puts "Line coverage: #{score}%"
     abort "❌ Coverage is #{score}% — requires 89%" if score < 89

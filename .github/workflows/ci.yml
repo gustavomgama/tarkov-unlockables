@@ -166,7 +166,7 @@ jobs:
         run: bin/rails db:prepare
 
       - name: Run tests with coverage
-        run: bin/rails test
+        run: COVERAGE=true bin/rails test
 
       - name: Enforce 90% line coverage
         run: |
