@@ -1,0 +1,21 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)]">My Favorites</h1>
+
+  <% if @favorite_items.any? %>
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3">
+      <% @favorite_items.each do |item| %>
+        <%= link_to item_path(item), class: "group block bg-[var(--bg-surface)] border border-[var(--border)] border-l-2 border-l-[var(--accent)] overflow-hidden hover:border-[var(--accent)] transition-colors" do %>
+          <div class="aspect-square bg-[var(--bg-panel)] overflow-hidden">
+            <% largest_img = item.images.find { |img| img.include?('512') } || item.images.find { |img| img.include?('8x') } || item.images.first %>
+            <img src="<%= largest_img || "https://via.placeholder.com/150" %>" alt="<%= item.full_name %>" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" loading="lazy" width="150" height="150">
+          </div>
+          <div class="p-2">
+            <h3 class="font-semibold text-xs leading-snug line-clamp-2 mb-1.5 text-[var(--text-bright)]"><%= item.full_name %></h3>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-[var(--text-muted)]">No favorites yet. Add favorites from an item detail page.</p>
+  <% end %>
+</div>

@@ -22,6 +22,9 @@
           </span>
         <% end %>
       </div>
+      <div class="flex flex-wrap gap-3 mb-4">
+        <%= render "favorites/favorite", item: @item %>
+      </div>
       <div class="flex flex-wrap gap-3">
         <% @item.links.each do |link| %>
           <%= link_to link, link, class: "text-[var(--accent)] hover:text-[var(--accent-hover)] hover:underline text-sm", target: "_blank", rel: "noopener" %>

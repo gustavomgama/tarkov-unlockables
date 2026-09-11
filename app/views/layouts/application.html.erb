@@ -108,6 +108,7 @@
             <nav class="hidden md:flex gap-4">
               <%= link_to "Items", items_path, class: "text-sm font-medium text-[var(--text)] hover:text-[var(--accent)]" %>
               <%= link_to "Tasks", tasks_path, class: "text-sm font-medium text-[var(--text)] hover:text-[var(--accent)]" %>
+              <%= link_to "Favorites", favorites_path, class: "text-sm font-medium text-[var(--text)] hover:text-[var(--accent)]" %>
             </nav>
           </div>
           <button
@@ -128,6 +129,7 @@
         <div class="px-4 py-3 space-y-1">
           <%= link_to "Items", items_path, class: "block px-3 py-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center" %>
           <%= link_to "Tasks", tasks_path, class: "block px-3 py-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center" %>
+          <%= link_to "Favorites", favorites_path, class: "block px-3 py-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center" %>
         </div>
       </nav>
     </header>

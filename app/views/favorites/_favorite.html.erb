@@ -1,5 +1,5 @@
 <% if FavoriteItem.exists?(item_id: item.id) %>
-  <%= button_to "Remove favorite", favorite_path(item_id: item.id), method: :delete, class: "btn btn-sm btn-outline-danger" %>
+  <%= button_to "★ Remove favorite", favorite_path(item_id: item.id), method: :delete, class: "inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-md bg-[var(--danger)] text-white hover:bg-[#b3182a] shadow-lg shadow-[var(--danger)]/30 transition-all hover:scale-[1.03]" %>
 <% else %>
-  <%= button_to "Add favorite", favorites_path(item_id: item.id), method: :post, class: "btn btn-sm btn-outline-primary" %>
+  <%= button_to "☆ Add favorite", favorites_path(item_id: item.id), method: :post, class: "inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-md bg-[var(--accent)] text-[var(--bg-dark)] hover:bg-[var(--accent-hover)] shadow-lg shadow-[var(--accent)]/30 transition-all hover:scale-[1.03]" %>
 <% end %>

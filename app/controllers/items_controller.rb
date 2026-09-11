@@ -36,10 +36,7 @@ class ItemsController < ApplicationController
   def show
     # Unlock associations carry reward → task so the view renders the
     # "How to Unlock" section and raid timelines with zero extra queries.
-    @item = Item.includes(
-      :item_task_rewards, :item_hideouts, :item_barters, :item_currencies,
-      { item_task_rewards: :task }
-    ).find(params[:id])
+    @item = Item.find(params[:id])
     fresh_when(@item, public: true)
   end
 
