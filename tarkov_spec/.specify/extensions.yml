@@ -1,0 +1,12 @@
+extensions:
+  - id: project-context
+    enabled: true
+    description: Inject project vision into spec-kit commands
+    hooks:
+      before_constitution:
+        - command: speckit.constitution
+          optional: false
+          prompt: "Remember: this is tarkov_db — full-stack Rails, offlinedata parseable, $0 budget, YAGNI."
+      after_constitution:
+        - command: speckit.constitution
+          optional: true
