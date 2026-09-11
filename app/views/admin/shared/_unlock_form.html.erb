@@ -2,7 +2,7 @@
 <% record = local_assigns[:record] || raise("unlock_form requires record:") %>
 <%= form_with model: record, url: record.persisted? ? url_for([:admin, record]) : url_for([:admin, record.class]), scope: record.class.model_name.singular, local: true, data: { turbo: false }, class: "max-w-2xl" do |form| %>
   <% if record.errors.any? %>
-    <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] rounded text-[var(--danger)]">
+    <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] text-[var(--danger)]">
       <ul class="list-disc pl-4">
         <% record.errors.each do |error| %>
           <li><%= error.full_message %></li>
@@ -14,52 +14,52 @@
   <div class="space-y-4">
     <div>
       <%= form.label :reward_id, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-      <%= form.number_field :reward_id, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+      <%= form.number_field :reward_id, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
     </div>
 
     <div>
       <%= form.label :item_id, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-      <%= form.collection_select :item_id, Item.order(:full_name), :id, :full_name, { include_blank: true }, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+      <%= form.collection_select :item_id, Item.order(:full_name), :id, :full_name, { include_blank: true }, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
     </div>
 
     <% if record.respond_to?(:item_name) %>
       <div>
         <%= form.label :item_name, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-        <%= form.text_field :item_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <%= form.text_field :item_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
       </div>
     <% end %>
 
     <% if record.respond_to?(:trader_name) %>
       <div>
         <%= form.label :trader_name, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-        <%= form.text_field :trader_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <%= form.text_field :trader_name, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
       </div>
     <% end %>
 
     <% if record.respond_to?(:trader_level) %>
       <div>
         <%= form.label :trader_level, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-        <%= form.text_field :trader_level, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <%= form.text_field :trader_level, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
       </div>
     <% end %>
 
     <% if record.respond_to?(:hideout_station) %>
       <div>
         <%= form.label :hideout_station, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-        <%= form.text_field :hideout_station, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <%= form.text_field :hideout_station, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
       </div>
     <% end %>
 
     <% if record.respond_to?(:station_level) %>
       <div>
         <%= form.label :station_level, class: "block text-sm text-[var(--text-muted)] mb-1" %>
-        <%= form.number_field :station_level, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[var(--text)]" %>
+        <%= form.number_field :station_level, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-2 text-[var(--text)]" %>
       </div>
     <% end %>
   </div>
 
   <div class="mt-6 flex gap-4">
-    <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] rounded font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
-    <%= link_to "Cancel", [:admin, record.class], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+    <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
+    <%= link_to "Cancel", [:admin, record.class], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
   </div>
 <% end %>

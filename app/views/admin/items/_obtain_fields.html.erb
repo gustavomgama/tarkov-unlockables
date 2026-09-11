@@ -10,12 +10,12 @@
 
 <div class="mt-8 space-y-6">
   <% obtain_associations.each do |oa| %>
-    <div class="bg-[var(--bg-panel)] p-4 rounded border border-[var(--border)]">
+    <div class="bg-[var(--bg-panel)] p-4 border border-[var(--border)]">
       <h3 class="text-lg font-bold text-[var(--text-bright)] mb-4"><%= oa[:label] %></h3>
       <% records = item.send(oa[:name]) %>
       <% if records.any? %>
         <%= form.fields_for oa[:name] do |ff| %>
-          <div class="space-y-2 mb-4 p-2 border border-[var(--border-faint)] rounded">
+          <div class="space-y-2 mb-4 p-2 border border-[var(--border-faint)] ">
             <% if ff.object.persisted? %>
               <%= ff.hidden_field :id %>
             <% end %>
@@ -26,7 +26,7 @@
                   <% if f == :task_unlock %>
                     <%= ff.check_box f, class: "w-4 h-4" %>
                   <% else %>
-                    <%= ff.text_field f, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded p-1 text-sm text-[var(--text)]" %>
+                    <%= ff.text_field f, class: "w-full bg-[var(--bg-surface)] border border-[var(--border)] p-1 text-sm text-[var(--text)]" %>
                   <% end %>
                 </div>
               <% end %>

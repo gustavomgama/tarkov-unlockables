@@ -6,6 +6,9 @@ Importers::Index.import!
 Importers::TarkovDev.import!
 Importers::Wiki.import!
 
+puts "Collapsing preset-only weapons into their default presets..."
+Items::CollapseBaseWeapons.call
+
 puts "Importing task graph..."
 Importers::TaskGraph.import!
 

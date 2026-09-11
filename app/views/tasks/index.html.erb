@@ -1,32 +1,60 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between flex-wrap gap-2">
     <h1 class="text-2xl font-bold text-[var(--text-bright)]">Tasks</h1>
-    <span class="text-sm text-[var(--text-muted)]"><%= @task_count %> total</span>
+    <span class="font-data text-sm text-[var(--text-muted)]"><%= @task_count %> total</span>
   </div>
 
   <%= form_tag tasks_path, method: :get, class: "mb-4 flex items-center gap-2" do %>
+    <% if params[:trader].present? %>
+      <%= hidden_field_tag :trader, params[:trader] %>
+    <% end %>
     <%= text_field_tag :q, params[:q], placeholder: "Search tasks...", class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
-    <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]">
+    <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)] min-h-[44px]">
       Search
     </button>
   <% end %>
 
+  <nav class="flex flex-wrap gap-2" aria-label="Filter by trader">
+    <%= link_to "All", tasks_path(q: params[:q]),
+          class: "px-3 py-1.5 text-sm border min-h-[36px] flex items-center #{params[:trader].blank? ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]'}" %>
+    <% @traders.each do |trader| %>
+      <% active = params[:trader] == trader %>
+      <%= link_to tasks_path(q: params[:q], trader: trader),
+            class: "inline-flex items-center gap-2 px-3 py-1.5 text-sm border min-h-[36px] #{active ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]'}" do %>
+        <span class="trader-dot" style="background: var(--trader-<%= trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+        <%= trader.titleize %>
+      <% end %>
+    <% end %>
+  </nav>
+
   <div id="task-list" class="space-y-2">
+    <% if @tasks.none? %>
+      <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6 text-center">
+        <p class="text-[var(--text-muted)]">No tasks match your search.</p>
+        <%= link_to "Clear search", tasks_path, class: "text-sm text-[var(--accent)] hover:underline mt-2 inline-block" %>
+      </div>
+    <% end %>
     <% @tasks.each do |task| %>
-      <%= link_to task_path(task), class: "block bg-[var(--bg-surface)] border border-[var(--border)] p-4 hover:border-[var(--accent)] transition-colors" do %>
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-semibold text-[var(--text-bright)]"><%= task.full_name %></h3>
-            <p class="text-sm text-[var(--text-muted)]">
-              <%= task.given_by.titleize %> ·
+      <%= link_to task_path(task), class: "block bg-[var(--bg-surface)] border border-[var(--border)] border-l-2 border-l-[var(--trader-#{task.given_by.parameterize}, var(--border))] p-4 hover:border-[var(--accent)] hover:border-l-[var(--trader-#{task.given_by.parameterize}, var(--accent))] transition-colors" do %>
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <h3 class="font-semibold text-[var(--text-bright)] truncate"><%= task.full_name %></h3>
+            <p class="text-sm text-[var(--text-muted)] flex items-center gap-2 flex-wrap">
+              <span><%= task.given_by.titleize %></span>
               <% if task.kappa_required %>
-                <span class="text-[var(--danger)]">Kappa Required</span>
-              <% else %>
-                No Kappa
+                <span class="inline-flex items-center gap-1 text-[var(--danger)]">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 005 19z" />
+                  </svg>
+                  Kappa
+                </span>
+              <% end %>
+              <% if task.leads_tos_count > 0 %>
+                <span class="font-data text-xs"><%= task.leads_tos_count %> follow<%= 's' if task.leads_tos_count != 1 %></span>
               <% end %>
             </p>
           </div>
-          <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </div>

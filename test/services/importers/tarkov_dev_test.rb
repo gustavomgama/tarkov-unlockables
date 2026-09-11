@@ -187,4 +187,39 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
       run_import!
     end
   end
+
+  test "resolves BSG categories for preset items" do
+    item = Item.find_by(bsg_id: "armor_bsg_1")
+    item.update!(categories: [ "preset" ])
+    File.write(fixture_path, JSON.generate(
+      "data" => {
+        "items" => { "armor_bsg_1" => armor_fixture },
+        "itemCategories" => {
+          "5448c12b4bdc2d02308b456f" => { "id" => "5448c12b4bdc2d02308b456f", "normalizedName" => "armored-equipment", "parent" => "" },
+          "5448e54d4bdc2dcc718b4568" => { "id" => "5448e54d4bdc2dcc718b4568", "normalizedName" => "armor", "parent" => "" }
+        }
+      }
+    ))
+
+    run_import!
+
+    assert_equal [ "armored_equipment", "preset" ], item.reload.categories.sort
+  end
+
+  test "leaves categories untouched for non-preset items" do
+    item = Item.find_by(bsg_id: "armor_bsg_1")
+    item.update!(categories: [ "armor", "wearable" ])
+    File.write(fixture_path, JSON.generate(
+      "data" => {
+        "items" => { "armor_bsg_1" => armor_fixture },
+        "itemCategories" => {
+          "5448c12b4bdc2d02308b456f" => { "id" => "5448c12b4bdc2d02308b456f", "normalizedName" => "armored-equipment", "parent" => "" }
+        }
+      }
+    ))
+
+    run_import!
+
+    assert_equal [ "armor", "wearable" ], item.reload.categories
+  end
 end

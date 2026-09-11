@@ -92,10 +92,11 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
-    assert_select "dt", text: "Armor Type"
-    assert_select "dt", text: "Armor Slots"
-    assert_select "dt", text: "Zones"
     assert_select "dt", text: "Durability"
+    # armor type / slots / zones are intentionally not shown
+    assert_select "dt", text: "Armor Type", count: 0
+    assert_select "dt", text: "Armor Slots", count: 0
+    assert_select "dt", text: "Zones", count: 0
   ensure
     armor&.destroy
   end
@@ -236,15 +237,15 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    # Chain pills include each task name (in reverse order, root first)
-    assert_select "span", text: /wet-job-part-1/
-    assert_select "span", text: /the-guide/
-    assert_select "span", text: /the-cleaner/
+    # Timeline nodes include each task name (in reverse order, root first)
+    assert_select ".timeline-node", text: /wet-job-part-1/
+    assert_select ".timeline-node", text: /the-guide/
+    assert_select ".timeline-node", text: /the-cleaner/
 
     # Per-node requirements rendered
-    assert_select ".prereq-req", minimum: 1, text: /lvl 14/
-    assert_select ".prereq-req", text: /LL4/
-    assert_select ".prereq-req", text: /Peacekeeper LL3/
+    assert_select ".timeline-node .font-data", minimum: 1, text: /lvl 14/
+    assert_select ".timeline-node .font-data", text: /LL4/
+    assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
 
     assert_select "h2", text: /How to Unlock/
   ensure
@@ -272,13 +273,13 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    # Inline chain rendered with class .currency-chain (the Where to Get sub-block)
-    assert_select ".currency-chain", minimum: 1
-    assert_select ".currency-chain span", text: /wet-job-part-1/
-    assert_select ".currency-chain span", text: /the-cleaner/
+    # Inline timeline rendered under the Where to Get sub-block
+    assert_select ".timeline-node", minimum: 1
+    assert_select ".timeline-node", text: /wet-job-part-1/
+    assert_select ".timeline-node", text: /the-cleaner/
     # Inline Task-gated indicator
-    assert_select ".currency-chain .prereq-req", text: /lvl 14/
-    assert_select ".currency-chain .prereq-req", text: /Peacekeeper LL3/
+    assert_select ".timeline-node .font-data", text: /lvl 14/
+    assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
     # Badge in the row itself
     assert_select "span", text: /Task-gated/
   ensure
@@ -325,7 +326,7 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    assert_select ".currency-chain", text: /unlocking task not found/
+    assert_select "p", text: /unlocking task not found/
   ensure
     item&.item_currencies&.destroy_all
     item&.destroy
@@ -346,6 +347,25 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     ItemCurrency.destroy_all
     [ rub_item, usd_item ].each { |i| i&.destroy }
+  end
+
+  test "index exclude_ref filter hides items sold by Ref" do
+    ref_item = Item.create!(bsg_id: "ref1-#{SecureRandom.hex(4)}", full_name: "Ref Item", short_name: "RF")
+    other_item = Item.create!(bsg_id: "ref2-#{SecureRandom.hex(4)}", full_name: "Other Item", short_name: "OI")
+    ref_item.item_currencies.create!(trader: "Ref", currency: "EUR", min_trader_level: 1)
+    other_item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { exclude_ref: [ "1" ] })
+    assert_response :success
+    assert_select "td a", text: "Other Item"
+    assert_no_match(/Ref Item/, response.body)
+
+    # Without the filter both show
+    get items_url
+    assert_select "td a", text: "Ref Item"
+  ensure
+    ItemCurrency.destroy_all
+    [ ref_item, other_item ].each { |i| i&.destroy }
   end
 
   test "index filters by category" do

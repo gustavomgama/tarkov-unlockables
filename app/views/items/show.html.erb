@@ -1,45 +1,49 @@
-<div class="space-y-8">
-  <div class="flex items-start gap-6">
-    <div class="w-48 h-48 bg-[var(--bg-surface)] overflow-hidden flex-shrink-0 border border-[var(--border)]">
-      <% largest_img = @item.images.find { |img| img.include?('512') } || @item.images.find { |img| img.include?('8x') } || @item.images.last %>
-      <img
-        src="<%= largest_img %>"
-        alt="<%= @item.full_name %>"
-        class="w-full h-full object-contain"
-      >
+<div class="space-y-6">
+  <div class="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-6 lg:items-start">
+    <div class="lg:sticky lg:top-20">
+      <div class="w-full max-w-48 lg:max-w-none aspect-square bg-[var(--bg-surface)] overflow-hidden border border-[var(--border)]">
+        <% largest_img = @item.images.find { |img| img.include?('512') } || @item.images.find { |img| img.include?('8x') } || @item.images.last %>
+        <img
+          src="<%= largest_img %>"
+          alt="<%= @item.full_name %>"
+          class="w-full h-full object-contain"
+          width="192"
+          height="192"
+        >
+      </div>
     </div>
-    <div class="flex-1">
+    <div>
       <h1 class="text-3xl font-bold mb-2 text-[var(--text-bright)]"><%= @item.full_name %></h1>
       <p class="text-[var(--text-muted)] mb-4"><%= @item.short_name %></p>
       <div class="flex flex-wrap gap-2 mb-4">
         <% @item.categories.each do |cat| %>
-          <span class="inline-block px-3 py-1 text-sm bg-[var(--bg-surface)] text-[var(--text)] border border-[var(--border)]">
+          <span class="inline-block px-2 py-1 text-xs bg-[var(--bg-surface)] text-[var(--text)] border border-[var(--border)]">
             <%= cat.humanize %>
           </span>
         <% end %>
       </div>
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3">
         <% @item.links.each do |link| %>
           <%= link_to link, link, class: "text-[var(--accent)] hover:text-[var(--accent-hover)] hover:underline text-sm", target: "_blank", rel: "noopener" %>
         <% end %>
       </div>
+
+      <% if @item.data.present? %>
+        <div class="mt-6 bg-[var(--bg-surface)] border border-[var(--border)] p-6">
+          <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Details</h2>
+          <%= render @item.stats_partial, item: @item %>
+        </div>
+      <% end %>
     </div>
   </div>
 
-  <% if @item.data.present? %>
-    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Details</h2>
-      <%= render @item.stats_partial, item: @item %>
-    </div>
-  <% end %>
-
   <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-    <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">Where to Get</h2>
+    <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Where to Get</h2>
     <% if @item.item_task_rewards.any? || @item.item_hideouts.any? || @item.item_barters.any? || @item.item_currencies.any? %>
       <div class="space-y-3">
         <% @item.item_task_rewards.each do |r| %>
           <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)]">Task Reward</span>
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)] flex-shrink-0">Task Reward</span>
             <span class="text-sm text-[var(--text)]">
               <% task = Task.find_by(name: r.task_name) %>
               <% if task %>
@@ -52,21 +56,21 @@
         <% end %>
         <% @item.item_hideouts.each do |h| %>
           <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-hideout)] text-[var(--text)]">Hideout</span>
-            <span class="text-sm text-[var(--text)]"><%= h.station %> Level <%= h.level %></span>
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-hideout)] text-[var(--text)] flex-shrink-0">Hideout</span>
+            <span class="font-data text-sm text-[var(--text)]"><%= h.station %> Level <%= h.level %></span>
           </div>
         <% end %>
         <% @item.item_barters.each do |b| %>
           <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-barter)] text-[var(--text)]">Barter</span>
-            <span class="text-sm text-[var(--text)]"><%= b.trader %> LL<%= b.trader_level %> - <%= b.currency %> <%= b.cost %></span>
+            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-barter)] text-[var(--text)] flex-shrink-0">Barter</span>
+            <span class="font-data text-sm text-[var(--text)]"><%= b.trader %> LL<%= b.trader_level %> - <%= b.currency %> <%= b.cost %></span>
           </div>
         <% end %>
         <% @item.item_currencies.each do |c| %>
           <div class="py-2 border-b border-[var(--border)] last:border-0">
-            <div class="flex items-center gap-3">
-              <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-currency)] text-[var(--text)]">Trader</span>
-              <span class="text-sm text-[var(--text)]"><%= c.trader %> LL<%= c.min_trader_level %> - <%= c.currency %></span>
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-currency)] text-[var(--text)] flex-shrink-0">Trader</span>
+              <span class="font-data text-sm text-[var(--text)]"><%= c.trader %> LL<%= c.min_trader_level %> - <%= c.currency %></span>
               <% if c.task_unlock? %>
                 <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)]">Task-gated</span>
               <% end %>
@@ -74,11 +78,9 @@
             <% if c.task_unlock? %>
               <% unlocking_task = OfferUnlock.find_by(item_id: @item.id)&.reward&.task %>
               <% if unlocking_task %>
-                <%= render "items/prerequisite_chain", chain: unlocking_task.prerequisite_chain, css_class: "currency-chain mt-2 ml-1" %>
+                <%= render "shared/raid_timeline", chain: unlocking_task.prerequisite_chain, current_name: unlocking_task.name %>
               <% else %>
-                <div class="currency-chain mt-2 ml-1">
-                  <p class="text-xs text-[var(--text-muted)]">unlocking task not found</p>
-                </div>
+                <p class="text-xs text-[var(--text-muted)] mt-2 ml-1">unlocking task not found</p>
               <% end %>
             <% end %>
           </div>
@@ -92,11 +94,11 @@
   <% unlocks = OfferUnlock.where(item_id: @item.id) + BarterUnlock.where(item_id: @item.id) + CraftUnlock.where(item_id: @item.id) %>
   <% if unlocks.any? %>
     <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-semibold mb-4 text-[var(--text-bright)]">How to Unlock</h2>
+      <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">How to Unlock</h2>
       <div class="space-y-6">
         <% unlocks.each do |unlock| %>
           <div class="border border-[var(--border)] p-4">
-            <div class="flex items-center gap-2 mb-3">
+            <div class="flex items-center gap-2 mb-3 flex-wrap">
               <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-offer)] text-[var(--text)]"><%= unlock.class.name.demodulize.titleize %></span>
               <span class="font-medium text-[var(--text-bright)]">
                 <% if unlock.reward&.task %>
@@ -107,7 +109,7 @@
             </div>
 
             <% if unlock.reward&.task %>
-              <%= render "items/prerequisite_chain", chain: unlock.reward.task.prerequisite_chain %>
+              <%= render "shared/raid_timeline", chain: unlock.reward.task.prerequisite_chain, current_name: unlock.reward.task.name %>
             <% end %>
 
             <% if unlock.reward&.task&.wiki_link.present? %>
@@ -123,7 +125,7 @@
 
   <% packs = @item.ammo_packs %>
   <% if packs.any? %>
-    <div class="mt-8">
+    <div>
       <h2 class="text-lg font-bold text-[var(--text-bright)] mb-3">Ammo Packs</h2>
       <div class="space-y-2">
         <% packs.each do |pack| %>
@@ -132,11 +134,11 @@
               <div>
                 <h3 class="font-semibold text-[var(--text-bright)]"><%= pack.full_name %></h3>
                 <% pack_contains = pack.data&.dig("containsItems")&.find { |ci| ci["item"] == @item.bsg_id } %>
-                <p class="text-sm text-[var(--text-muted)]">
+                <p class="font-data text-sm text-[var(--text-muted)]">
                   Contains <%= pack_contains&.dig("count") %> × <%= @item.short_name %>
                 </p>
               </div>
-              <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </div>
