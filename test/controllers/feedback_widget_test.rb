@@ -16,4 +16,12 @@ class FeedbackWidgetTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, %(src="https://utteranc.es/client.js")
   end
+
+  test "the widget area is height-capped so a long thread cannot push the footer away" do
+    get root_url
+
+    # Roughly five comments before the wrapper scrolls instead of growing.
+    assert_includes response.body, "max-h-[600px]"
+    assert_select "div.max-w-3xl.overflow-y-auto script[src*='utteranc.es']"
+  end
 end
