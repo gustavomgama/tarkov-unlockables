@@ -154,7 +154,9 @@
 
     <footer class="border-t border-[var(--border)] mt-auto">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="text-sm text-[var(--text-muted)]">
+        <%= render "shared/feedback" %>
+
+        <div class="text-sm text-[var(--text-muted)] mt-2">
           data:
           <%= link_to "tarkov.dev", "https://tarkov.dev", class: "hover:text-[var(--accent)]", target: "_blank", rel: "noopener" %> ·
           <%= link_to "Escape from Tarkov Wiki", "https://escapefromtarkov.fandom.com", class: "hover:text-[var(--accent)]", target: "_blank", rel: "noopener" %> ·
