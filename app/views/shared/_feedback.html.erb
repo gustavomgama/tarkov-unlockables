@@ -1,29 +1,25 @@
-<%# Site-wide feedback box. The script is parked in a <template> so nothing
-    third-party loads until the visitor opens the section; utterances is driven
-    by the Stimulus controller when the <details> is toggled. %>
-<details class="group" data-controller="feedback" data-action="toggle->feedback#load">
-  <summary class="inline-block cursor-pointer text-sm text-[var(--text-muted)] hover:text-[var(--accent)] py-2">
+<%# Site-wide feedback box. utterances renders a public GitHub issue thread, so
+    this needs the utterances app installed on the repo and a pinned issue
+    (https://github.com/apps/utterances). %>
+<section class="mt-6" aria-labelledby="feedback-heading">
+  <h2 id="feedback-heading" class="text-sm font-bold uppercase tracking-wide text-[var(--text-muted)] mb-1">
     Suggestions &amp; feedback
-  </summary>
+  </h2>
 
-  <div class="mt-3 max-w-3xl">
-    <p class="text-xs text-[var(--text-muted)] mb-3">
-      Every message is public and lands in
-      <%= link_to "the issue tracker", "https://github.com/gustavomgama/tarkov-unlockables/issues/9",
-                  class: "text-[var(--accent)] hover:text-[var(--accent-hover)]",
-                  target: "_blank", rel: "noopener" %>.
-      A GitHub account is required to post.
-    </p>
+  <p class="text-xs text-[var(--text-muted)] mb-3">
+    Every message is public and lands in
+    <%= link_to "the issue tracker", "https://github.com/gustavomgama/tarkov-unlockables/issues/9",
+                class: "text-[var(--accent)] hover:text-[var(--accent-hover)]",
+                target: "_blank", rel: "noopener" %>.
+    A GitHub account is required to post.
+  </p>
 
-    <div data-feedback-target="container"></div>
-  </div>
-
-  <template data-feedback-target="template">
+  <div class="max-w-3xl">
     <script src="https://utteranc.es/client.js"
             repo="gustavomgama/tarkov-unlockables"
             issue-number="9"
             theme="github-dark"
             crossorigin="anonymous"
             async></script>
-  </template>
-</details>
+  </div>
+</section>
