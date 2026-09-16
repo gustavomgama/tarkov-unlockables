@@ -263,7 +263,9 @@ class ItemsController < ApplicationController
   def source_options
     @source_options ||= [
       { value: "barter", label: "Barter", count: Item.joins(:item_barters).distinct.count },
-      { value: "craft", label: "Craft", count: Item.joins(:item_task_rewards).distinct.count },
+      # The value stays "craft" so existing filtered URLs keep working, but the
+      # data behind it is quest rewards — the item page calls this "Quest".
+      { value: "craft", label: "Quest reward", count: Item.joins(:item_task_rewards).distinct.count },
       { value: "trader", label: "Trader", count: Item.joins(:item_currencies).distinct.count },
       { value: "hideout", label: "Hideout", count: Item.joins(:item_hideouts).distinct.count },
       { value: "task_gated", label: "Task Required", count: Item.task_gated.count }

@@ -848,6 +848,24 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ gated, free ].each { |i| i&.destroy }
   end
 
+  test "index source 'craft' means quest reward, not hideout craft" do
+    rewarded = Item.create!(bsg_id: "srcq1-#{SecureRandom.hex(4)}", full_name: "Rewarded Item", short_name: "RI")
+    crafted = Item.create!(bsg_id: "srcq2-#{SecureRandom.hex(4)}", full_name: "Crafted Item", short_name: "CI")
+    task = Task.create!(bsg_id: "t-srcq-#{SecureRandom.hex(4)}", full_name: "Reward Task", name: "reward-task", given_by: "Prapor")
+    rewarded.item_task_rewards.create!(task_id: task.id, task_name: task.name)
+    crafted.item_hideouts.create!(station: "Workbench", level: 1)
+
+    get items_url(filters: { source: [ "craft" ] })
+
+    assert_response :success
+    assert_select "td a", text: "Rewarded Item"
+    assert_no_match(/Crafted Item/, response.body)
+  ensure
+    crafted&.item_hideouts&.destroy_all
+    [ rewarded, crafted ].each { |i| i&.destroy }
+    task&.destroy
+  end
+
   test "index filters by source trader" do
     trader_item = Item.create!(bsg_id: "src3-#{SecureRandom.hex(4)}", full_name: "Trader Item", short_name: "TI")
     other_item = Item.create!(bsg_id: "src4-#{SecureRandom.hex(4)}", full_name: "Other Item", short_name: "OI")
