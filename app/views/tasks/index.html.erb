@@ -2,7 +2,12 @@
 
 <div class="space-y-4 sm:space-y-5">
   <div class="flex items-baseline justify-between gap-3 flex-wrap">
-    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Tasks</h1>
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Tasks</h1>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
+        Every trader contract with its unlock path, requirements and rewards.
+      </p>
+    </div>
     <p class="font-data text-sm text-[var(--text-muted)]">
       <span class="text-[var(--text)]"><%= number_with_delimiter(@task_count) %></span> quests
     </p>

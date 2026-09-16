@@ -30,10 +30,15 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
     assert_operator queries, :<=, 15, "tasks#show fired #{queries} queries"
   end
 
+  # Budget history:
+  #   22 → 28  the page gained "Used in" (the barters and crafts this item
+  #            feeds), which preloads two more nested graphs. Flat, not an
+  #            N+1: an item with one requirement row costs 18 queries, one
+  #            with three costs 17, because the preloads batch.
   test "items#show query budget" do
     url = item_url(items(:one))
     queries = count_queries { get url }
     assert_response :success
-    assert_operator queries, :<=, 22, "items#show fired #{queries} queries"
+    assert_operator queries, :<=, 28, "items#show fired #{queries} queries"
   end
 end

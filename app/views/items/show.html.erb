@@ -8,7 +8,9 @@
 <%# A weapon or magazine declares the rounds it takes; an ammo item does
     not, so it gets the rest of its caliber. Never both — same table. %>
 <% siblings = accepted.empty? && @item.data["caliber"].present? ? @item.caliber_ammo.to_a : [] %>
-<% has_main = siblings.size > 1 || accepted.any? || packs.any? %>
+<% used_in_barters = @item.barter_requirement_items.select { |ri| ri.barter_requirement&.barter_unlock } %>
+<% used_in_crafts = @item.craft_requirement_items.select { |ri| ri.craft_requirement&.craft_unlock } %>
+<% has_main = siblings.size > 1 || accepted.any? || packs.any? || used_in_barters.any? || used_in_crafts.any? %>
 
 <div class="space-y-4 sm:space-y-6">
   <nav class="crumbs no-print" aria-label="Breadcrumb">
@@ -79,6 +81,16 @@
                 current: nil,
                 title: "Ammunition accepted",
                 note: "Every round this can chamber, hardest-hitting first." %>
+        <% end %>
+
+        <% if used_in_barters.any? || used_in_crafts.any? %>
+          <section class="panel" aria-labelledby="used-in-head">
+            <div class="panel__head">
+              <h2 id="used-in-head" class="panel__title">Used in</h2>
+              <span class="panel__note">what this item is worth</span>
+            </div>
+            <%= render "items/used_in", item: @item %>
+          </section>
         <% end %>
 
         <% if packs.any? %>

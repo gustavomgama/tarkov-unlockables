@@ -48,6 +48,14 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select ".timeline-node", text: /Task One/
   end
 
+  test "show links the quest's own trader and wiki page" do
+    get task_url(tasks(:one))
+
+    assert_response :success
+    assert_select "a[href=?]", tasks_path(trader: tasks(:one).given_by), text: /quests/
+    assert_select "a[href=?]", tasks(:one).wiki_link, text: "Wiki walkthrough"
+  end
+
   test "show renders every reward type and leads-to" do
     get task_url(tasks(:one))
 

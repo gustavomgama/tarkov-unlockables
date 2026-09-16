@@ -4,7 +4,12 @@
 
 <div class="space-y-4 sm:space-y-5" data-controller="view-toggle">
   <div class="flex items-baseline justify-between gap-3 flex-wrap">
-    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Items</h1>
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Items</h1>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
+        Search by name, or open a filter to narrow by caliber, armor class and where it comes from.
+      </p>
+    </div>
     <p class="font-data text-sm text-[var(--text-muted)]">
       <span class="text-[var(--text)]"><%= number_with_delimiter(@item_count) %></span> items
       <% if @total_pages > 1 %>· page <%= @current_page %>/<%= @total_pages %><% end %>

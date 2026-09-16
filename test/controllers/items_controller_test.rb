@@ -257,6 +257,36 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     Item.where(id: [ bare&.id, key&.id ]).delete_all
   end
 
+  test "show lists the barters and crafts the item feeds" do
+    item = Item.create!(bsg_id: "used-#{SecureRandom.hex(4)}", full_name: "Used Test Item", short_name: "UTI")
+    task = Task.create!(bsg_id: "used-t-#{SecureRandom.hex(4)}", full_name: "Used Task", name: "used-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+
+    barter = reward.barter_unlocks.create!(item: item, item_name: item.full_name)
+    barter.barter_requirements.create!(trader_name: "Prapor", trader_level: 2)
+          .barter_requirement_items.create!(item: item, item_name: item.full_name, count: 5)
+
+    craft = reward.craft_unlocks.create!(item: item, item_name: item.full_name,
+                                         hideout_station: "Workbench", station_level: 2)
+    craft.craft_requirements.create!
+         .craft_requirement_items.create!(item: item, item_name: item.full_name, count: 1)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=used-in-head]" do
+      assert_select "h2", text: "Used in"
+      assert_select ".srcrow", text: /Prapor LL2/
+      assert_select ".srcrow", text: /needs 5 × UTI/
+      assert_select ".srcrow", text: /Workbench Lv\.2/
+      assert_select ".srcrow", text: /needs 1 × UTI/
+    end
+  ensure
+    Reward.where(task_id: task&.id).destroy_all
+    task&.destroy
+    item&.destroy
+  end
+
   test "show handles item with no data without error" do
     bare = Item.create!(
       bsg_id: "bare-#{SecureRandom.hex(4)}",

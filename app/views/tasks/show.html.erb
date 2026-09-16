@@ -26,6 +26,15 @@
               <span class="chip" style="--tone: var(--danger); background: var(--danger); color: var(--text-bright)">Kappa required</span>
             <% end %>
           </p>
+
+          <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <% if @task.given_by.present? %>
+              <%= link_to "#{@task.given_by.titleize} quests", tasks_path(trader: @task.given_by), class: "chip chip--link" %>
+            <% end %>
+            <% if @task.wiki_link.present? %>
+              <a href="<%= @task.wiki_link %>" target="_blank" rel="noopener" class="chip chip--link">Wiki walkthrough</a>
+            <% end %>
+          </div>
         </div>
       </div>
 
