@@ -331,6 +331,9 @@ ItemCurrency.where(trader: "Therapist", min_trader_level: 4)
 task.task_objectives.map(&:description)
 task.task_objectives.flat_map(&:task_objective_items).map(&:item_name)
 task.needed_keys  # [{ "map_name" => "Shoreline", "item_name" => …, "item_id" => … }]
+
+# Which quests need this item as a key
+Task.where("needed_keys @> ?::jsonb", [ { "item_id" => item.id } ].to_json)
 ```
 
 ### Example Queries

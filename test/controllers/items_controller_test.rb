@@ -599,6 +599,23 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     mods&.each(&:destroy)
   end
 
+  test "show lists the quests that need this item as a key" do
+    key = Item.create!(bsg_id: "key-#{SecureRandom.hex(4)}", full_name: "Dorm Key", short_name: "DK")
+    task = Task.create!(bsg_id: "key-t-#{SecureRandom.hex(4)}", full_name: "Key Quest", name: "key-quest",
+                        given_by: "Prapor",
+                        needed_keys: [ { "map_name" => "Customs", "item_id" => key.id,
+                                         "item_name" => key.full_name } ])
+
+    get item_url(key)
+
+    assert_response :success
+    assert_select ".srcrow", text: /Key Quest/
+    assert_select ".srcbadge", text: "Key"
+  ensure
+    task&.destroy
+    key&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

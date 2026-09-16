@@ -81,6 +81,10 @@ class ItemsController < ApplicationController
     @item_fits = ItemSlotAllowedItem.where(item_id: @item.id)
                                     .joins(item_slot: :item)
                                     .pluck("item_slots.name", "items.id", "items.full_name")
+    # Tasks that need this item as a key (needed_keys is jsonb on tasks).
+    @item_key_tasks = Task.where("needed_keys @> ?::jsonb", [ { "item_id" => @item.id } ].to_json)
+                          .order(:full_name)
+                          .to_a
 
     fresh_when(@item, public: true)
   end

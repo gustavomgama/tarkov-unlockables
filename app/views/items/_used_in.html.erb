@@ -1,9 +1,11 @@
 <%# What this item is worth: the barters and crafts it feeds, the quests that
-    accept it and the slots it fits. Locals: item, barters, crafts,
-    objectives (requirement/item rows) and fits ([slot, parent id, parent]).
-    Capped because one item (GP coin) feeds hundreds of barters. %>
+    accept it, the slots it fits and the quests that need it as a key. Locals:
+    item, barters, crafts, objectives (requirement/item rows), fits
+    ([slot, parent id, parent]) and key_tasks. Capped because one item (GP
+    coin) feeds hundreds of barters. %>
 <% limit = 12 %>
 <% fits = Array(fits) %>
+<% key_tasks = Array(key_tasks) %>
 
 <div class="panel__body panel__body--flush">
   <% barters.first(limit).each do |entry| %>
@@ -104,5 +106,19 @@
   <% end %>
   <% if fits.size > limit %>
     <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= fits.size - limit %> more slots.</p>
+  <% end %>
+
+  <%# Quests that need this item as a key. %>
+  <% key_tasks.first(limit).each do |task| %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-task)">Key</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title"><%= link_to task.full_name, task_path(task) %></p>
+        <p class="srcrow__meta">this key opens the way</p>
+      </div>
+    </div>
+  <% end %>
+  <% if key_tasks.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= key_tasks.size - limit %> more quests.</p>
   <% end %>
 </div>

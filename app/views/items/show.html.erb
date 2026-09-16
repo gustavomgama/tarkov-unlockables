@@ -14,7 +14,7 @@
 <% variants = Array(@item.data["weapon_variants"]).select { |v| v.is_a?(Hash) && v["name"].present? } %>
 <% has_main = siblings.size > 1 || accepted.any? || packs.any? || used_in_barters.any? ||
               used_in_crafts.any? || used_in_objectives.any? || variants.any? ||
-              @item_slots.any? || @item_fits.any? %>
+              @item_slots.any? || @item_fits.any? || @item_key_tasks.any? %>
 
 <div class="space-y-4 sm:space-y-6">
   <nav class="crumbs no-print" aria-label="Breadcrumb">
@@ -156,14 +156,15 @@
           </section>
         <% end %>
 
-        <% if used_in_barters.any? || used_in_crafts.any? || used_in_objectives.any? || @item_fits.any? %>
+        <% if used_in_barters.any? || used_in_crafts.any? || used_in_objectives.any? || @item_fits.any? || @item_key_tasks.any? %>
           <section class="panel" aria-labelledby="used-in-head">
             <div class="panel__head">
               <h2 id="used-in-head" class="panel__title">Used in</h2>
               <span class="panel__note">what this item is worth</span>
             </div>
             <%= render "items/used_in", item: @item, barters: used_in_barters,
-                  crafts: used_in_crafts, objectives: used_in_objectives, fits: @item_fits %>
+                  crafts: used_in_crafts, objectives: used_in_objectives,
+                  fits: @item_fits, key_tasks: @item_key_tasks %>
           </section>
         <% end %>
 
