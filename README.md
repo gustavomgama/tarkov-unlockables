@@ -7,6 +7,8 @@ Answering questions like:
 - what are the armor class 5 I can get or unlock?
 - What loyalty level is required for me to buy salewas?
 - Is there magazine case barters or buyable offers, can I even buy them, how do I unlock offers?
+- What do I need to build the Lavatory, and what does Therapist LL4 cost me?
+- What is the barter recipe for a LEDX, and which quests hand one in?
 
 ## Setup
 
@@ -279,18 +281,56 @@ item.item_currencies.pluck(:trader_name, :trader_level, :currency)
 ### Hideout
 
 ```ruby
-# Items available from hideout
-ItemHideout.where(station_name: "Medstation")
-ItemHideout.where(station_name: "Workbench")
-ItemHideout.where(station_name: "Lavatory")
+# Craft recipe for an item
+item.item_hideouts
+item.item_hideouts.first.item_hideout_requirements  # inputs, tools and counts
 
-# Items by station level
-ItemHideout.where(station_level: 1)
-ItemHideout.where(station_level: 2)
-ItemHideout.where(station_level: 3)
+# Station build costs
+station = HideoutStation.find_by(slug: "lavatory")
+station.hideout_levels.find_by(level: 2).hideout_item_requirements
+# => Corrugated hose ×6, Pack of screws ×6, … (found_in_raid flags FIR)
 
-# Hideout crafts
+# Crafted items by station and level
+ItemHideout.where(station: "Workbench", level: 2)
+
+# Task-unlocked crafts
 CraftUnlock.where.not(hideout_station: nil)
+```
+
+### Recipes, prices and quest hand-ins
+
+```ruby
+# Barter recipe
+barter = item.item_barters.first
+barter.item_barter_requirements.map { |r| [ r.item_name, r.count ] }
+barter.buy_limit
+
+# Offer price and loyalty requirement
+offer = item.item_currencies.first
+[ offer.trader, offer.min_trader_level, offer.price, offer.currency, offer.price_rub ]
+
+# Which quests hand this item in
+item.task_objective_items.map { |oi| oi.task_objective.task.full_name }
+```
+
+### Traders
+
+```ruby
+# Loyalty thresholds
+Trader.find_by(slug: "therapist").trader_levels.map do |l|
+  [ l.level, l.required_player_level, l.required_reputation, l.pay_rate ]
+end
+
+# What a trader sells at a loyalty level
+ItemCurrency.where(trader: "Therapist", min_trader_level: 4)
+```
+
+### Task objectives and keys
+
+```ruby
+task.task_objectives.map(&:description)
+task.task_objectives.flat_map(&:task_objective_items).map(&:item_name)
+task.needed_keys  # [{ "map_name" => "Shoreline", "item_name" => …, "item_id" => … }]
 ```
 
 ### Example Queries
