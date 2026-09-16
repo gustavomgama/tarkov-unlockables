@@ -151,6 +151,39 @@ CREATE TABLE maps (
   raid_duration INTEGER, players TEXT, enemies TEXT, bosses TEXT, extracts TEXT, transits TEXT
 );
 
+-- maps keep their raw JSON columns (mirror of canonical) *and* the normalized
+-- shape, like items/tasks do: extracts, transits, bosses and boss helpers are
+-- only reachable through json_each otherwise.
+-- an extract id is not unique per map: the same Gate 3 / UN Roadblock serves
+-- both factions, and Night Factory lists it twice with no faction at all.
+-- `ordinal` keeps the source's rows intact.
+CREATE TABLE map_extracts (
+  map_id TEXT, ordinal INTEGER, extract_id TEXT, name TEXT, faction TEXT,
+  PRIMARY KEY (map_id, ordinal)
+);
+CREATE TABLE map_transits (
+  map_id TEXT, transit_id TEXT, name TEXT, to_map_id TEXT, to_map_name TEXT,
+  PRIMARY KEY (map_id, transit_id)
+);
+-- a map's boss list repeats mobs: The Lab lists PmcBot 16 times, Terminal lists
+-- blackDivision 14 times, each a separate spawn entry. Same for the escort
+-- rows. `boss_index` is the position in the source array, so nothing is folded
+-- together.
+CREATE TABLE map_bosses (
+  map_id TEXT, boss_index INTEGER, mob TEXT, name TEXT, spawn_chance REAL,
+  PRIMARY KEY (map_id, boss_index)
+);
+-- an escort/support list is a list of spawn *outcomes*, not a set keyed by mob:
+-- the same follower appears several times with different chances and counts
+-- (Shturman's two followers at count 2 and 3, both 50%). `ordinal` is the
+-- source's own order, so every outcome survives.
+CREATE TABLE map_boss_helpers (
+  map_id TEXT, boss_index INTEGER, boss_mob TEXT, role TEXT, ordinal INTEGER,
+  helper_mob TEXT, helper_name TEXT, chance REAL, count INTEGER,
+  PRIMARY KEY (map_id, boss_index, role, ordinal)
+);
+CREATE TABLE map_enemies (map_id TEXT, enemy_id TEXT, name TEXT, PRIMARY KEY (map_id, enemy_id));
+
 CREATE TABLE player_levels (level INTEGER PRIMARY KEY, exp INTEGER, badge_image TEXT);
 CREATE TABLE skills (id TEXT PRIMARY KEY, name TEXT, slug TEXT, wiki_link TEXT, image_url TEXT);
 CREATE TABLE armor_materials (
@@ -408,6 +441,46 @@ def main():
                       r["players"], json.dumps(r["enemies"]), json.dumps(r["bosses"]),
                       json.dumps(r["extracts"]), json.dumps(r["transits"])) for r in rows])
     stats["maps"] = len(rows)
+    extracts, transits, bosses, helpers, enemies = [], [], [], [], []
+    for r in rows:
+        for ordinal, x in enumerate(r.get("extracts") or []):
+            extracts.append((r["id"], ordinal, x.get("id"), x.get("name"), x.get("faction")))
+        for x in r.get("transits") or []:
+            transits.append((r["id"], x.get("id"), x.get("name"), x.get("map_id"), x.get("map_name")))
+        for boss_index, b in enumerate(r.get("bosses") or []):
+            bosses.append((r["id"], boss_index, b.get("mob"), b.get("name"), b.get("spawn_chance")))
+            for role, block in (("escort", "escorts"), ("support", "supports")):
+                ordinal = 0
+                for h in b.get(block) or []:
+                    for amt in h.get("amount") or [{}]:
+                        helpers.append((r["id"], boss_index, b.get("mob"), role, ordinal, h.get("mob"),
+                                        h.get("name"), amt.get("chance"), amt.get("count")))
+                        ordinal += 1
+        for x in r.get("enemies") or []:
+            enemies.append((r["id"], x.get("id"), x.get("name")))
+    cur.executemany("INSERT OR IGNORE INTO map_extracts VALUES (?,?,?,?,?)", extracts)
+    cur.executemany("INSERT OR IGNORE INTO map_transits VALUES (?,?,?,?,?)", transits)
+    cur.executemany("INSERT OR IGNORE INTO map_bosses VALUES (?,?,?,?,?)", bosses)
+    cur.executemany("INSERT OR IGNORE INTO map_boss_helpers VALUES (?,?,?,?,?,?,?,?,?)", helpers)
+    cur.executemany("INSERT OR IGNORE INTO map_enemies VALUES (?,?,?)", enemies)
+    # every insert above must land every generated row; PRIMARY KEY collisions
+    # silently dropped 84 boss rows and 134 escort rows before this check
+    for table, expected in (("map_extracts", len(extracts)), ("map_transits", len(transits)),
+                            ("map_bosses", len(bosses)), ("map_boss_helpers", len(helpers)),
+                            ("map_enemies", len(enemies))):
+        got = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+        if got != expected:
+            raise ValueError(f"{table}: generated {expected} rows but {got} landed "
+                             f"({expected - got} dropped by the primary key)")
+    for name, table in (("map_extracts", "map_extracts"), ("map_transits", "map_transits"),
+                        ("map_bosses", "map_bosses"), ("map_boss_helpers", "map_boss_helpers"),
+                        ("map_enemies", "map_enemies")):
+        cur.execute(f"CREATE INDEX idx_{table}_map ON {table}(map_id)")
+    stats["map_extracts"] = len(extracts)
+    stats["map_transits"] = len(transits)
+    stats["map_bosses"] = len(bosses)
+    stats["map_boss_helpers"] = len(helpers)
+    stats["map_enemies"] = len(enemies)
 
     # ---- items -----------------------------------------------------------
     n_items = n_slots = n_allowed = 0

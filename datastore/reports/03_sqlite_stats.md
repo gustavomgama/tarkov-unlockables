@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 51.9 MB
+- `tarkov.sqlite3` — 52.0 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -34,6 +34,11 @@
 | item_wiki_slots | 26786 |
 | item_wiki_trader_offers | 2760 |
 | items | 5481 |
+| map_boss_helpers | 192 |
+| map_bosses | 129 |
+| map_enemies | 92 |
+| map_extracts | 152 |
+| map_transits | 33 |
 | maps | 17 |
 | mastery | 82 |
 | player_levels | 79 |

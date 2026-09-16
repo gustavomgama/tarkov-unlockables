@@ -210,10 +210,12 @@ weapon ids resolve to items.
 
 ## `tarkov.sqlite3`
 
-41 tables + 3 views + an FTS5 index built from the files above. The NDJSON nests are
+56 tables + 6 views + an FTS5 index built from the files above. The NDJSON nests are
 normalized: `item_slots` / `item_slot_allowed` (mod graph),
 `item_trade`, `item_acquisition`, `item_used_in`, `task_objectives` /
 `task_objective_items` / `task_objective_refs`, `task_rewards`,
+`map_extracts` / `map_transits` / `map_bosses` / `map_boss_helpers` /
+`map_enemies`,
 `hideout_level_*`, `item_grids`.
 
 Useful views:

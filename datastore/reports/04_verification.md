@@ -54,7 +54,7 @@
 | 50 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
 | 51 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
 | 52 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 53 | PASS | sqlite file exists — 52019200 |
+| 53 | PASS | sqlite file exists — 52174848 |
 | 54 | PASS | sqlite integrity_check — ok |
 | 55 | PASS | sqlite item count matches canonical — ==5481 = 5481 |
 | 56 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
@@ -71,7 +71,8 @@
 | 67 | PASS | special-slot ids resolve to items or categories — 37 ids = 28 items + 9 categories; 44 items carry the specialSlot type |
 | 68 | PASS | every wiki infobox id is attached to its item — 4115/5481 items carry a wiki block; 216 ids filled from 156 multi-id pages; 1 wiki-only item(s); 22 title/name differences |
 | 69 | PASS | README row counts match the data — 9 documented counts match (barters=789, categories=200, crafts=214, hideout_stations=26...) |
-| 70 | PASS | no table is entirely empty — 52 tables all non-empty |
-| 71 | PASS | wiki-derived relations loaded — item_wiki_slots=26786, item_wiki_meta=4115, item_wiki_trader_offers=2760, item_conflicts=13588, item_compatibility=10775, item_grids=903 |
+| 70 | PASS | map nests are normalized without loss — 5 map tables complete (map_boss_helpers=192, map_bosses=129, map_enemies=92, map_extracts=152, map_transits=33) |
+| 71 | PASS | no table is entirely empty — 57 tables all non-empty |
+| 72 | PASS | wiki-derived relations loaded — item_wiki_slots=26786, item_wiki_meta=4115, item_wiki_trader_offers=2760, item_conflicts=13588, item_compatibility=10775, item_grids=903 |
 
-**71/71 checks passed.**
+**72/72 checks passed.**

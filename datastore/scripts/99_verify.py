@@ -153,6 +153,7 @@ def main():
     check("special-slot ids resolve to items or categories", lambda: _special_items())
     check("every wiki infobox id is attached to its item", lambda: _wiki_page_coverage())
     check("README row counts match the data", lambda: _readme_counts())
+    check("map nests are normalized without loss", lambda: _map_tables())
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -485,6 +486,31 @@ def _special_items():
     assert not untyped, f"{len(untyped)} special_items ids are not typed specialSlot"
     return (f"{len(rows)} ids = {kinds['item']} items + {kinds['category']} categories; "
             f"{len(typed)} items carry the specialSlot type")
+
+
+def _map_tables():
+    """Extracts, transits, bosses and boss helpers used to be reachable only via
+    json_each. Their source lists repeat keys (an extract serves both factions,
+    The Lab lists PmcBot 16 times, a boss lists the same follower at several
+    counts), which silently cost 84 boss rows and 134 escort rows when the
+    tables keyed on those ids. Counts must equal the canonical lists exactly."""
+    maps = list(C.load_jsonl(os.path.join(C.CANON, "maps.ndjson")))
+    expected = {
+        "map_extracts": sum(len(m.get("extracts") or []) for m in maps),
+        "map_transits": sum(len(m.get("transits") or []) for m in maps),
+        "map_bosses": sum(len(m.get("bosses") or []) for m in maps),
+        "map_boss_helpers": sum(len((h.get("amount") or [{}]))
+                                for m in maps for b in (m.get("bosses") or [])
+                                for blk in ("escorts", "supports") for h in (b.get(blk) or [])),
+        "map_enemies": sum(len(m.get("enemies") or []) for m in maps),
+    }
+    con = sqlite3.connect(os.path.join(C.DS, "tarkov.sqlite3"))
+    out = []
+    for table, exp in sorted(expected.items()):
+        got = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+        assert got == exp, f"{table} has {got} rows, canonical has {exp}"
+        out.append(f"{table}={got}")
+    return f"{len(expected)} map tables complete ({', '.join(out)})"
 
 
 def _readme_counts():

@@ -109,7 +109,23 @@ WHERE s.bsg_id='55d355e64bdc2d962f8b4569' AND s.name_id='mod_barrel';
 
 -- full-text search
 SELECT bsg_id, name FROM items_fts WHERE items_fts MATCH 'ledx';
+
+-- who spawns on Customs with what escort, and where can I leave?
+SELECT b.name, b.spawn_chance, h.helper_name, h.chance, h.count
+FROM map_bosses b LEFT JOIN map_boss_helpers h
+  ON h.map_id = b.map_id AND h.boss_index = b.boss_index
+WHERE b.map_id = (SELECT id FROM maps WHERE slug='customs') AND b.mob='bossBully';
+-- Reshala|0.6|Reshala Guard|1.0|4
+
+SELECT name, faction FROM map_extracts e JOIN maps m ON m.id = e.map_id
+WHERE m.slug='interchange' AND faction IN ('pmc','shared');
+-- Saferoom Exfil|pmc  …  Hole in the Fence|shared
 ```
+
+Map nests are normalized too, so extracts/bosses/transits are queryable without
+`json_each`. Their source lists repeat ids — the same Gate 3 extract serves both
+factions, The Lab lists `PmcBot` 16 times — so the tables key on the source's
+position (`ordinal`, `boss_index`) rather than on those ids.
 
 Python:
 
