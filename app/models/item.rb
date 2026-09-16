@@ -176,7 +176,8 @@ class Item < ApplicationRecord
     end
   end
 
-  # Maps caliber display name → matching category bases (excludes _pack/_box/_bundle).
+  # Maps caliber display name → matching categories, including the
+  # _pack/_box/_bundle variants so an ammo pack matches its caliber too.
   # Computed on demand (not at class load) so boot never touches the DB and
   # re-imported data is reflected immediately.
   def self.caliber_category_map
@@ -196,9 +197,7 @@ class Item < ApplicationRecord
     # Normalize: lowercase, strip non-alphanumeric, strip 'x', strip trailing 'mm'
     norm = ->(s) { s.downcase.gsub(/[^a-zA-Z0-9]/, "").gsub("x", "").sub(/mm\z/, "") }
 
-    all_cats = category_list
-    cal_bases = all_cats.map { |c| c.sub(/_(pack|box|bundle)\z/, "") }
-                        .uniq.select { |b| b =~ /^\d/ || b =~ /^\./ }
+    cal_cats = category_list.select { |c| c.sub(/_(pack|box|bundle)\z/, "").match?(/^\d|^\./) }
 
     raw_calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact
     display_to_cats = {}
@@ -207,17 +206,12 @@ class Item < ApplicationRecord
       next if display.start_with?("Caliber")
       next if display_to_cats.key?(display)
       dn = norm.call(display)
-      display_to_cats[display] = cal_bases.select { |b|
-        bn = norm.call(b)
+      display_to_cats[display] = cal_cats.select { |c|
+        bn = norm.call(c.sub(/_(pack|box|bundle)\z/, ""))
         bn == dn || bn.start_with?(dn) || dn.start_with?(bn)
       }
     end
     display_to_cats
-  end
-
-  # All category bases that are caliber-like (matched by any caliber)
-  def self.caliber_category_bases
-    caliber_category_map.values.flatten.uniq
   end
 
   def ammo_packs

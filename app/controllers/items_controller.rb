@@ -182,17 +182,6 @@ class ItemsController < ApplicationController
   def caliber_options
     @caliber_options ||= begin
       calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
-    # One grouped query for data-field counts
-    data_counts = Item.where("data->>'caliber' IS NOT NULL")
-                      .group(Arel.sql("data->>'caliber'")).count
-    # One grouped query for category-based counts (ammo packs/boxes)
-    all_cal_cats = caliber_map.values.flatten.uniq
-    cat_counts = Hash.new(0)
-    if all_cal_cats.any?
-      Item.where("categories && ?", "{#{all_cal_cats.join(',')}}")
-          .group(Arel.sql("unnest(categories)")).count
-          .each { |cat, count| cat_counts[cat] = count }
-    end
 
       calibers.map do |c|
         cats = caliber_map[c] || []

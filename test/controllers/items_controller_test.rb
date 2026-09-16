@@ -392,6 +392,20 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ ammo545, ammo762 ].each { |i| i&.destroy }
   end
 
+  test "index caliber filter also matches ammo packs by their category" do
+    loose = Item::Ammo.create!(bsg_id: "calp1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT", short_name: "BT", data: { "caliber" => "5.45x39mm" })
+    other = Item::Ammo.create!(bsg_id: "calp2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm" })
+    pack = Item.create!(bsg_id: "calp3-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT ammo pack", short_name: "BTP", categories: [ "ammobox", "5.45x39mm_pack" ])
+
+    get items_url(filters: { caliber: [ "5.45x39mm" ] })
+    assert_response :success
+    assert_select "td a", text: "5.45x39mm BT"
+    assert_select "td a", text: "5.45x39mm BT ammo pack"
+    assert_no_match(/7.62x39mm PS/, response.body)
+  ensure
+    [ loose, other, pack ].each { |i| i&.destroy }
+  end
+
   test "index filters by armor class" do
     armor4 = Item::Armor.create!(bsg_id: "arm1-#{SecureRandom.hex(4)}", full_name: "Trooper Class 4", short_name: "T4", data: { "class" => "4" })
     armor6 = Item::Armor.create!(bsg_id: "arm2-#{SecureRandom.hex(4)}", full_name: "Zabralo Class 6", short_name: "Z6", data: { "class" => "6" })
