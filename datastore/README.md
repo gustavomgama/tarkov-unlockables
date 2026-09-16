@@ -35,7 +35,7 @@ datastore/
 | `canonical/hideout_stations.ndjson` | 26 | stations + 68 levels + build requirements (incl. found-in-raid) |
 | `canonical/maps.ndjson` | 17 | maps with raid duration, extracts, transits, bosses |
 | `canonical/categories.ndjson` | 200 | internal + handbook category trees with paths |
-| `canonical/weapon_variants.ndjson` | 102 | wiki-named weapon builds with their exact attachment lists, mapped 1:1 to tarkovdev presets |
+| `canonical/weapon_variants.ndjson` | 103 | wiki-named weapon builds with their exact attachment lists, mapped 1:1 to tarkovdev presets |
 | `canonical/reference.json` | — | levels, skills, mastery, armor materials, achievements, prestige |
 
 Price it: `item_acquisition_cost` (SQLite) costs every barter and craft by
@@ -61,7 +61,8 @@ cd datastore/scripts
 ~/.pyvenv-tarkov/bin/python 10_fetch.py           # cache tarkov.dev *_en/maps/hideout (idempotent)
 ~/.pyvenv-tarkov/bin/python 20_build_canonical.py # offlinedata + fetched -> canonical/
 ~/.pyvenv-tarkov/bin/python 30_build_sqlite.py    # canonical/ -> tarkov.sqlite3
-~/.pyvenv-tarkov/bin/python 99_verify.py          # 40 assertions, exits non-zero on failure
+~/.pyvenv-tarkov/bin/python 99_verify.py          # every check, exits non-zero on failure
+                                                  # (the count is in reports/04_verification.md)
 ```
 
 Or run the whole thing: `datastore/scripts/run.sh` (steps in order, exits on first failure).
@@ -139,10 +140,12 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
 
 ## Known limits
 
-1. **Quest-item names come from `tasks_en`, not `items_en`.** The 135 quest
-   items are absent from `/items` and from `items_en`; they are localized in
-   `tasks_en`, which the build reads as a second name source. Every item in the
-   dataset now has an official name — no slug-derived fallbacks remain.
+1. **Names come from four places, none of them slug-derived.** 5,312 from
+   `items_en`; 135 quest items from `tasks_en` (they are absent from `/items`
+   and from `items_en`); 32 from the tarkov-market snapshot; 2 from the wiki
+   infobox title, for ids the API does not carry at all. `name_source` records
+   which, and no item falls back to a slugified id. The wiki is the newest of
+   the four, so re-check it when the API catches up on those ids.
 2. **No bulk flea prices from tarkov-market** — the offlinedata bulk file has
    no price fields, so prices are tarkovdev's.
 3. **Generation is snapshot-bound.** Items live as of the 2026-09-03 snapshot;

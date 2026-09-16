@@ -152,6 +152,7 @@ def main():
     check("armor materials join to items", lambda: _armor_view(con))
     check("special-slot ids resolve to items or categories", lambda: _special_items())
     check("every wiki infobox id is attached to its item", lambda: _wiki_page_coverage())
+    check("README row counts match the data", lambda: _readme_counts())
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -484,6 +485,23 @@ def _special_items():
     assert not untyped, f"{len(untyped)} special_items ids are not typed specialSlot"
     return (f"{len(rows)} ids = {kinds['item']} items + {kinds['category']} categories; "
             f"{len(typed)} items carry the specialSlot type")
+
+
+def _readme_counts():
+    """The README's dataset table is the entry point, so a stale row count there
+    is a wrong answer handed to a reader. Parse it and compare with the files."""
+    readme = open(os.path.join(C.DS, "README.md"), encoding="utf-8").read()
+    claimed = dict(re.findall(r"\| `canonical/(\w+)\.ndjson` \| ([\d,]+) \|", readme))
+    assert claimed, "could not parse the README dataset table"
+    checked = []
+    for name, count in sorted(claimed.items()):
+        path = os.path.join(C.CANON, f"{name}.ndjson")
+        assert os.path.exists(path), f"README lists {name}.ndjson, file missing"
+        actual = sum(1 for _ in C.load_jsonl(path))
+        assert int(count.replace(",", "")) == actual, \
+            f"README says {name} has {count} rows, file has {actual}"
+        checked.append(f"{name}={actual}")
+    return f"{len(checked)} documented counts match ({', '.join(checked[:4])}...)"
 
 
 def _wiki_page_coverage():
