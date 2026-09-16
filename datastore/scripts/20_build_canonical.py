@@ -793,7 +793,14 @@ def _ll(value):
 
 
 def _idx_item(blk):
-    return {"bsg_id": blk.get("item_id"), "name": blk.get("item_name"), "count": blk.get("count")}
+    """Index entries keep counts as strings ("5"); normalize to int so merged
+    barter/craft routes have one numeric shape."""
+    count = blk.get("count")
+    try:
+        count = int(count) if count not in (None, "") else None
+    except (TypeError, ValueError):
+        count = None
+    return {"bsg_id": blk.get("item_id"), "name": blk.get("item_name"), "count": count}
 
 
 def barter_ref(ctx, b):

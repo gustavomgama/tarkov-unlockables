@@ -37,6 +37,12 @@ datastore/
 | `canonical/categories.ndjson` | 200 | internal + handbook category trees with paths |
 | `canonical/reference.json` | — | levels, skills, mastery, armor materials, achievements, prestige |
 
+Price it: `item_acquisition_cost` (SQLite) costs every barter and craft by
+pricing its consumed inputs (tools excluded) from `avg24h_price` →
+`last_low_price` → `base_price`. A recipe with any unpriced input is recorded
+`complete = 0` with a **null** cost — never a fake zero. `v_item_acquisition_cost`
+adds the item's own flea price and the difference.
+
 Key structure: **the BSG id is the join key everywhere**, and every item
 carries both directions of the graph —
 
@@ -124,6 +130,7 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
 - `reports/03_sqlite_stats.md` — table row counts + `integrity_check`.
 - `reports/04_verification.md` — every check and its result.
 - `reports/05_task_graph.md` — quest-graph shape: depth, chain, Kappa/Lightkeeper closures, workload per trader and map.
+- `reports/06_route_economics.md` — barter/craft recipes priced with snapshot flea prices; 134 barters beat the flea price outright.
 
 ## Known limits
 

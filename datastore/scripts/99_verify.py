@@ -142,6 +142,7 @@ def main():
     check("sqlite slot graph present", lambda: f"{con.execute('SELECT COUNT(*) FROM item_slot_allowed').fetchone()[0]} allowed-item edges")
     check("sqlite acquisition present", lambda: f"{con.execute('SELECT COUNT(*) FROM item_acquisition').fetchone()[0]} routes")
     check("category paths backfilled", lambda: _cat_paths(con))
+    check("route costs are complete or null, never faked", lambda: _route_costs(con))
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -399,6 +400,26 @@ def _task(tasks, slug):
     assert t["name"] and not t["name"].endswith(" name"), t["name"]
     assert t["trader_slug"], "no trader"
     return f"{t['name']} by {t['trader_slug']} ({len(t['objectives'])} objectives)"
+
+
+def _route_costs(con):
+    """A costed route must be fully costed; an incomplete one must have no cost.
+    A missing input price must never read as a free input."""
+    n = con.execute("SELECT COUNT(*) FROM item_acquisition_cost").fetchone()[0]
+    assert n >= 800, f"only {n} cost rows"
+    faked = con.execute("SELECT COUNT(*) FROM item_acquisition_cost WHERE complete = 0 AND cost_rub IS NOT NULL").fetchone()[0]
+    assert faked == 0, f"{faked} incomplete routes carry a cost"
+    uncosted = con.execute("SELECT COUNT(*) FROM item_acquisition_cost WHERE complete = 1 AND cost_rub IS NULL").fetchone()[0]
+    assert uncosted == 0, f"{uncosted} complete routes have no cost"
+    fake_zero = con.execute(
+        "SELECT COUNT(*) FROM item_acquisition_cost WHERE complete = 1 AND cost_rub = 0 AND consumed_inputs > 0").fetchone()[0]
+    assert fake_zero == 0, f"{fake_zero} zero-cost routes that do consume inputs"
+    zeros = con.execute("SELECT COUNT(*) FROM item_acquisition_cost WHERE cost_rub = 0").fetchone()[0]
+    priced = con.execute("SELECT COUNT(*) FROM item_acquisition_cost WHERE complete = 1").fetchone()[0]
+    assert priced >= 700, f"only {priced} priced routes"
+    cheaper = con.execute("SELECT COUNT(*) FROM v_item_acquisition_cost WHERE vs_flea_rub > 0").fetchone()[0]
+    return (f"{n} rows, {priced} priced, {n - priced} incomplete (null cost), "
+            f"{zeros} legitimately zero-cost (no inputs), {cheaper} cheaper than flea")
 
 
 def _cat_paths(con):
