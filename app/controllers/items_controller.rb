@@ -24,9 +24,9 @@ class ItemsController < ApplicationController
     items = apply_filters(items) if filter_params.present?
     @item_count = items.count
 
-    page = params[:page].to_i
+    page = int_param(:page)
     page = 1 if page < 1
-    per_page = [ params[:per_page].to_i, 1 ].max
+    per_page = [ int_param(:per_page), 1 ].max
     per_page = MAX_PER_PAGE if per_page > MAX_PER_PAGE
     per_page = PER_PAGE if per_page < PER_PAGE
     @items = items.offset((page - 1) * per_page).limit(per_page)
@@ -78,6 +78,14 @@ class ItemsController < ApplicationController
 
   def caliber_map_bases
     caliber_map.values.flatten.uniq
+  end
+
+  # A query-string value can arrive as an array ("?per_page[]=x"), and an array
+  # has no #to_i: read the first entry, or none.
+  def int_param(name)
+    value = params[name]
+    value = value.first if value.is_a?(Array)
+    value.to_i
   end
 
   # params[:filters] arrives from the query string, so it can be a String or an
