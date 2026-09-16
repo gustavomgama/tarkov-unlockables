@@ -2,6 +2,7 @@
 <% recoil = item.data["recoil"].presence %>
 <% range = item.data["range"].presence %>
 <% velocity = item.data["velocity"].presence %>
+<% default_preset = bsg_item(item.data["default_preset"].presence || item.data["defaultPreset"]) %>
 <% default_ammo_raw = item.data["default_ammo"].presence || item.data["def_ammo"] %>
 <% default_ammo = bsg_item(default_ammo_raw) %>
 <% accepted = compatible_ammo(item) %>
@@ -84,11 +85,19 @@
   </div>
 <% end %>
 
-<% if velocity.present? %>
+<% if velocity.present? || default_preset %>
   <dl class="specs">
-    <div class="spec">
-      <dt class="spec__key">Muzzle Velocity</dt>
-      <dd class="spec__val"><%= velocity %> m/s</dd>
-    </div>
+    <% if default_preset %>
+      <div class="spec">
+        <dt class="spec__key">Default preset</dt>
+        <dd class="spec__val"><%= link_to default_preset.full_name, item_path(default_preset) %></dd>
+      </div>
+    <% end %>
+    <% if velocity.present? %>
+      <div class="spec">
+        <dt class="spec__key">Muzzle Velocity</dt>
+        <dd class="spec__val"><%= velocity %> m/s</dd>
+      </div>
+    <% end %>
   </dl>
 <% end %>

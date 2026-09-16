@@ -320,6 +320,65 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show gives melee damage a home" do
+    # Melee weapons are Item::Generic, so their damage had nowhere to render.
+    melee = Item.create!(bsg_id: "melee-#{SecureRandom.hex(4)}", full_name: "MPL-50", short_name: "MPL",
+                         data: { "type" => "Melee weapon", "stab_damage" => 43, "slash_damage" => 24 })
+
+    get item_url(melee)
+
+    assert_response :success
+    assert_select "dt", text: "Stab Damage"
+    assert_select "dd", text: "43"
+    assert_select "dt", text: "Slash Damage"
+    assert_select "dd", text: "24"
+  ensure
+    melee&.destroy
+  end
+
+  test "show links a preset to the item it is built from" do
+    base = Item.create!(bsg_id: "base-#{SecureRandom.hex(4)}", full_name: "AK-74N", short_name: "AK")
+    preset = Item.create!(bsg_id: "preset-#{SecureRandom.hex(4)}", full_name: "AK-74N Default", short_name: "AKD",
+                          categories: [ "preset" ], data: { "base_item" => base.bsg_id })
+
+    get item_url(preset)
+
+    assert_response :success
+    assert_select "dt", text: "Base item"
+    assert_select "a[href=?]", item_path(base), text: "AK-74N"
+  ensure
+    preset&.destroy
+    base&.destroy
+  end
+
+  test "show links a weapon to its default preset" do
+    preset = Item.create!(bsg_id: "dp-#{SecureRandom.hex(4)}", full_name: "SCAR-L Default", short_name: "SCARD")
+    weapon = Item::Weapon.create!(bsg_id: "w-#{SecureRandom.hex(4)}", full_name: "SCAR-L", short_name: "SCAR",
+                                  data: { "caliber" => "Caliber556x45NATO", "default_preset" => preset.bsg_id })
+
+    get item_url(weapon)
+
+    assert_response :success
+    assert_select "dt", text: "Default preset"
+    assert_select "a[href=?]", item_path(preset), text: "SCAR-L Default"
+  ensure
+    weapon&.destroy
+    preset&.destroy
+  end
+
+  test "show counts the plates an armor ships with" do
+    armor = Item::Armor.create!(bsg_id: "pl-#{SecureRandom.hex(4)}", full_name: "Plated Vest", short_name: "PV",
+                                data: { "class" => 5, "default_plates" => "2x {{id}}<br/>2x {{id2}}" })
+
+    get item_url(armor)
+
+    assert_response :success
+    assert_select "dt", text: "Ships with"
+    assert_select "dd", text: "4 plates"
+  ensure
+    armor&.destroy
+  end
+
   test "show handles item with no data without error" do
     bare = Item.create!(
       bsg_id: "bare-#{SecureRandom.hex(4)}",
