@@ -20,6 +20,16 @@ module ItemsHelper
     "smg" => "SMG"
   }.freeze
 
+  # Values ticked for one filter group. params[:filters] is query-string data,
+  # so it may not even be a hash; the view must not care.
+  def filter_selection(name)
+    raw = params[:filters]
+    # Only a parameters object has permit; a String or Array was sent instead.
+    return [] unless raw.respond_to?(:permit)
+
+    Array(raw[name]).reject(&:blank?)
+  end
+
   # Player-facing name for a raw category key.
   def category_label(raw)
     CATEGORY_LABELS.fetch(raw.to_s) { raw.to_s.humanize }

@@ -59,31 +59,31 @@
       <%= render FilterComponent::GroupComponent.new(
         title: "Currency", name: "currency",
         options: @filter_options[:currency],
-        selected: Array(params.dig(:filters, :currency))
+        selected: filter_selection(:currency)
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Category", name: "category",
         options: @filter_options[:category],
-        selected: Array(params.dig(:filters, :category))
+        selected: filter_selection(:category)
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Armor class", name: "armor_class",
         options: @filter_options[:armor_class],
-        selected: Array(params.dig(:filters, :armor_class))
+        selected: filter_selection(:armor_class)
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Caliber", name: "caliber",
         options: @filter_options[:caliber],
-        selected: Array(params.dig(:filters, :caliber))
+        selected: filter_selection(:caliber)
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
         title: "Source", name: "source",
         options: @filter_options[:source],
-        selected: Array(params.dig(:filters, :source))
+        selected: filter_selection(:source)
       ) %>
 
       <label class="flex items-center gap-2 px-3 py-2 min-h-[2.5rem] text-sm bg-[var(--bg-surface)] border border-[var(--border)] hover:border-[var(--accent)] cursor-pointer">
@@ -91,7 +91,7 @@
           type="checkbox"
           name="filters[exclude_ref][]"
           value="1"
-          <%= "checked" if Array(params.dig(:filters, :exclude_ref)).include?("1") %>
+          <%= "checked" if filter_selection(:exclude_ref).include?("1") %>
           data-action="change->filter-form#submit"
           class="border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
         >

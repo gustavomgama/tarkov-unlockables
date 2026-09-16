@@ -505,6 +505,21 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ rub_item, usd_item ].each { |i| i&.destroy }
   end
 
+  test "index survives malformed filter params" do
+    # params[:filters] comes from the query string: it can be a String or an
+    # Array rather than a nested hash, and each of these 500'd at some point.
+    [
+      { filters: "string" },
+      { filters: [ "x" ] },
+      { filters: { currency: "string" } },
+      { filters: { nonsense: [ "x" ] } },
+      { filters: { armor_class: [ "<script>" ] } }
+    ].each do |params|
+      get items_url(params)
+      assert_response :success, "expected 200 for #{params.inspect}"
+    end
+  end
+
   test "active filter pills read in player language, not raw keys" do
     item = Item.create!(bsg_id: "pill-#{SecureRandom.hex(4)}", full_name: "Pill Test Item", short_name: "PTI")
     item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)

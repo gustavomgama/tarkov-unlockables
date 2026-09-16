@@ -21,7 +21,7 @@ class ItemsController < ApplicationController
 
     items = Item.all.order(full_name: :asc)
     items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
-    items = apply_filters(items) if params[:filters].present?
+    items = apply_filters(items) if filter_params.present?
     @item_count = items.count
 
     page = params[:page].to_i
@@ -80,12 +80,21 @@ class ItemsController < ApplicationController
     caliber_map.values.flatten.uniq
   end
 
-  def apply_filters(items)
-    filters = params[:filters].permit(
+  # params[:filters] arrives from the query string, so it can be a String or an
+  # Array rather than a nested hash ("?filters=string" 500'd on String#permit).
+  # Anything unexpected is read as "no filters".
+  def filter_params
+    raw = params[:filters]
+    raw = ActionController::Parameters.new unless raw.is_a?(ActionController::Parameters)
+    raw.permit(
       { currency: [] }, { category: [] }, { armor_class: [] },
       { caliber: [] }, { task_required: [] }, { source: [] },
       { exclude_ref: [] }
     )
+  end
+
+  def apply_filters(items)
+    filters = filter_params
 
     # Exclude Ref: drop items obtainable from the Ref trader
     if Array(filters[:exclude_ref]).include?("1")
