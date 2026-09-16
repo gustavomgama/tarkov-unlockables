@@ -1,0 +1,27 @@
+<%# Named builds for a weapon: a preset name plus the parts it changes.
+    Locals: item %>
+<% variants = Array(item.data["weapon_variants"]) %>
+<% variants = variants.select { |v| v.is_a?(Hash) && v["name"].present? } %>
+<% limit = 5 %>
+
+<div class="panel__body panel__body--flush">
+  <% variants.each do |variant| %>
+    <% parts = bsg_items(Array(variant["attachments"])) %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--bg-elevated); color: var(--text-muted)">Build</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title"><%= variant["name"] %></p>
+        <p class="srcrow__meta">
+          <% if parts.any? %>
+            <% parts.first(limit).each_with_index do |part, i| %><%= " · " if i.positive? %><%= link_to part.full_name, item_path(part) %><% end %>
+            <% if parts.size > limit %>
+              <span class="text-[var(--text-muted)]">+<%= parts.size - limit %> more</span>
+            <% end %>
+          <% else %>
+            <span class="text-[var(--text-muted)]">parts not resolved</span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -257,6 +257,31 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     Item.where(id: [ bare&.id, key&.id ]).delete_all
   end
 
+  test "show lists named build variants for a weapon" do
+    part = Item.create!(bsg_id: "var-part-#{SecureRandom.hex(4)}", full_name: "Kobra Sight", short_name: "Kobra")
+    weapon = Item::Weapon.create!(
+      bsg_id: "var-w-#{SecureRandom.hex(4)}",
+      full_name: "AS VAL",
+      short_name: "VAL",
+      data: {
+        "caliber" => "9x39mm",
+        "weapon_variants" => [ { "name" => "AS VAL Kobra", "attachments" => [ part.bsg_id ] } ]
+      }
+    )
+
+    get item_url(weapon)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=variants-head]" do
+      assert_select "h2", text: "Build variants"
+      assert_select ".srcrow", text: /AS VAL Kobra/
+      assert_select "a[href=?]", item_path(part), text: "Kobra Sight"
+    end
+  ensure
+    weapon&.destroy
+    part&.destroy
+  end
+
   test "show lists the barters and crafts the item feeds" do
     item = Item.create!(bsg_id: "used-#{SecureRandom.hex(4)}", full_name: "Used Test Item", short_name: "UTI")
     task = Task.create!(bsg_id: "used-t-#{SecureRandom.hex(4)}", full_name: "Used Task", name: "used-task", given_by: "Prapor")

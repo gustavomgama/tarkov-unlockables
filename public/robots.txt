@@ -1,1 +1,12 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+# Tarkov DB
+#
+# Everything public is meant to be indexed. The exceptions are the admin
+# panel (behind HTTP basic auth), the favourites list (a viewer's own
+# bookmarks, never useful as a search result) and the two typeahead
+# endpoints, which return fragments rather than pages.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /favorites
+Disallow: /items/search
+Disallow: /tasks/search
