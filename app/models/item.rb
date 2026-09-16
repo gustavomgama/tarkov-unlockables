@@ -43,6 +43,7 @@ class Item < ApplicationRecord
   has_many :item_barter_requirements, dependent: :delete_all
   has_many :item_hideout_requirements, dependent: :delete_all
   has_many :task_objective_items, dependent: :delete_all
+  has_many :hideout_item_requirements, dependent: :delete_all
 
   attr_accessor :data_json_invalid
 

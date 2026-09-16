@@ -1,0 +1,28 @@
+<% content_for :title, "Hideout" %>
+
+<div class="space-y-4 sm:space-y-5">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Hideout</h1>
+    <p class="mt-1 text-sm text-[var(--text-muted)]">
+      Every station, what each level costs to build, and what it unlocks.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
+    <% @stations.each do |station| %>
+      <%= link_to station_path(station.slug), class: "card" do %>
+        <% if station.image_url.present? %>
+          <div class="card__media">
+            <img src="<%= station.image_url %>" alt="" loading="lazy" width="120" height="120" class="card__img">
+          </div>
+        <% end %>
+        <div class="card__body">
+          <span class="card__name"><%= station.name %></span>
+          <span class="block text-xs text-[var(--text-muted)]">
+            <span class="font-data"><%= @level_counts[station.id] || 0 %></span> levels
+          </span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -135,7 +135,31 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
   def import!
     write("items", item_rows)
     write("tasks", task_rows)
+    write("hideout_stations", hideout_rows)
     Importers::Datastore.import!(source: @source)
+  end
+
+  def hideout_rows
+    [
+      {
+        "id" => "st1", "slug" => "workbench", "name" => "Workbench",
+        "image_url" => "https://assets/workbench.png", "area_type" => 10,
+        "levels" => [
+          {
+            "id" => "st1-1", "level" => 1, "construction_time" => 3600,
+            "item_requirements" => [
+              { "bsg_id" => "w1", "name" => "AK-74", "count" => 2, "found_in_raid" => true }
+            ],
+            "station_level_requirements" => [
+              { "station_id" => "gen", "station_name" => "Generator", "level" => 1 }
+            ],
+            "trader_requirements" => [
+              { "trader_id" => "mech", "trader_slug" => "mechanic", "level" => 2 }
+            ]
+          }
+        ]
+      }
+    ]
   end
 
   test "imports the item universe and replaces whatever was there" do
@@ -294,13 +318,31 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal 2, Task.find_by!(bsg_id: "t1").rewards.count
   end
 
+  test "imports hideout stations, levels and build costs" do
+    import!
+
+    station = HideoutStation.find_by!(slug: "workbench")
+    assert_equal "Workbench", station.name
+    assert_equal "https://assets/workbench.png", station.image_url
+
+    level = station.hideout_levels.sole
+    assert_equal [ 1, 3600 ], [ level.level, level.construction_time ]
+    assert_equal [ { "station_name" => "Generator", "level" => 1 } ], level.station_requirements
+    assert_equal [ { "name" => "Mechanic", "level" => 2 } ], level.trader_requirements
+
+    req = level.hideout_item_requirements.sole
+    assert_equal [ "AK-74", 2, true ], [ req.item_name, req.count, req.found_in_raid ]
+    assert_equal Item.find_by!(bsg_id: "w1").id, req.item_id
+  end
+
   test "is idempotent — reseeding replaces rather than accumulates" do
     import!
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
                ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
-               ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count ]
+               ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
+               HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count ]
 
     Importers::Datastore.import!(source: @source)
 
@@ -308,6 +350,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                            ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                            PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                            BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
-                           ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count ]
+                           ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
+                           HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count ]
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -116,6 +116,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000006) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["item_id"], name: "index_favorite_items_on_item_id"
+  end
+
+  create_table "hideout_item_requirements", force: :cascade do |t|
+    t.bigint "hideout_level_id", null: false
+    t.bigint "item_id"
+    t.string "item_name"
+    t.integer "count"
+    t.boolean "found_in_raid", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hideout_level_id"], name: "index_hideout_item_requirements_on_hideout_level_id"
+    t.index ["item_id"], name: "index_hideout_item_requirements_on_item_id"
+  end
+
+  create_table "hideout_levels", force: :cascade do |t|
+    t.bigint "hideout_station_id", null: false
+    t.integer "level"
+    t.integer "construction_time"
+    t.jsonb "station_requirements", default: [], null: false
+    t.jsonb "trader_requirements", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hideout_station_id"], name: "index_hideout_levels_on_hideout_station_id"
+  end
+
+  create_table "hideout_stations", force: :cascade do |t|
+    t.string "bsg_id"
+    t.string "slug"
+    t.string "name"
+    t.string "image_url"
+    t.integer "area_type"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bsg_id"], name: "index_hideout_stations_on_bsg_id", unique: true
+    t.index ["slug"], name: "index_hideout_stations_on_slug", unique: true
   end
 
   create_table "item_barter_requirements", force: :cascade do |t|
@@ -350,6 +386,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000006) do
   add_foreign_key "craft_unlocks", "items"
   add_foreign_key "craft_unlocks", "rewards"
   add_foreign_key "favorite_items", "items", on_delete: :restrict
+  add_foreign_key "hideout_item_requirements", "hideout_levels"
+  add_foreign_key "hideout_item_requirements", "items"
+  add_foreign_key "hideout_levels", "hideout_stations"
   add_foreign_key "item_barter_requirements", "item_barters", on_delete: :cascade
   add_foreign_key "item_barter_requirements", "items"
   add_foreign_key "item_barters", "items"

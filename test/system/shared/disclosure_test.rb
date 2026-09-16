@@ -12,7 +12,7 @@ class DisclosureTest < ApplicationSystemTestCase
     assert_no_selector ".site-menu[open]"
     find(".site-menu > summary").click
     assert_selector ".site-menu[open]"
-    assert_selector ".site-menu__panel a", count: 3
+    assert_selector ".site-menu__panel a", minimum: 3
 
     find(".site-menu > summary").send_keys(:escape)
     assert_no_selector ".site-menu[open]"

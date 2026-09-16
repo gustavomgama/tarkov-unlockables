@@ -14,6 +14,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :stations, only: [ :index, :show ], path: "hideout", param: :slug
+
   namespace :admin do
     resources :items, :tasks, :requirements, :rewards, :leads_tos,
               :barter_unlocks, :craft_unlocks, :offer_unlocks, :previous_tasks

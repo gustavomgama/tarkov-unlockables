@@ -22,6 +22,7 @@ module Importers
       barter_results barter_unlocks
       craft_requirement_items craft_requirements craft_result_items
       craft_results craft_unlocks
+      hideout_item_requirements hideout_levels hideout_stations
       item_barter_requirements item_barters item_currencies
       item_hideout_requirements item_hideouts
       leads_tos loose_items offer_unlocks previous_tasks requirements rewards
@@ -50,6 +51,7 @@ module Importers
       @source = Pathname.new(source)
       @items = read("items")
       @tasks = read("tasks")
+      @hideout_stations = read("hideout_stations")
       @item_id_by_bsg = {}
       @task_id_by_bsg = {}
       @task_id_by_slug = {}
@@ -63,6 +65,7 @@ module Importers
       import_tasks
       import_task_graph
       import_item_acquisition
+      import_hideout
       self
     end
 
@@ -387,10 +390,51 @@ module Importers
       end
     end
 
+    # --- hideout ---------------------------------------------------------
+
+    def import_hideout
+      HideoutStation.transaction do
+        @hideout_stations.each_with_index do |raw, index|
+          station = HideoutStation.create!(
+            bsg_id: raw["id"], slug: raw["slug"], name: raw["name"],
+            image_url: raw["image_url"], area_type: raw["area_type"], position: index
+          )
+
+          Array(raw["levels"]).each do |level_raw|
+            level = station.hideout_levels.create!(
+              level: level_raw["level"],
+              construction_time: level_raw["construction_time"],
+              station_requirements: hideout_station_requirements(level_raw),
+              trader_requirements: hideout_trader_requirements(level_raw)
+            )
+            Array(level_raw["item_requirements"]).each do |req|
+              level.hideout_item_requirements.create!(
+                item_id:       @item_id_by_bsg[req["bsg_id"]],
+                item_name:     req["name"],
+                count:         req["count"].to_i,
+                found_in_raid: req["found_in_raid"] || false
+              )
+            end
+          end
+        end
+      end
+    end
+
+    def hideout_station_requirements(level_raw)
+      Array(level_raw["station_level_requirements"]).map do |req|
+        { "station_name" => req["station_name"], "level" => req["level"] }
+      end
+    end
+
+    def hideout_trader_requirements(level_raw)
+      Array(level_raw["trader_requirements"]).map do |req|
+        { "name" => req["trader_slug"].to_s.titleize, "level" => req["level"] }
+      end
+    end
+
     def task_slug(task_id, fallback)
       @task_slug_by_id[task_id].presence || fallback
     end
-
     def currency_key(trader_slug, currency, level)
       [ trader_slug.to_s.titleize, currency, level.to_i ]
     end

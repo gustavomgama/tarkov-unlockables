@@ -20,7 +20,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | traders | 16 | — | no table: trader names are strings (`given_by`, `trader`, …). |
 | maps | 17 | — | no table: a task's map is `tasks.map_name` (13 values). |
 | categories | 200 | — | no table: leaf slugs live in `items.categories`. |
-| hideout stations | 26 stations / 68 levels | — | no table: station names are strings on `item_hideouts`. |
+| hideout stations | 26 stations / 68 levels | 26 `hideout_stations` / 68 `hideout_levels` / 317 item requirements | build costs stored, including FIR flags and station/trader gates; `item_hideouts.station` stays a string join. |
 | reference | levels, skills, mastery, armor materials, achievements | — | no tables. |
 
 ---
@@ -51,32 +51,26 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | `tasks.start_rewards` | `rewards` (`reward_type='start_rewards'`) | 1:1, plus the kinds the DB drops (trader unlocks, skills, achievements, dialogue, customization). |
 | `tasks.finish_rewards` | `rewards` | 1:1. |
 | `tasks.needed_keys` | — | **no table.** |
-| `hideout_stations` + levels | — | **no table.** Station names exist only as strings on `item_hideouts`. Hideout build requirements (items, FIR flags, station prerequisites) are absent. |
+| `hideout_stations` + levels | `hideout_stations` + `hideout_levels` + `hideout_item_requirements` | Stations, levels, construction time and build costs. Station and trader prerequisites are jsonb on the level. |
 | `maps` | `tasks.map_name` | Denormalized: only the task's map name, not extracts, bosses or transits. |
 | `reference` (levels, skills, mastery, armor materials, achievements) | — | **no tables.** |
 
 ---
 
-## What the DB cannot answer today
+## What the DB still cannot answer
 
-These are the concrete capabilities the canonical dataset adds, phrased as
-queries the Postgres schema cannot express:
-
-1. **"How do I get item X?"** — the DB can list a trader name per item but not
-   the barter recipe, craft recipe, task unlock, or the loyalty/hideout/quest
-   gates on each route.
-2. **"What is item X used for?"** — nothing in the DB tracks reverse usage
-   (craft inputs, barter requirements, hideout build costs, objective
-   hand-ins). 3,878 of the 5,481 items have at least one `used_in` route here.
-3. **"Can this weapon build work?"** — no slot graph, no allowed-items edges.
-4. **"What do I have to do for task T?"** — objectives and their accepted
-   items are stored; only needed keys are absent.
-5. **"Which tasks unlock the Jaeger trader / this craft / this offer?"** —
-   `offer_unlocks` (288) and `craft_unlocks` (71) exist, but the 2
-   `trader_unlock` and location unlocks are dropped.
-6. **"Where does this task happen?"** — no map data at all.
-7. **"How much does it cost to build the Lavatory?"** — no hideout
-   requirements.
+1. **"Can this weapon build work?"** — no slot graph, no allowed-items edges.
+2. **"Which tasks unlock the Jaeger trader, or a location?"** — the 2
+   `trader_unlock` and the location unlocks are dropped; offer and craft
+   unlocks are stored.
+3. **"What does this item's flea price say?"** — no economy or sell-to fields
+   are stored; prices are out of scope for the app.
+4. **"Which items are needed keys for a quest?"** — `tasks.needed_keys` is not
+   stored.
+5. **"What is this category, in the handbook?"** — no `categories` table; leaf
+   slugs live on `items.categories`.
+6. **"What are the flea level, skills, mastery or achievements?"** — the
+   `reference` tables are not imported.
 
 ---
 
@@ -86,13 +80,11 @@ Ordered by value per unit of work; nothing above is required for the dataset to
 be useful on its own. The item universe is already done — `db:seed` loads all
 5,481 canonical items, not the 3,399 the old index knew.
 
-1. **Add the two missing first-class tables**: `traders` (+ `trader_levels`)
-   and `maps`. They are small wins that make existing string columns
-   relational.
+1. **Add a `traders` table** (+ `trader_levels`). Trader names are still
+   strings everywhere; the maps case is handled by `tasks.map_name`.
 2. **Add the item mod graph** (`item_slots`, `item_slot_allowed`) — needed
    for any gun-builder feature.
-3. **Add `hideout_stations` + level requirements**, and **`categories`**
-   (with `kind`) so the taxonomy is not item-local.
+3. **Add `categories`** (with `kind`) so the taxonomy is not item-local.
 4. **Widen rewards** to the full `task_rewards` shape (kind + phase +
    trader/station/skill/achievement payloads).
 
