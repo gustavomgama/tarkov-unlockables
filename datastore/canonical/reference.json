@@ -1,0 +1,5453 @@
+{
+ "generated_from": {
+  "offlinedata": "tarkovdev (2026-09-03 dump), tarkovunlockables, tarkovmarket, officialwiki",
+  "fetched": "json.tarkov.dev/regular localized + reference endpoints (see fetched/manifest.json)"
+ },
+ "flea_market": {
+  "name": "FleaMarket",
+  "normalizedName": "flea-market",
+  "minPlayerLevel": 15,
+  "enabled": true,
+  "sellOfferFeeRate": 0.05,
+  "sellRequirementFeeRate": 0.05,
+  "foundInRaidRequired": false,
+  "reputationLevels": [
+   {
+    "offers": 1,
+    "offersSpecialEditions": 1,
+    "minRep": -10000,
+    "maxRep": -10
+   },
+   {
+    "offers": 2,
+    "offersSpecialEditions": 3,
+    "minRep": -10,
+    "maxRep": -2
+   },
+   {
+    "offers": 3,
+    "offersSpecialEditions": 4,
+    "minRep": -2,
+    "maxRep": 0.2
+   },
+   {
+    "offers": 4,
+    "offersSpecialEditions": 5,
+    "minRep": 0.2,
+    "maxRep": 7
+   },
+   {
+    "offers": 5,
+    "offersSpecialEditions": 6,
+    "minRep": 7,
+    "maxRep": 30
+   },
+   {
+    "offers": 6,
+    "offersSpecialEditions": 7,
+    "minRep": 30,
+    "maxRep": 60
+   },
+   {
+    "offers": 7,
+    "offersSpecialEditions": 8,
+    "minRep": 60,
+    "maxRep": 150
+   },
+   {
+    "offers": 8,
+    "offersSpecialEditions": 9,
+    "minRep": 150,
+    "maxRep": 200
+   },
+   {
+    "offers": 9,
+    "offersSpecialEditions": 10,
+    "minRep": 200,
+    "maxRep": 250
+   },
+   {
+    "offers": 10,
+    "offersSpecialEditions": 11,
+    "minRep": 250,
+    "maxRep": 500
+   },
+   {
+    "offers": 11,
+    "offersSpecialEditions": 12,
+    "minRep": 500,
+    "maxRep": 750
+   },
+   {
+    "offers": 12,
+    "offersSpecialEditions": 13,
+    "minRep": 750,
+    "maxRep": 1000
+   },
+   {
+    "offers": 15,
+    "offersSpecialEditions": 16,
+    "minRep": 1000,
+    "maxRep": 10000
+   }
+  ]
+ },
+ "armor_materials": {
+  "Aluminium": {
+   "id": "Aluminium",
+   "name": "MatAluminium",
+   "destructibility": 0.45,
+   "explosionDestructibility": 0.45,
+   "maxRepairDegradation": 0.1,
+   "maxRepairKitDegradation": 0.09,
+   "minRepairDegradation": 0.06,
+   "minRepairKitDegradation": 0.055
+  },
+  "Aramid": {
+   "id": "Aramid",
+   "name": "MatAramid",
+   "destructibility": 0.1875,
+   "explosionDestructibility": 0.15,
+   "maxRepairDegradation": 0.07,
+   "maxRepairKitDegradation": 0.065,
+   "minRepairDegradation": 0.03,
+   "minRepairKitDegradation": 0.025
+  },
+  "ArmoredSteel": {
+   "id": "ArmoredSteel",
+   "name": "MatArmoredSteel",
+   "destructibility": 0.525,
+   "explosionDestructibility": 0.45,
+   "maxRepairDegradation": 0.03,
+   "maxRepairKitDegradation": 0.025,
+   "minRepairDegradation": 0.01,
+   "minRepairKitDegradation": 0.005
+  },
+  "Ceramic": {
+   "id": "Ceramic",
+   "name": "MatCeramic",
+   "destructibility": 0.6,
+   "explosionDestructibility": 0.525,
+   "maxRepairDegradation": 0.22,
+   "maxRepairKitDegradation": 0.2,
+   "minRepairDegradation": 0.17,
+   "minRepairKitDegradation": 0.155
+  },
+  "Combined": {
+   "id": "Combined",
+   "name": "MatCombined",
+   "destructibility": 0.375,
+   "explosionDestructibility": 0.2,
+   "maxRepairDegradation": 0.15,
+   "maxRepairKitDegradation": 0.14,
+   "minRepairDegradation": 0.1,
+   "minRepairKitDegradation": 0.09
+  },
+  "Glass": {
+   "id": "Glass",
+   "name": "MatGlass",
+   "destructibility": 0.6,
+   "explosionDestructibility": 0.6,
+   "maxRepairDegradation": 0.42,
+   "maxRepairKitDegradation": 0.38,
+   "minRepairDegradation": 0.23,
+   "minRepairKitDegradation": 0.21
+  },
+  "Titan": {
+   "id": "Titan",
+   "name": "MatTitan",
+   "destructibility": 0.4125,
+   "explosionDestructibility": 0.375,
+   "maxRepairDegradation": 0.1,
+   "maxRepairKitDegradation": 0.09,
+   "minRepairDegradation": 0.06,
+   "minRepairKitDegradation": 0.055
+  },
+  "UHMWPE": {
+   "id": "UHMWPE",
+   "name": "MatUHMWPE",
+   "destructibility": 0.3375,
+   "explosionDestructibility": 0.3,
+   "maxRepairDegradation": 0.03,
+   "maxRepairKitDegradation": 0.025,
+   "minRepairDegradation": 0.01,
+   "minRepairKitDegradation": 0.005
+  }
+ },
+ "player_levels": [
+  {
+   "level": 1,
+   "exp": 0,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-1.png"
+  },
+  {
+   "level": 2,
+   "exp": 1000,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-1.png"
+  },
+  {
+   "level": 3,
+   "exp": 3017,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-1.png"
+  },
+  {
+   "level": 4,
+   "exp": 4415,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-1.png"
+  },
+  {
+   "level": 5,
+   "exp": 5824,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-2.png"
+  },
+  {
+   "level": 6,
+   "exp": 7221,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-2.png"
+  },
+  {
+   "level": 7,
+   "exp": 8546,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-2.png"
+  },
+  {
+   "level": 8,
+   "exp": 9913,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-2.png"
+  },
+  {
+   "level": 9,
+   "exp": 11268,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-2.png"
+  },
+  {
+   "level": 10,
+   "exp": 12519,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-3.png"
+  },
+  {
+   "level": 11,
+   "exp": 13840,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-3.png"
+  },
+  {
+   "level": 12,
+   "exp": 15716,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-3.png"
+  },
+  {
+   "level": 13,
+   "exp": 22023,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-3.png"
+  },
+  {
+   "level": 14,
+   "exp": 27951,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-3.png"
+  },
+  {
+   "level": 15,
+   "exp": 34084,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-4.png"
+  },
+  {
+   "level": 16,
+   "exp": 40548,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-4.png"
+  },
+  {
+   "level": 17,
+   "exp": 46547,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-4.png"
+  },
+  {
+   "level": 18,
+   "exp": 52419,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-4.png"
+  },
+  {
+   "level": 19,
+   "exp": 57549,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-4.png"
+  },
+  {
+   "level": 20,
+   "exp": 63065,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-5.png"
+  },
+  {
+   "level": 21,
+   "exp": 67696,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-5.png"
+  },
+  {
+   "level": 22,
+   "exp": 72817,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-5.png"
+  },
+  {
+   "level": 23,
+   "exp": 78369,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-5.png"
+  },
+  {
+   "level": 24,
+   "exp": 84803,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-5.png"
+  },
+  {
+   "level": 25,
+   "exp": 94916,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-6.png"
+  },
+  {
+   "level": 26,
+   "exp": 108067,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-6.png"
+  },
+  {
+   "level": 27,
+   "exp": 122126,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-6.png"
+  },
+  {
+   "level": 28,
+   "exp": 133164,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-6.png"
+  },
+  {
+   "level": 29,
+   "exp": 144320,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-6.png"
+  },
+  {
+   "level": 30,
+   "exp": 155595,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-7.png"
+  },
+  {
+   "level": 31,
+   "exp": 166982,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-7.png"
+  },
+  {
+   "level": 32,
+   "exp": 180344,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-7.png"
+  },
+  {
+   "level": 33,
+   "exp": 196685,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-7.png"
+  },
+  {
+   "level": 34,
+   "exp": 215087,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-7.png"
+  },
+  {
+   "level": 35,
+   "exp": 233690,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-8.png"
+  },
+  {
+   "level": 36,
+   "exp": 258091,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-8.png"
+  },
+  {
+   "level": 37,
+   "exp": 281805,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-8.png"
+  },
+  {
+   "level": 38,
+   "exp": 305744,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-8.png"
+  },
+  {
+   "level": 39,
+   "exp": 326065,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-8.png"
+  },
+  {
+   "level": 40,
+   "exp": 346570,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-9.png"
+  },
+  {
+   "level": 41,
+   "exp": 367261,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-9.png"
+  },
+  {
+   "level": 42,
+   "exp": 388137,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-9.png"
+  },
+  {
+   "level": 43,
+   "exp": 416600,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-9.png"
+  },
+  {
+   "level": 44,
+   "exp": 445333,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-9.png"
+  },
+  {
+   "level": 45,
+   "exp": 474331,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-10.png"
+  },
+  {
+   "level": 46,
+   "exp": 528224,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-10.png"
+  },
+  {
+   "level": 47,
+   "exp": 559155,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-10.png"
+  },
+  {
+   "level": 48,
+   "exp": 590350,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-10.png"
+  },
+  {
+   "level": 49,
+   "exp": 621815,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-10.png"
+  },
+  {
+   "level": 50,
+   "exp": 653537,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-11.png"
+  },
+  {
+   "level": 51,
+   "exp": 685522,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-11.png"
+  },
+  {
+   "level": 52,
+   "exp": 717765,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-11.png"
+  },
+  {
+   "level": 53,
+   "exp": 761235,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-11.png"
+  },
+  {
+   "level": 54,
+   "exp": 805078,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-11.png"
+  },
+  {
+   "level": 55,
+   "exp": 849297,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-12.png"
+  },
+  {
+   "level": 56,
+   "exp": 893877,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-12.png"
+  },
+  {
+   "level": 57,
+   "exp": 938823,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-12.png"
+  },
+  {
+   "level": 58,
+   "exp": 984131,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-12.png"
+  },
+  {
+   "level": 59,
+   "exp": 1029795,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-12.png"
+  },
+  {
+   "level": 60,
+   "exp": 1095775,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-13.png"
+  },
+  {
+   "level": 61,
+   "exp": 1225050,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-13.png"
+  },
+  {
+   "level": 62,
+   "exp": 1319453,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-13.png"
+  },
+  {
+   "level": 63,
+   "exp": 1431321,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-13.png"
+  },
+  {
+   "level": 64,
+   "exp": 1558177,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-13.png"
+  },
+  {
+   "level": 65,
+   "exp": 1748019,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-14.png"
+  },
+  {
+   "level": 66,
+   "exp": 2002313,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-14.png"
+  },
+  {
+   "level": 67,
+   "exp": 2480456,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-14.png"
+  },
+  {
+   "level": 68,
+   "exp": 3447343,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-14.png"
+  },
+  {
+   "level": 69,
+   "exp": 4924970,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-14.png"
+  },
+  {
+   "level": 70,
+   "exp": 6306999,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-15.png"
+  },
+  {
+   "level": 71,
+   "exp": 7640970,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-15.png"
+  },
+  {
+   "level": 72,
+   "exp": 8986198,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-15.png"
+  },
+  {
+   "level": 73,
+   "exp": 10341135,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-15.png"
+  },
+  {
+   "level": 74,
+   "exp": 11704613,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-15.png"
+  },
+  {
+   "level": 75,
+   "exp": 13075721,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-16.png"
+  },
+  {
+   "level": 76,
+   "exp": 14453730,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-16.png"
+  },
+  {
+   "level": 77,
+   "exp": 15838039,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-16.png"
+  },
+  {
+   "level": 78,
+   "exp": 18623623,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-16.png"
+  },
+  {
+   "level": 79,
+   "exp": 27091684,
+   "levelBadgeImageLink": "https://assets.tarkov.dev/player-level-group-16.png"
+  }
+ ],
+ "skills": [
+  {
+   "id": "AimDrills",
+   "name": "AimDrills",
+   "normalizedName": "aim-drills",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Aim_Drills",
+   "imageLink": "https://assets.tarkov.dev/skill-AimDrills-icon.webp"
+  },
+  {
+   "id": "Assault",
+   "name": "Assault",
+   "normalizedName": "assault-rifles",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Assault_Rifles",
+   "imageLink": "https://assets.tarkov.dev/skill-Assault-icon.webp"
+  },
+  {
+   "id": "AttachedLauncher",
+   "name": "AttachedLauncher",
+   "normalizedName": "underbarrel-launchers",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Underbarrel_Launchers",
+   "imageLink": "https://assets.tarkov.dev/skill-AttachedLauncher-icon.webp"
+  },
+  {
+   "id": "Attention",
+   "name": "Attention",
+   "normalizedName": "attention",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Attention",
+   "imageLink": "https://assets.tarkov.dev/skill-Attention-icon.webp"
+  },
+  {
+   "id": "Auctions",
+   "name": "Auctions",
+   "normalizedName": "auctions",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Auctions",
+   "imageLink": "https://assets.tarkov.dev/skill-Auctions-icon.webp"
+  },
+  {
+   "id": "BearAksystems",
+   "name": "BearAksystems",
+   "normalizedName": "bear-ak-systems",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/BEAR_AK_Systems",
+   "imageLink": "https://assets.tarkov.dev/skill-BearAksystems-icon.webp"
+  },
+  {
+   "id": "BearAssaultoperations",
+   "name": "BearAssaultoperations",
+   "normalizedName": "bear-assault-operations",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/BEAR_Assault_Operations",
+   "imageLink": "https://assets.tarkov.dev/skill-BearAssaultoperations-icon.webp"
+  },
+  {
+   "id": "BearAuthority",
+   "name": "BearAuthority",
+   "normalizedName": "bear-authority",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/BEAR_Authority",
+   "imageLink": "https://assets.tarkov.dev/skill-BearAuthority-icon.webp"
+  },
+  {
+   "id": "BearHeavycaliber",
+   "name": "BearHeavycaliber",
+   "normalizedName": "bear-heavy-caliber",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/BEAR_Heavy_Caliber",
+   "imageLink": "https://assets.tarkov.dev/skill-BearHeavycaliber-icon.webp"
+  },
+  {
+   "id": "BearRawpower",
+   "name": "BearRawpower",
+   "normalizedName": "bear-raw-power",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/BEAR_Raw_Power",
+   "imageLink": "https://assets.tarkov.dev/skill-BearRawpower-icon.webp"
+  },
+  {
+   "id": "Charisma",
+   "name": "Charisma",
+   "normalizedName": "charisma",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Charisma",
+   "imageLink": "https://assets.tarkov.dev/skill-Charisma-icon.webp"
+  },
+  {
+   "id": "Cleanoperations",
+   "name": "Cleanoperations",
+   "normalizedName": "clean-operations",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Clean_Operations",
+   "imageLink": "https://assets.tarkov.dev/skill-Cleanoperations-icon.webp"
+  },
+  {
+   "id": "CovertMovement",
+   "name": "CovertMovement",
+   "normalizedName": "covert-movement",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Covert_Movement",
+   "imageLink": "https://assets.tarkov.dev/skill-CovertMovement-icon.webp"
+  },
+  {
+   "id": "Crafting",
+   "name": "Crafting",
+   "normalizedName": "crafting",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Crafting",
+   "imageLink": "https://assets.tarkov.dev/skill-Crafting-icon.webp"
+  },
+  {
+   "id": "DMR",
+   "name": "DMR",
+   "normalizedName": "dmrs",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/DMRs",
+   "imageLink": "https://assets.tarkov.dev/skill-DMR-icon.webp"
+  },
+  {
+   "id": "Endurance",
+   "name": "Endurance",
+   "normalizedName": "endurance",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Endurance",
+   "imageLink": "https://assets.tarkov.dev/skill-Endurance-icon.webp"
+  },
+  {
+   "id": "FieldMedicine",
+   "name": "FieldMedicine",
+   "normalizedName": "field-medicine",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Field_Medicine",
+   "imageLink": "https://assets.tarkov.dev/skill-FieldMedicine-icon.webp"
+  },
+  {
+   "id": "FirstAid",
+   "name": "FirstAid",
+   "normalizedName": "first-aid",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/First_Aid",
+   "imageLink": "https://assets.tarkov.dev/skill-FirstAid-icon.webp"
+  },
+  {
+   "id": "HMG",
+   "name": "HMG",
+   "normalizedName": "heavy-machine-guns",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Heavy_Machine_Guns",
+   "imageLink": "https://assets.tarkov.dev/skill-HMG-icon.webp"
+  },
+  {
+   "id": "Health",
+   "name": "Health",
+   "normalizedName": "health",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Health",
+   "imageLink": "https://assets.tarkov.dev/skill-Health-icon.webp"
+  },
+  {
+   "id": "HeavyVests",
+   "name": "HeavyVests",
+   "normalizedName": "heavy-vests",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Heavy_Vests",
+   "imageLink": "https://assets.tarkov.dev/skill-HeavyVests-icon.webp"
+  },
+  {
+   "id": "HideoutManagement",
+   "name": "HideoutManagement",
+   "normalizedName": "hideout-management",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Hideout_Management",
+   "imageLink": "https://assets.tarkov.dev/skill-HideoutManagement-icon.webp"
+  },
+  {
+   "id": "Immunity",
+   "name": "Immunity",
+   "normalizedName": "immunity",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Immunity",
+   "imageLink": "https://assets.tarkov.dev/skill-Immunity-icon.webp"
+  },
+  {
+   "id": "Intellect",
+   "name": "Intellect",
+   "normalizedName": "intellect",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Intellect",
+   "imageLink": "https://assets.tarkov.dev/skill-Intellect-icon.webp"
+  },
+  {
+   "id": "LMG",
+   "name": "LMG",
+   "normalizedName": "light-machine-guns",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Light_Machine_Guns",
+   "imageLink": "https://assets.tarkov.dev/skill-LMG-icon.webp"
+  },
+  {
+   "id": "Launcher",
+   "name": "Launcher",
+   "normalizedName": "grenade-launchers",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Grenade_Launchers",
+   "imageLink": "https://assets.tarkov.dev/skill-Launcher-icon.webp"
+  },
+  {
+   "id": "LightVests",
+   "name": "LightVests",
+   "normalizedName": "light-vests",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Light_Vests",
+   "imageLink": "https://assets.tarkov.dev/skill-LightVests-icon.webp"
+  },
+  {
+   "id": "Lockpicking",
+   "name": "Lockpicking",
+   "normalizedName": "lockpicking",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Lockpicking",
+   "imageLink": "https://assets.tarkov.dev/skill-Lockpicking-icon.webp"
+  },
+  {
+   "id": "MagDrills",
+   "name": "MagDrills",
+   "normalizedName": "mag-drills",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Mag_Drills",
+   "imageLink": "https://assets.tarkov.dev/skill-MagDrills-icon.webp"
+  },
+  {
+   "id": "Melee",
+   "name": "Melee",
+   "normalizedName": "melee",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Melee",
+   "imageLink": "https://assets.tarkov.dev/skill-Melee-icon.webp"
+  },
+  {
+   "id": "Metabolism",
+   "name": "Metabolism",
+   "normalizedName": "metabolism",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Metabolism",
+   "imageLink": "https://assets.tarkov.dev/skill-Metabolism-icon.webp"
+  },
+  {
+   "id": "NightOps",
+   "name": "NightOps",
+   "normalizedName": "night-ops",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Night_Ops",
+   "imageLink": "https://assets.tarkov.dev/skill-NightOps-icon.webp"
+  },
+  {
+   "id": "Perception",
+   "name": "Perception",
+   "normalizedName": "perception",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Perception",
+   "imageLink": "https://assets.tarkov.dev/skill-Perception-icon.webp"
+  },
+  {
+   "id": "Pistol",
+   "name": "Pistol",
+   "normalizedName": "pistols",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Pistols",
+   "imageLink": "https://assets.tarkov.dev/skill-Pistol-icon.webp"
+  },
+  {
+   "id": "Revolver",
+   "name": "Revolver",
+   "normalizedName": "revolvers",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Revolvers",
+   "imageLink": "https://assets.tarkov.dev/skill-Revolver-icon.webp"
+  },
+  {
+   "id": "SMG",
+   "name": "SMG",
+   "normalizedName": "submachine-guns",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Submachine_Guns",
+   "imageLink": "https://assets.tarkov.dev/skill-SMG-icon.webp"
+  },
+  {
+   "id": "Search",
+   "name": "Search",
+   "normalizedName": "search",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Search",
+   "imageLink": "https://assets.tarkov.dev/skill-Search-icon.webp"
+  },
+  {
+   "id": "Shadowconnections",
+   "name": "Shadowconnections",
+   "normalizedName": "shadow-connections",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Shadow_Connections",
+   "imageLink": "https://assets.tarkov.dev/skill-Shadowconnections-icon.webp"
+  },
+  {
+   "id": "Shotgun",
+   "name": "Shotgun",
+   "normalizedName": "shotguns",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Shotguns",
+   "imageLink": "https://assets.tarkov.dev/skill-Shotgun-icon.webp"
+  },
+  {
+   "id": "SilentOps",
+   "name": "SilentOps",
+   "normalizedName": "silent-ops",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Silent_Ops",
+   "imageLink": "https://assets.tarkov.dev/skill-SilentOps-icon.webp"
+  },
+  {
+   "id": "Sniper",
+   "name": "Sniper",
+   "normalizedName": "bolt-action-rifles",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Bolt-action_Rifles",
+   "imageLink": "https://assets.tarkov.dev/skill-Sniper-icon.webp"
+  },
+  {
+   "id": "Strength",
+   "name": "Strength",
+   "normalizedName": "strength",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Strength",
+   "imageLink": "https://assets.tarkov.dev/skill-Strength-icon.webp"
+  },
+  {
+   "id": "StressResistance",
+   "name": "StressResistance",
+   "normalizedName": "stress-resistance",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Stress_Resistance",
+   "imageLink": "https://assets.tarkov.dev/skill-StressResistance-icon.webp"
+  },
+  {
+   "id": "Surgery",
+   "name": "Surgery",
+   "normalizedName": "surgery",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Surgery",
+   "imageLink": "https://assets.tarkov.dev/skill-Surgery-icon.webp"
+  },
+  {
+   "id": "Taskperformance",
+   "name": "Taskperformance",
+   "normalizedName": "task-performance",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Task_Performance",
+   "imageLink": "https://assets.tarkov.dev/skill-Taskperformance-icon.webp"
+  },
+  {
+   "id": "Throwing",
+   "name": "Throwing",
+   "normalizedName": "throwables",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Throwables",
+   "imageLink": "https://assets.tarkov.dev/skill-Throwing-icon.webp"
+  },
+  {
+   "id": "TroubleShooting",
+   "name": "TroubleShooting",
+   "normalizedName": "troubleshooting",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Troubleshooting",
+   "imageLink": "https://assets.tarkov.dev/skill-TroubleShooting-icon.webp"
+  },
+  {
+   "id": "Vitality",
+   "name": "Vitality",
+   "normalizedName": "vitality",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Vitality",
+   "imageLink": "https://assets.tarkov.dev/skill-Vitality-icon.webp"
+  },
+  {
+   "id": "WeaponTreatment",
+   "name": "WeaponTreatment",
+   "normalizedName": "weapon-maintenance",
+   "wikiLink": "https://escapefromtarkov.fandom.com/wiki/Weapon_Maintenance",
+   "imageLink": "https://assets.tarkov.dev/skill-WeaponTreatment-icon.webp"
+  }
+ ],
+ "mastering": [
+  {
+   "id": "M4",
+   "weapons": [
+    "5c07c60e0db834002330051f",
+    "5447a9cd4bdc2dbd208b4567",
+    "5bb2475ed4351e00853264e3",
+    "5d43021ca4b9362eab4b5e25",
+    "68a639748e1fe612970728e9",
+    "68a6399922b1e0bd360afe56",
+    "6895bb82c4519957df062f82"
+   ],
+   "level2": 1600,
+   "level3": 2000
+  },
+  {
+   "id": "AKM",
+   "weapons": [
+    "59d6088586f774275f37482f",
+    "5a0ec13bfcdbcb00165aa685",
+    "59ff346386f77477562ff5e2",
+    "5abcbc27d8ce8700182eceeb",
+    "59e6687d86f77411d949b251",
+    "59e6152586f77473dc057aa1",
+    "674d6121c09f69dfb201a888",
+    "689166b6c2d6fa42e7044756"
+   ],
+   "level2": 500,
+   "level3": 600
+  },
+  {
+   "id": "SKS",
+   "weapons": [
+    "587e02ff24597743df3deaeb",
+    "574d967124597745970e7c94"
+   ],
+   "level2": 200,
+   "level3": 300
+  },
+  {
+   "id": "AKSU",
+   "weapons": [
+    "57dc2fa62459775949412633",
+    "5839a40f24597726f856b511",
+    "583990e32459771419544dd2"
+   ],
+   "level2": 275,
+   "level3": 350
+  },
+  {
+   "id": "AK74",
+   "weapons": [
+    "5ac66cb05acfc40198510a10",
+    "5ac66d015acfc400180ae6e4",
+    "5ac66d2e5acfc43b321d4b53",
+    "5ac66d725acfc43b321d4b60",
+    "5ac66d9b5acfc4001633997a",
+    "6499849fc93611967b034949",
+    "5bf3e03b0db834001d2c4a9c",
+    "5ac4cd105acfc40016339859",
+    "5644bd2b4bdc2d3b4c8b4572",
+    "5bf3e0490db83400196199af",
+    "5ab8e9fcd8ce870019439434",
+    "628a60ae6b1d481ff772e9c8",
+    "628b5638ad252a16da6dd245",
+    "628b9c37a733087d0d7fe84b",
+    "5beed0f50db834001c062b12"
+   ],
+   "level2": 2000,
+   "level3": 2200
+  },
+  {
+   "id": "VSS",
+   "weapons": [
+    "57c44b372459772d2b39b8ce",
+    "57838ad32459774a17445cd2",
+    "651450ce0e00edc794068371",
+    "6871284e9a353bb50606f3ed"
+   ],
+   "level2": 275,
+   "level3": 500
+  },
+  {
+   "id": "MP443",
+   "weapons": [
+    "576a581d2459771e7b1bc4f1"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "MP133",
+   "weapons": [
+    "54491c4f4bdc2db1078b4568"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "MP153",
+   "weapons": [
+    "56dee2bdd2720bc8328b4567",
+    "606dae0ab0e443224b421bb7"
+   ],
+   "level2": 1500,
+   "level3": 2200
+  },
+  {
+   "id": "MR43",
+   "weapons": [
+    "64748cb8de82c85eaf0a273a",
+    "5580223e4bdc2d1c128b457f"
+   ],
+   "level2": 150,
+   "level3": 250
+  },
+  {
+   "id": "PM",
+   "weapons": [
+    "5448bd6b4bdc2dfc2f8b4569",
+    "579204f224597773d619e051",
+    "66015072e9f84d5680039678"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "PB",
+   "weapons": [
+    "56e0598dd2720bb5668b45a6"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "P226",
+   "weapons": [
+    "56d59856d2720bd8418b456a"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "MP5",
+   "weapons": [
+    "5d2f0d8048f0356c925bc3b0",
+    "5926bb2186f7744b1c6c6e60"
+   ],
+   "level2": 200,
+   "level3": 250
+  },
+  {
+   "id": "TT",
+   "weapons": [
+    "571a12c42459771f627b58a0",
+    "5b3b713c5acfc4330140bd8d"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "SAIGA",
+   "weapons": [
+    "576165642459773c7a400233",
+    "674fe9a75e51f1c47c04ec23",
+    "6981d72ed009ad83920da43a"
+   ],
+   "level2": 300,
+   "level3": 650
+  },
+  {
+   "id": "PP19",
+   "weapons": [
+    "59984ab886f7743e98271174",
+    "59f9cabd86f7743a10721f46"
+   ],
+   "level2": 175,
+   "level3": 350
+  },
+  {
+   "id": "MPX",
+   "weapons": [
+    "58948c8e86f77409493f7266"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "PP-91",
+   "weapons": [
+    "57f3c6bd24597738e730fa2f",
+    "57d14d2524597714373db789",
+    "57f4c844245977379d5c14d1"
+   ],
+   "level2": 175,
+   "level3": 200
+  },
+  {
+   "id": "SV98",
+   "weapons": [
+    "55801eed4bdc2d89578b4588"
+   ],
+   "level2": 100,
+   "level3": 175
+  },
+  {
+   "id": "DVL",
+   "weapons": [
+    "588892092459774ac91d4b11"
+   ],
+   "level2": 100,
+   "level3": 175
+  },
+  {
+   "id": "TOZ106",
+   "weapons": [
+    "5a38e6bac4a2826c6e06d79b"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "R11SRASS",
+   "weapons": [
+    "5a367e5dc4a282000e49738f"
+   ],
+   "level2": 175,
+   "level3": 300
+  },
+  {
+   "id": "GLOCK17",
+   "weapons": [
+    "5a7ae0c351dfba0017554310",
+    "5b1fa9b25acfc40018633c01",
+    "63088377b5cd696784087147"
+   ],
+   "level2": 100,
+   "level3": 125
+  },
+  {
+   "id": "APS",
+   "weapons": [
+    "5a17f98cfcdbcb0980087290",
+    "5abccb7dd8ce87001773e277"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "M1A",
+   "weapons": [
+    "5aafa857e5b5b00018480968"
+   ],
+   "level2": 275,
+   "level3": 400
+  },
+  {
+   "id": "M870",
+   "weapons": [
+    "5a7828548dc32e5a9c28b516"
+   ],
+   "level2": 100,
+   "level3": 200
+  },
+  {
+   "id": "mosin",
+   "weapons": [
+    "5bfd297f0db834001a669119",
+    "5ae08f0a5acfc408fb1398a1"
+   ],
+   "level2": 200,
+   "level3": 250
+  },
+  {
+   "id": "SA-58",
+   "weapons": [
+    "5b0bbe4e5acfc40dc528a72d"
+   ],
+   "level2": 175,
+   "level3": 300
+  },
+  {
+   "id": "sr1mp",
+   "weapons": [
+    "59f98b4986f7746f546d2cef"
+   ],
+   "level2": 75,
+   "level3": 125
+  },
+  {
+   "id": "mp7",
+   "weapons": [
+    "5ba26383d4351e00334c93d9",
+    "5bd70322209c4d00d7167b8f"
+   ],
+   "level2": 550,
+   "level3": 800
+  },
+  {
+   "id": "r700",
+   "weapons": [
+    "5bfea6e90db834001b7347f3"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "VPO101",
+   "weapons": [
+    "5c501a4d2e221602b412b540"
+   ],
+   "level2": 75,
+   "level3": 150
+  },
+  {
+   "id": "SVD",
+   "weapons": [
+    "5c46fbd72e2216398b5a8c9c",
+    "68aee763130c00663d08aea8"
+   ],
+   "level2": 250,
+   "level3": 300
+  },
+  {
+   "id": "MDR",
+   "weapons": [
+    "5c488a752e221602b412af63",
+    "5dcbd56fdbd3d91b3e5468d5"
+   ],
+   "level2": 450,
+   "level3": 600
+  },
+  {
+   "id": "ASH12",
+   "weapons": [
+    "5cadfbf7ae92152ac412eeef"
+   ],
+   "level2": 175,
+   "level3": 400
+  },
+  {
+   "id": "P90",
+   "weapons": [
+    "5cc82d76e24e8d00134b4b83"
+   ],
+   "level2": 200,
+   "level3": 350
+  },
+  {
+   "id": "m9",
+   "weapons": [
+    "5cadc190ae921500103bb3b6"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "KS23",
+   "weapons": [
+    "5e848cc2988a8701445df1e8"
+   ],
+   "level2": 200,
+   "level3": 350
+  },
+  {
+   "id": "57",
+   "weapons": [
+    "5d3eb3b0a4b93615055e84d2",
+    "5d67abc1a4b93614ec50137f"
+   ],
+   "level2": 125,
+   "level3": 225
+  },
+  {
+   "id": "MP9",
+   "weapons": [
+    "5e00903ae9dc277128008b87",
+    "5de7bd7bfd6b4e6e2276dc25"
+   ],
+   "level2": 150,
+   "level3": 175
+  },
+  {
+   "id": "VPO_215",
+   "weapons": [
+    "5de652c31b7e3716273428be"
+   ],
+   "level2": 125,
+   "level3": 250
+  },
+  {
+   "id": "T5000",
+   "weapons": [
+    "5df24cf80dee1b22f862e9bc"
+   ],
+   "level2": 75,
+   "level3": 125
+  },
+  {
+   "id": "SR25",
+   "weapons": [
+    "5df8ce05b11454561e39243b",
+    "6932abeb5403890d0c09c926"
+   ],
+   "level2": 350,
+   "level3": 500
+  },
+  {
+   "id": "m1911",
+   "weapons": [
+    "5e81c3cbac2bb513793cdc75",
+    "5f36a0e5fbf956000b716b65"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "PPSH",
+   "weapons": [
+    "5ea03f7400685063ec28bfa8"
+   ],
+   "level2": 175,
+   "level3": 200
+  },
+  {
+   "id": "RFB",
+   "weapons": [
+    "5f2a9575926fd9352339381f"
+   ],
+   "level2": 250,
+   "level3": 400
+  },
+  {
+   "id": "UMP45",
+   "weapons": [
+    "5fc3e272f8b6a877a729eac5"
+   ],
+   "level2": 375,
+   "level3": 500
+  },
+  {
+   "id": "M590",
+   "weapons": [
+    "5e870397991fd70db46995c8"
+   ],
+   "level2": 100,
+   "level3": 200
+  },
+  {
+   "id": "Mk18",
+   "weapons": [
+    "5fc22d7c187fea44d52eda44"
+   ],
+   "level2": 100,
+   "level3": 200
+  },
+  {
+   "id": "VECTOR",
+   "weapons": [
+    "5fb64bc92b1b027b1f50bcf2",
+    "5fc3f2d5900b1d5091531e57"
+   ],
+   "level2": 300,
+   "level3": 450
+  },
+  {
+   "id": "MCX",
+   "weapons": [
+    "5fbcc1d9016cce60e8341ab3"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "STM-9",
+   "weapons": [
+    "60339954d62c9b14ed777c06"
+   ],
+   "level2": 100,
+   "level3": 150
+  },
+  {
+   "id": "PL15",
+   "weapons": [
+    "602a9740da11d6478d5a06dc"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "MK47",
+   "weapons": [
+    "606587252535c57a13424cfd",
+    "68c2940aecc41cc5490bd40e",
+    "68c16b9ab6b75a8a480520a6"
+   ],
+   "level2": 600,
+   "level3": 1300
+  },
+  {
+   "id": "G28",
+   "weapons": [
+    "6176aca650224f204c1da3fb"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "Mk17",
+   "weapons": [
+    "6184055050224f204c1da540",
+    "618428466ef05c2ce828f218",
+    "6183afd850224f204c1da514",
+    "6165ac306ef05c2ce828ef74",
+    "676176d362e0497044079f4c"
+   ],
+   "level2": 350,
+   "level3": 500
+  },
+  {
+   "id": "USP",
+   "weapons": [
+    "6193a720f8ee7e52e42109ed"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "MTS",
+   "weapons": [
+    "60db29ce99594040e04c4a27"
+   ],
+   "level2": 75,
+   "level3": 150
+  },
+  {
+   "id": "RHINO",
+   "weapons": [
+    "624c2e8614da335f1e034d8c",
+    "61a4c8884f95bc3b2c5dc96f"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "G36",
+   "weapons": [
+    "623063e994fc3f7b302a9696"
+   ],
+   "level2": 200,
+   "level3": 250
+  },
+  {
+   "id": "M3S90",
+   "weapons": [
+    "6259b864ebedf17603599e88"
+   ],
+   "level2": 350,
+   "level3": 450
+  },
+  {
+   "id": "MP-18",
+   "weapons": [
+    "61f7c9e189e6fb1a5e3ea78d"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "AXMC",
+   "weapons": [
+    "627e14b21713922ded6f2c15"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "SR2",
+   "weapons": [
+    "62e14904c2699c0ec93adc47"
+   ],
+   "level2": 200,
+   "level3": 350
+  },
+  {
+   "id": "AUG",
+   "weapons": [
+    "62e7c4fba689e8c9c50dfc38",
+    "63171672192e68c5460cebc5",
+    "6718817435e3cfd9550d2c27"
+   ],
+   "level2": 350,
+   "level3": 500
+  },
+  {
+   "id": "RSH12",
+   "weapons": [
+    "633ec7c2a6918cb895019c6c"
+   ],
+   "level2": 100,
+   "level3": 125
+  },
+  {
+   "id": "PKM",
+   "weapons": [
+    "64637076203536ad5600c990",
+    "64ca3d3954fc657e230529cc"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "SVT-40",
+   "weapons": [
+    "6410733d5dd49d77bd07847e",
+    "643ea5b23db6f9f57107d9fd"
+   ],
+   "level2": 200,
+   "level3": 250
+  },
+  {
+   "id": "RPD",
+   "weapons": [
+    "6513ef33e06849f06c0957ca",
+    "65268d8ecb944ff1e90ea385"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "SPEAR",
+   "weapons": [
+    "65290f395ae2ae97b80fdf2d"
+   ],
+   "level2": 350,
+   "level3": 500
+  },
+  {
+   "id": "VSK94",
+   "weapons": [
+    "644674a13d52156624001fbc",
+    "645e0c6b3b381ede770e1cc9"
+   ],
+   "level2": 275,
+   "level3": 500
+  },
+  {
+   "id": "UZI-PRO",
+   "weapons": [
+    "6680304edadb7aa61d00cef0",
+    "668e71a8dadf42204c032ce1"
+   ],
+   "level2": 150,
+   "level3": 175
+  },
+  {
+   "id": "DEAGLE",
+   "weapons": [
+    "668fe5a998b5ad715703ddd6",
+    "669fa3d876116c89840b1217",
+    "669fa39b48fc9f8db6035a0c",
+    "669fa409933e898cce0c2166",
+    "669fa3f88abd2662d80eee77"
+   ],
+   "level2": 75,
+   "level3": 100
+  },
+  {
+   "id": "M60",
+   "weapons": [
+    "65fb023261d5829b2d090755",
+    "661ceb1b9311543c7104149b",
+    "661cec09b2c6356b4d0c7a36"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "UZI",
+   "weapons": [
+    "66992b349950f5f4cd06029f"
+   ],
+   "level2": 150,
+   "level3": 175
+  },
+  {
+   "id": "AA12",
+   "weapons": [
+    "66ffa9b66e19cc902401c5e8",
+    "67124dcfa3541f2a1f0e788b"
+   ],
+   "level2": 300,
+   "level3": 650
+  },
+  {
+   "id": "SAKO",
+   "weapons": [
+    "673cab3e03c6a20581028bc1"
+   ],
+   "level2": 150,
+   "level3": 200
+  },
+  {
+   "id": "AK50",
+   "weapons": [
+    "67d0576f29f580ebc10efd08"
+   ],
+   "level2": 200,
+   "level3": 300
+  },
+  {
+   "id": "MXLR",
+   "weapons": [
+    "67c6de3ce39861860909e8e5"
+   ],
+   "level2": 100,
+   "level3": 250
+  },
+  {
+   "id": "QBZ191",
+   "weapons": [
+    "69f9ebbcaae020b0db02f65d"
+   ],
+   "level2": 200,
+   "level3": 250
+  },
+  {
+   "id": "TYPE20",
+   "weapons": [
+    "6a3bffbebc377285900b85cf"
+   ],
+   "level2": 350,
+   "level3": 500
+  }
+ ],
+ "special_items": [
+  "5f4fbaaca5573a5ac31db429",
+  "61605ddea09d851a0a0c1bbc",
+  "62e9103049c018f425059f38",
+  "5991b51486f77447b112d44f",
+  "5ac78a9b86f7741cca0bbd8d",
+  "5b4391a586f7745321235ab2",
+  "64b69b0c8f3be32ed22682f8",
+  "65ddcc7aef36f6413d0829b9",
+  "6655e35b6bc645cb7b059912",
+  "620109578d82e67e7911abf2",
+  "66d9f1abb16d9aacf5068468",
+  "624c0b3340357b5f566e8766",
+  "62178be9d0050232da3485d9",
+  "62178c4d4ecf221597654e3d",
+  "675ea3d6312c0a5c4e04e317",
+  "6217726288ed9f0845317459",
+  "66d98233302686954b0c6f81",
+  "5c12688486f77426843c7d32",
+  "68f213f8ea61d1803707cf7a",
+  "6819f8df28294ec0730db6b4",
+  "68e63a53371639e1e4004b6e",
+  "66abb0743f4d8b145b1612c1",
+  "6672e40ebb23210ae87d39eb",
+  "567849dd4bdc2d150f8b456e",
+  "67ab3d4b83869afd170fdd3f",
+  "678fa929819ddc4c350c0317",
+  "67bdea8667098e658f064695",
+  "67c033fd0610e91bea056998",
+  "67bdf04d66ca1d79a2024637",
+  "67c04a6f9152fbdfa306cc66",
+  "68cc09872bdcc15c010c2668",
+  "67c04dac9320f644db06f45c",
+  "5d02778e86f774203e7dedbe",
+  "5d02797c86f774203f38e30a",
+  "68fa8e253666e2fd5b00a626",
+  "650afb5c1b1a473fcb3a7d55",
+  "69a0174087a75d2cbd0842e8"
+ ],
+ "settings": {
+  "scavCooldownSeconds": 1500,
+  "globalMaxTraders": false,
+  "gpCoinValue": 12306
+ },
+ "prestige": [
+  {
+   "id": "672df12f97f0469cea52f55e",
+   "name": "672df12f97f0469cea52f55e name",
+   "prestigeLevel": 1,
+   "conditions": [
+    {
+     "id": "672df325cea63f5a813f7227",
+     "description": "672df325cea63f5a813f7227",
+     "type": "playerLevel",
+     "count": 25,
+     "optional": false,
+     "playerLevel": 25,
+     "maps": []
+    },
+    {
+     "id": "6761fe66b41bc1e8222b5b6e",
+     "description": "6761fe66b41bc1e8222b5b6e",
+     "type": "taskStatus",
+     "count": null,
+     "optional": false,
+     "task": "6761f28a022f60bb320f3e95",
+     "status": [
+      "complete"
+     ],
+     "maps": []
+    },
+    {
+     "id": "6761efd8f619f2e097536690",
+     "description": "6761efd8f619f2e097536690",
+     "type": "hideoutStation",
+     "count": 1,
+     "optional": false,
+     "station": "5d484fdf654e7600691aadf8",
+     "stationLevel": 1,
+     "maps": []
+    },
+    {
+     "id": "6761efeabbe49f4699336bf5",
+     "description": "6761efeabbe49f4699336bf5",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd6654e76051d3cc791",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "69fa1d6e65a035c5d3b553d8",
+     "description": "69fa1d6e65a035c5d3b553d8",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd1654e76006732bf2e",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "675d724875542400d1f90100",
+     "description": "675d724875542400d1f90100",
+     "type": "haveItem",
+     "count": 10000000,
+     "optional": false,
+     "items": [
+      "5449016a4bdc2d6f028b456f"
+     ],
+     "dogTagLevel": 0,
+     "maxDurability": 100,
+     "minDurability": 0,
+     "foundInRaid": false,
+     "maps": []
+    }
+   ],
+   "rewards": {
+    "traderStanding": [],
+    "items": [
+     {
+      "item": "6759bb94b8913ff13e049669",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "67614b542eb91250020f2b86",
+      "count": 1,
+      "attributes": {}
+     }
+    ],
+    "offerUnlock": [],
+    "skillLevelReward": [
+     {
+      "level": 1,
+      "skill": "Charisma"
+     }
+    ],
+    "traderUnlock": [],
+    "craftUnlock": [],
+    "achievement": [],
+    "customization": [
+     {
+      "id": "675466825b7ebafefd0ebc2c",
+      "name": "675466825b7ebafefd0ebc2c Name",
+      "imageLink": "https://assets.tarkov.dev/customization-675466825b7ebafefd0ebc2c.webp",
+      "customizationType": "Floor",
+      "customizationTypeName": "Hideout/Customization/Floor/TabName"
+     },
+     {
+      "id": "675198f2a34a61ba7f053e4d",
+      "name": "RockGesture",
+      "imageLink": "https://assets.tarkov.dev/customization-675198f2a34a61ba7f053e4d.webp",
+      "customizationType": "Gestures",
+      "customizationTypeName": "ECustomizationItemCategory/Gesture"
+     },
+     {
+      "id": "67519925ba5968fd800a01e4",
+      "name": "PaperGesture",
+      "imageLink": "https://assets.tarkov.dev/customization-67519925ba5968fd800a01e4.webp",
+      "customizationType": "Gestures",
+      "customizationTypeName": "ECustomizationItemCategory/Gesture"
+     },
+     {
+      "id": "6751990a490b32072c06f1b3",
+      "name": "ScissorGesture",
+      "imageLink": "https://assets.tarkov.dev/customization-6751990a490b32072c06f1b3.webp",
+      "customizationType": "Gestures",
+      "customizationTypeName": "ECustomizationItemCategory/Gesture"
+     },
+     {
+      "id": "674dbf593bee1152d407f005",
+      "name": "674dbf593bee1152d407f005 Name",
+      "customizationType": "DogTags",
+      "customizationTypeName": "ECustomizationItemCategory/DogTag",
+      "items": [
+       "675dc9d37ae1a8792107ca96",
+       "6764207f2fa5e32733055c4a"
+      ]
+     },
+     {
+      "id": "67604ac650dfa9253901a548",
+      "name": "Hideout/Mannequin/Pose/muscles_flex",
+      "imageLink": "https://assets.tarkov.dev/customization-67604ac650dfa9253901a548.webp",
+      "customizationType": "MannequinPose",
+      "customizationTypeName": "ECustomizationItemCategory/MannequinPose"
+     },
+     {
+      "id": "6842fc2ea285406df4ad89c6",
+      "name": "UI/Quest/Reward/StubCaption",
+      "customizationType": "Stub",
+      "customizationTypeName": "UI/Quest/Reward/StubCaption",
+      "imageLink": "https://assets.tarkov.dev/customization-6842fc2ea285406df4ad89c6.webp"
+     }
+    ],
+    "traderDialogueUnlock": [],
+    "locationUnlock": []
+   },
+   "transferSettings": [
+    {
+     "gridWidth": 8,
+     "gridHeight": 3,
+     "itemFilters": {
+      "allowedCategories": [
+       "57864ada245977548638de91",
+       "5d650c3e815116009f6201d2",
+       "543be6674bdc2df1348b4569",
+       "567849dd4bdc2d150f8b456e",
+       "5448f3a14bdc2d27728b4569",
+       "5448f3ac4bdc2dce718b4569"
+      ],
+      "allowedItems": [
+       "5e2aee0a86f774755a234b62",
+       "5e2aedd986f7746d404f3aa4",
+       "5af0561e86f7745f5f3ad6ac",
+       "5672cb124bdc2d1a0f8b4568",
+       "5672cb304bdc2dc2088b456a",
+       "590a358486f77429692b2790",
+       "577e1c9d2459773cd707c525",
+       "59faf98186f774067b6be103",
+       "59e3596386f774176c10a2a2",
+       "59e3556c86f7741776641ac2",
+       "5e2af02c86f7746d420957d4",
+       "5e2af00086f7746d3f3c33f7",
+       "5e2aef7986f7746d3f3c33f5",
+       "62a09ee4cf4a99369e262453",
+       "5d40412b86f7743cb332ac3a",
+       "5c13cd2486f774072c757944",
+       "59e35abd86f7741778269d82",
+       "5c13cef886f774072e618e82",
+       "5d4041f086f7743cac3f22a7",
+       "67586c61a0c49554ed0bb4a8",
+       "59e358a886f7741776641ac3",
+       "60b0f561c4449e4cb624c1d7",
+       "5bc9b9ecd4351e3bac122519",
+       "655c652d60d0ac437100fed7",
+       "655c67ab0d37ca5135388f4b",
+       "655c66e40b2de553b618d4b8",
+       "66572c82ad599021091c6118",
+       "66572be36a723f7f005a066e",
+       "655c67782a1356436041c9c5",
+       "655c673673a43e23e857aebd",
+       "66572cbdad599021091c611a",
+       "655c663a6689c676ce57af85",
+       "655c669103999d3c810c025b",
+       "573474f924597738002c6174",
+       "5734758f24597738025ee253",
+       "573478bc24597738002c6175",
+       "66572b8d80b1cd4b6a67847f",
+       "59faff1d86f7746c51718c9c",
+       "59e3658a86f7741776641ac4",
+       "5bc9bc53d4351e00367fbcee",
+       "62a09cfe4f842e1bd12da3e4",
+       "5bc9bdb8d4351e003562b8a1",
+       "66b37ea4c5d72b0277488439",
+       "6656560053eaaa7a23349c86",
+       "59e3639286f7741777737013",
+       "5f745ee30acaeb0d490d8c5b",
+       "62a091170b9d3c46de5b6cf2",
+       "5c1267ee86f77416ec610f72",
+       "5e54f62086f774219b0f1937",
+       "59faf7ca86f7740dbe19f6c2",
+       "5d235a5986f77443f6329bc6",
+       "66b37eb4acff495a29492407",
+       "59e3647686f774176a362507",
+       "60391b0fb847c71012789415",
+       "67586bee39b1b82b0d0f9d06",
+       "590a373286f774287540368b",
+       "59fafb5d86f774067a6f2084",
+       "5e2af2bc86f7746d3f3c33fc",
+       "5bc9b355d4351e6d1509862a",
+       "5e2af37686f774755a234b65",
+       "60391a8b3364dc22b04d0ce5",
+       "590c5bbd86f774785762df04",
+       "590c5c9f86f77477c91c36e7",
+       "5b43575a86f77424f443fe62",
+       "57347b8b24597737dd42e192",
+       "56742c2e4bdc2d95058b456d",
+       "6389c6c7dbfd5e4b95197e68",
+       "5b4335ba86f7744d2837a264",
+       "5af0534a86f7743b6f354284",
+       "59e361e886f774176c10a2a5",
+       "59e3606886f77417674759a5",
+       "5d1b3a5d86f774252167ba22",
+       "5e2af47786f7746d404f3aaa",
+       "5e2af4a786f7746d3f3c3400",
+       "573476d324597737da2adc13",
+       "573475fb24597737fb1379e1",
+       "5734770f24597738025ee254",
+       "573476f124597737e04bf328",
+       "60b0f7057897d47c5b04ab94",
+       "5d0379a886f77420407aa271",
+       "5af0484c86f7740f02001f7f",
+       "6389c6463485cf0eeb260715",
+       "5e54f6af86f7742199090bf3",
+       "5c12688486f77426843c7d32",
+       "67586af7036d7f3da60c3612",
+       "5bc9be8fd4351e00334cae6e",
+       "62a08f4c4f842e1bd12d9d62",
+       "5d1b385e86f774252167b98a",
+       "5d1c819a86f774771b0acd6c",
+       "590c595c86f7747884343ad7",
+       "590c5a7286f7747884343aea",
+       "5d6fc78386f77449d825f9dc",
+       "5d6fc87386f77449db3db94e",
+       "619cbfccbedcde2f5b3f7bdd",
+       "62a0a098de7ac8199358053b",
+       "619cbfeb6b8a1b37a54eebfa",
+       "62a0a0bb621468534a797ad5",
+       "5d1b317c86f7742523398392",
+       "5d40419286f774318526545f",
+       "5d40425986f7743185265461",
+       "5af04b6486f774195a3ebb49",
+       "5d1b31ce86f7742523398394",
+       "66b37f114410565a8f6789e2",
+       "60391afc25aff57af81f7085",
+       "5d63d33b86f7746ea9275524",
+       "5d4042a986f7743185265463",
+       "61bf83814088ec1a363d7097",
+       "5bc9c377d4351e3bac12251b",
+       "590c2b4386f77425357b6123",
+       "590c2c9c86f774245b1f03f2",
+       "590c2d8786f774245b1f03f3",
+       "590c2e1186f77425357b6124",
+       "590c311186f77424d1667482",
+       "675a06b84ff23436160d802f",
+       "675a0288c3102563bd01c9c3",
+       "675a046b8f547d6cae01922e",
+       "675a04c01474133a0d0bb212",
+       "675a0a91af26c56ee1090728",
+       "675a0b8d4ff23436160d8031",
+       "675a0d2d57dd12f0260c4a31",
+       "675a0eacf905bde03d0f8253",
+       "675a0fbbb98bf391510bafcd",
+       "6759e19a8367ee2b0c0f4b92",
+       "6759e61067c8eb5cd10352f1",
+       "6759e6c39422e1708e0e9b81",
+       "6759e7a44ff23436160d7ff5",
+       "6759e8b1c3102563bd01c985",
+       "6759e91d8367ee2b0c0f4b94",
+       "675a125caf26c56ee109072a",
+       "675a04fdb8913ff13e0496bb",
+       "675a191f67c8eb5cd1035305",
+       "675a1a244ff23436160d8033",
+       "675a1af21474133a0d0bb216",
+       "675a1c129422e1708e0e9baa",
+       "675a1e502eac6c76e104ea1e",
+       "675a1f5c1474133a0d0bb218",
+       "675a081c1474133a0d0bb214",
+       "675a202b6aaafea7210915fd",
+       "675a20c83fb2de89670113b4",
+       "675a213ff905bde03d0f8255",
+       "60098ad7c2240c0fe85c570a",
+       "590c661e86f7741e566b646a",
+       "590c678286f77426c9660122",
+       "5755356824597772cb798962",
+       "66507eabf5ddb0818b085b68",
+       "5ed515c8d380ab312177c0fa",
+       "5ed515f6915ec335206e4152",
+       "5c10c8fd86f7743d7d706df3",
+       "5ed515e03a40a50460332579",
+       "5ed51652f6c34d2cc26336a1",
+       "5ed5160a87bb8443d10680b5",
+       "5ed5166ad380ab312177c100",
+       "637b60c3b7afa97bfc3d7001",
+       "5ed515ece452db0eb56fc028",
+       "637b6179104668754b72f8f5",
+       "637b6251104668754b72f8f9",
+       "5c0e530286f7747fa1419862",
+       "637b612fb7afa97bfc3d7005",
+       "5c0e531286f7747fa54205c2",
+       "5c0e531d86f7747fa23f4d42",
+       "5fca13ca637ee0341a484f46",
+       "637b620db7afa97bfc3d7009",
+       "5c0e533786f7747fa23f4d47",
+       "5c0e534186f7747fa1419867",
+       "5fca138c2a7b221b2852a5c6",
+       "56742c284bdc2d98058b456d",
+       "5e2af4d286f7746d4159f07a",
+       "5e2af41e86f774755a234b67",
+       "67449b6c89d5e1ddc603f504",
+       "5bc9c049d4351e44f824d360",
+       "5b3f3af486f774679e752c1f",
+       "5b3f3b0186f774021a2afef7",
+       "5b3f3ade86f7746b6b790d8e",
+       "60b0f988c4449e4cb624c1da",
+       "5b3f16c486f7747c327f55f7",
+       "5b3f3b0e86f7746752107cda",
+       "619bdd8886e01e16f839a99c",
+       "619bddc6c9546643a67df6ee",
+       "619bddffc9546643a67df6f0",
+       "619bde3dc9546643a67df6f2",
+       "619bde7fc9546643a67df6f4",
+       "5f9949d869e2777a0e779ba5",
+       "619bdeb986e01e16f839a99e",
+       "619bdef8c9546643a67df6f6",
+       "619bdf9cc9546643a67df6f8",
+       "67614b3ab8c060ebb204b106",
+       "619bdfd4c9546643a67df6fa",
+       "664a5480bfcc521bad3192ca",
+       "5df8a77486f77412672a1e3f",
+       "5df8a72c86f77412640e2e83",
+       "5df8a6a186f77412640e2e80",
+       "679b944d597ba2ed120c3d3c",
+       "6a31807f17005505b70d5827",
+       "6a3182dc6cd8de21cf0a3a7d",
+       "6a31830dde69ceafd805afa0",
+       "6a317b9692cfdcddcb02a58e",
+       "6a3181f178450ec91c0ea1aa",
+       "6a31824878450ec91c0ea1ae",
+       "6a3183258f113efdb7093622",
+       "6a31828557705071410ca00e",
+       "6a3182b72fd891345e047eef"
+      ],
+      "excludedItems": [],
+      "excludedCategories": []
+     }
+    },
+    {
+     "name": "arena/career/tabs/skills",
+     "skillType": "skills",
+     "transferRate": 0.05
+    },
+    {
+     "name": "WeaponMastering",
+     "skillType": "mastering",
+     "transferRate": 0.05
+    }
+   ],
+   "iconLink": "https://assets.tarkov.dev/prestige-1-icon.webp",
+   "imageLink": "https://assets.tarkov.dev/prestige-1-image.webp"
+  },
+  {
+   "id": "672df4281ab8d9c8849a0c88",
+   "name": "672df4281ab8d9c8849a0c88 name",
+   "prestigeLevel": 2,
+   "conditions": [
+    {
+     "id": "672df4281e1344e35bcbd670",
+     "description": "672df4281e1344e35bcbd670",
+     "type": "playerLevel",
+     "count": 30,
+     "optional": false,
+     "playerLevel": 30,
+     "maps": []
+    },
+    {
+     "id": "67620a1f2e64e3f5c982585c",
+     "description": "67620a1f2e64e3f5c982585c",
+     "type": "taskStatus",
+     "count": null,
+     "optional": false,
+     "task": "6761ff17cdc36bd66102e9d0",
+     "status": [
+      "complete"
+     ],
+     "maps": []
+    },
+    {
+     "id": "6761f0951e241947b3439dbd",
+     "description": "6761f0951e241947b3439dbd",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Strength",
+     "level": 10
+    },
+    {
+     "id": "6761f08995d00b8a8594bfbf",
+     "description": "6761f08995d00b8a8594bfbf",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Endurance",
+     "level": 10
+    },
+    {
+     "id": "6761f0a11961e431bb8b7915",
+     "description": "6761f0a11961e431bb8b7915",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Charisma",
+     "level": 7
+    },
+    {
+     "id": "6761f0e136ae4b74063f0301",
+     "description": "6761f0e136ae4b74063f0301",
+     "type": "hideoutStation",
+     "count": 1,
+     "optional": false,
+     "station": "5d484fdf654e7600691aadf8",
+     "stationLevel": 1,
+     "maps": []
+    },
+    {
+     "id": "6761f0db439c5eb5cb24748e",
+     "description": "6761f0db439c5eb5cb24748e",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd6654e76051d3cc791",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "69fa25f6b7ae74e8f89c5081",
+     "description": "69fa25f6b7ae74e8f89c5081",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd1654e76006732bf2e",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "675d71e9bd393adc11c40d14",
+     "description": "675d71e9bd393adc11c40d14",
+     "type": "haveItem",
+     "count": 15000000,
+     "optional": false,
+     "items": [
+      "5449016a4bdc2d6f028b456f"
+     ],
+     "dogTagLevel": 0,
+     "maxDurability": 100,
+     "minDurability": 0,
+     "foundInRaid": false,
+     "maps": []
+    }
+   ],
+   "rewards": {
+    "traderStanding": [],
+    "items": [
+     {
+      "item": "674d90b55704568fe60bc8f5",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "6759e07e4ff23436160d7fed",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "67614b6b47c71ea3d40256d7",
+      "count": 1,
+      "attributes": {}
+     }
+    ],
+    "offerUnlock": [],
+    "skillLevelReward": [
+     {
+      "level": 1,
+      "skill": "Charisma"
+     }
+    ],
+    "traderUnlock": [],
+    "craftUnlock": [],
+    "achievement": [],
+    "customization": [
+     {
+      "id": "67585108def253bd97084552",
+      "name": "CyberEnvironmentUiType",
+      "imageLink": "https://assets.tarkov.dev/customization-67585108def253bd97084552.webp",
+      "customizationType": "EnvironmentUI",
+      "customizationTypeName": "ECustomizationItemCategory/Environment"
+     },
+     {
+      "id": "675184a9490b32072c06f1a7",
+      "name": "AllRightGesture",
+      "imageLink": "https://assets.tarkov.dev/customization-675184a9490b32072c06f1a7.webp",
+      "customizationType": "Gestures",
+      "customizationTypeName": "ECustomizationItemCategory/Gesture"
+     },
+     {
+      "id": "675dcfea7ae1a8792107ca99",
+      "name": "675dcfea7ae1a8792107ca99 Name",
+      "customizationType": "DogTags",
+      "customizationTypeName": "ECustomizationItemCategory/DogTag",
+      "items": [
+       "675dcb0545b1a2d108011b2b",
+       "6764202ae307804338014c1a"
+      ]
+     },
+     {
+      "id": "675467c924c9a7ccb509d62f",
+      "name": "675467c924c9a7ccb509d62f Name",
+      "imageLink": "https://assets.tarkov.dev/customization-675467c924c9a7ccb509d62f.webp",
+      "customizationType": "Wall",
+      "customizationTypeName": "Hideout/Customization/Wall/TabName"
+     },
+     {
+      "id": "67604abb8491fd0a830f3578",
+      "name": "Hideout/Mannequin/Pose/gopnik",
+      "imageLink": "https://assets.tarkov.dev/customization-67604abb8491fd0a830f3578.webp",
+      "customizationType": "MannequinPose",
+      "customizationTypeName": "ECustomizationItemCategory/MannequinPose"
+     },
+     {
+      "id": "6842fbd6007b16f2aad926ac",
+      "name": "UI/Quest/Reward/StubCaption",
+      "customizationType": "Stub",
+      "customizationTypeName": "UI/Quest/Reward/StubCaption",
+      "imageLink": "https://assets.tarkov.dev/customization-6842fbd6007b16f2aad926ac.webp"
+     }
+    ],
+    "traderDialogueUnlock": [],
+    "locationUnlock": []
+   },
+   "transferSettings": [
+    {
+     "gridWidth": 8,
+     "gridHeight": 4,
+     "itemFilters": {
+      "allowedCategories": [
+       "5448f3a14bdc2d27728b4569",
+       "5448f3ac4bdc2dce718b4569",
+       "567849dd4bdc2d150f8b456e",
+       "543be6674bdc2df1348b4569",
+       "57864c322459775490116fbf",
+       "57864bb7245977548b3b66c2",
+       "5d650c3e815116009f6201d2"
+      ],
+      "allowedItems": [
+       "60098ad7c2240c0fe85c570a",
+       "590c661e86f7741e566b646a",
+       "590c678286f77426c9660122",
+       "5755356824597772cb798962",
+       "66507eabf5ddb0818b085b68",
+       "5ed515c8d380ab312177c0fa",
+       "5ed515f6915ec335206e4152",
+       "5c10c8fd86f7743d7d706df3",
+       "5ed515e03a40a50460332579",
+       "5ed51652f6c34d2cc26336a1",
+       "5ed5160a87bb8443d10680b5",
+       "5ed5166ad380ab312177c100",
+       "637b60c3b7afa97bfc3d7001",
+       "5ed515ece452db0eb56fc028",
+       "637b6179104668754b72f8f5",
+       "637b6251104668754b72f8f9",
+       "5c0e530286f7747fa1419862",
+       "637b612fb7afa97bfc3d7005",
+       "5c0e531286f7747fa54205c2",
+       "5c0e531d86f7747fa23f4d42",
+       "5fca13ca637ee0341a484f46",
+       "637b620db7afa97bfc3d7009",
+       "5c0e533786f7747fa23f4d47",
+       "5c0e534186f7747fa1419867",
+       "5fca138c2a7b221b2852a5c6",
+       "675a06b84ff23436160d802f",
+       "675a0288c3102563bd01c9c3",
+       "675a046b8f547d6cae01922e",
+       "675a04c01474133a0d0bb212",
+       "675a0a91af26c56ee1090728",
+       "675a0b8d4ff23436160d8031",
+       "675a0d2d57dd12f0260c4a31",
+       "675a0eacf905bde03d0f8253",
+       "675a0fbbb98bf391510bafcd",
+       "6759e19a8367ee2b0c0f4b92",
+       "6759e61067c8eb5cd10352f1",
+       "6759e6c39422e1708e0e9b81",
+       "6759e7a44ff23436160d7ff5",
+       "6759e8b1c3102563bd01c985",
+       "6759e91d8367ee2b0c0f4b94",
+       "675a125caf26c56ee109072a",
+       "675a04fdb8913ff13e0496bb",
+       "675a191f67c8eb5cd1035305",
+       "675a1a244ff23436160d8033",
+       "675a1af21474133a0d0bb216",
+       "675a1c129422e1708e0e9baa",
+       "675a1e502eac6c76e104ea1e",
+       "675a1f5c1474133a0d0bb218",
+       "675a081c1474133a0d0bb214",
+       "675a202b6aaafea7210915fd",
+       "675a20c83fb2de89670113b4",
+       "675a213ff905bde03d0f8255",
+       "5e2aee0a86f774755a234b62",
+       "5e2aedd986f7746d404f3aa4",
+       "5af0561e86f7745f5f3ad6ac",
+       "5672cb124bdc2d1a0f8b4568",
+       "5672cb304bdc2dc2088b456a",
+       "590a358486f77429692b2790",
+       "59e35cbb86f7741778269d83",
+       "5e2af29386f7746d4159f077",
+       "61bf7b6302b3924be92fa8c3",
+       "590c31c586f774245e3141b2",
+       "59e366c186f7741778269d85",
+       "5e2af22086f7746d3f3c33fa",
+       "5d1b327086f7742525194449",
+       "59e35ef086f7741777737012",
+       "5d1b39a386f774252339976f",
+       "5d1b32c186f774252167a530",
+       "590c346786f77423e50ed342",
+       "619cbf476b8a1b37a54eebf8",
+       "590c35a486f774273531c822",
+       "57347c5b245977448d35f6e1",
+       "57347c77245977448d35f6e2",
+       "655c652d60d0ac437100fed7",
+       "655c67ab0d37ca5135388f4b",
+       "655c66e40b2de553b618d4b8",
+       "66572c82ad599021091c6118",
+       "66572be36a723f7f005a066e",
+       "655c67782a1356436041c9c5",
+       "655c673673a43e23e857aebd",
+       "66572cbdad599021091c611a",
+       "655c663a6689c676ce57af85",
+       "655c669103999d3c810c025b",
+       "573474f924597738002c6174",
+       "5734758f24597738025ee253",
+       "573478bc24597738002c6175",
+       "66572b8d80b1cd4b6a67847f",
+       "59faff1d86f7746c51718c9c",
+       "59e3658a86f7741776641ac4",
+       "5bc9bc53d4351e00367fbcee",
+       "62a09cfe4f842e1bd12da3e4",
+       "5bc9bdb8d4351e003562b8a1",
+       "66b37ea4c5d72b0277488439",
+       "6656560053eaaa7a23349c86",
+       "59e3639286f7741777737013",
+       "5f745ee30acaeb0d490d8c5b",
+       "5df8a6a186f77412640e2e80",
+       "5df8a72c86f77412640e2e83",
+       "5df8a77486f77412672a1e3f",
+       "62a091170b9d3c46de5b6cf2",
+       "5c1267ee86f77416ec610f72",
+       "5e54f62086f774219b0f1937",
+       "59faf7ca86f7740dbe19f6c2",
+       "5d235a5986f77443f6329bc6",
+       "66b37eb4acff495a29492407",
+       "59e3647686f774176a362507",
+       "60391b0fb847c71012789415",
+       "67586bee39b1b82b0d0f9d06",
+       "590a373286f774287540368b",
+       "59fafb5d86f774067a6f2084",
+       "5e2af2bc86f7746d3f3c33fc",
+       "5bc9b355d4351e6d1509862a",
+       "5e2af37686f774755a234b65",
+       "60391a8b3364dc22b04d0ce5",
+       "590c5bbd86f774785762df04",
+       "590c5c9f86f77477c91c36e7",
+       "5b43575a86f77424f443fe62",
+       "57347b8b24597737dd42e192",
+       "56742c2e4bdc2d95058b456d",
+       "6389c6c7dbfd5e4b95197e68",
+       "5b4335ba86f7744d2837a264",
+       "5af0534a86f7743b6f354284",
+       "59e361e886f774176c10a2a5",
+       "59e3606886f77417674759a5",
+       "5d1b3a5d86f774252167ba22",
+       "5d1b3f2d86f774253763b735",
+       "62a0a043cf4a99369e2624a5",
+       "619cc01e0a7c3a1a2731940c",
+       "62a09cb7a04c0c5c6e0a84f8",
+       "5e2af4d286f7746d4159f07a",
+       "5e2af41e86f774755a234b67",
+       "5e2af47786f7746d404f3aaa",
+       "5e2af4a786f7746d3f3c3400",
+       "5e2af51086f7746d3f3c3402",
+       "573476d324597737da2adc13",
+       "573475fb24597737fb1379e1",
+       "5734770f24597738025ee254",
+       "573476f124597737e04bf328",
+       "60b0f7057897d47c5b04ab94",
+       "5af0484c86f7740f02001f7f",
+       "67449b6c89d5e1ddc603f504",
+       "5bc9c049d4351e44f824d360",
+       "6389c6463485cf0eeb260715",
+       "5e54f6af86f7742199090bf3",
+       "5c12688486f77426843c7d32",
+       "67586af7036d7f3da60c3612",
+       "5bc9be8fd4351e00334cae6e",
+       "62a08f4c4f842e1bd12d9d62",
+       "5d1b385e86f774252167b98a",
+       "5d1c819a86f774771b0acd6c",
+       "590c595c86f7747884343ad7",
+       "590c5a7286f7747884343aea",
+       "5d6fc78386f77449d825f9dc",
+       "5d6fc87386f77449db3db94e",
+       "5733279d245977289b77ec24",
+       "5b3f3af486f774679e752c1f",
+       "5b3f3b0186f774021a2afef7",
+       "5b3f3ade86f7746b6b790d8e",
+       "60b0f988c4449e4cb624c1da",
+       "5b3f16c486f7747c327f55f7",
+       "5b3f3b0e86f7746752107cda",
+       "664a5480bfcc521bad3192ca",
+       "619bdd8886e01e16f839a99c",
+       "619bddc6c9546643a67df6ee",
+       "619bddffc9546643a67df6f0",
+       "619bde3dc9546643a67df6f2",
+       "619bde7fc9546643a67df6f4",
+       "5f9949d869e2777a0e779ba5",
+       "619bdeb986e01e16f839a99e",
+       "619bdef8c9546643a67df6f6",
+       "619bdf9cc9546643a67df6f8",
+       "619bdfd4c9546643a67df6fa",
+       "67614b3ab8c060ebb204b106",
+       "679b944d597ba2ed120c3d3c",
+       "679b946f90622daf9708da6d",
+       "679b94734e9ca6b3d80586a7",
+       "679b9477708cfcb2060b9ade",
+       "69dd0de23dfe95d9e70b5ebb",
+       "6a31807f17005505b70d5827",
+       "6a3182dc6cd8de21cf0a3a7d",
+       "6a31830dde69ceafd805afa0",
+       "6a317b9692cfdcddcb02a58e",
+       "6a3181f178450ec91c0ea1aa",
+       "6a31824878450ec91c0ea1ae",
+       "6a3183258f113efdb7093622",
+       "6a31828557705071410ca00e",
+       "6a3182b72fd891345e047eef"
+      ],
+      "excludedItems": [],
+      "excludedCategories": []
+     }
+    },
+    {
+     "name": "arena/career/tabs/skills",
+     "skillType": "skills",
+     "transferRate": 0.1
+    },
+    {
+     "name": "WeaponMastering",
+     "skillType": "mastering",
+     "transferRate": 0.1
+    }
+   ],
+   "iconLink": "https://assets.tarkov.dev/prestige-2-icon.webp",
+   "imageLink": "https://assets.tarkov.dev/prestige-2-image.webp"
+  },
+  {
+   "id": "683da91d6f472cfa738c52f2",
+   "name": "683da91d6f472cfa738c52f2 name",
+   "prestigeLevel": 3,
+   "conditions": [
+    {
+     "id": "683da91dc19b0046298f13ba",
+     "description": "683da91dc19b0046298f13ba",
+     "type": "playerLevel",
+     "count": 35,
+     "optional": false,
+     "playerLevel": 35,
+     "maps": []
+    },
+    {
+     "id": "683da91de231c42903872790",
+     "description": "683da91de231c42903872790",
+     "type": "taskStatus",
+     "count": null,
+     "optional": false,
+     "task": "6848100b00afffa81f09e365",
+     "status": [
+      "complete"
+     ],
+     "maps": []
+    },
+    {
+     "id": "683da91df9d6f7178e4028bf",
+     "description": "683da91df9d6f7178e4028bf",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Strength",
+     "level": 10
+    },
+    {
+     "id": "683da91db5a1742fce1ab919",
+     "description": "683da91db5a1742fce1ab919",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Endurance",
+     "level": 10
+    },
+    {
+     "id": "683da91da64e2f4c163c0a71",
+     "description": "683da91da64e2f4c163c0a71",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Charisma",
+     "level": 7
+    },
+    {
+     "id": "683da91d3ba6beee15ae15e5",
+     "description": "683da91d3ba6beee15ae15e5",
+     "type": "hideoutStation",
+     "count": 1,
+     "optional": false,
+     "station": "5d484fdf654e7600691aadf8",
+     "stationLevel": 1,
+     "maps": []
+    },
+    {
+     "id": "683da91de6fa1f57116cd578",
+     "description": "683da91de6fa1f57116cd578",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd6654e76051d3cc791",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "69fa26c1b2f4480e879ce0cd",
+     "description": "69fa26c1b2f4480e879ce0cd",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd1654e76006732bf2e",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "683da91dcbaecbd131ba3a36",
+     "description": "683da91dcbaecbd131ba3a36",
+     "type": "haveItem",
+     "count": 15000000,
+     "optional": false,
+     "items": [
+      "5449016a4bdc2d6f028b456f"
+     ],
+     "dogTagLevel": 0,
+     "maxDurability": 100,
+     "minDurability": 0,
+     "foundInRaid": false,
+     "maps": []
+    }
+   ],
+   "rewards": {
+    "traderStanding": [],
+    "items": [
+     {
+      "item": "6841b6b674a3c16f5e03d653",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "6841b179322db20d190b4b99",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "6841b2506c1fcc41ed0db319",
+      "count": 1,
+      "attributes": {}
+     }
+    ],
+    "offerUnlock": [],
+    "skillLevelReward": [
+     {
+      "level": 1,
+      "skill": "Charisma"
+     }
+    ],
+    "traderUnlock": [],
+    "craftUnlock": [],
+    "achievement": [],
+    "customization": [
+     {
+      "id": "675468a924c9a7ccb509d633",
+      "name": "675468a924c9a7ccb509d633 Name",
+      "imageLink": "https://assets.tarkov.dev/customization-675468a924c9a7ccb509d633.webp",
+      "customizationType": "Ceiling",
+      "customizationTypeName": "Hideout/Customization/Ceiling/TabName"
+     },
+     {
+      "id": "6841818c20f5c35b53017729",
+      "name": "6841818c20f5c35b53017729 Name",
+      "customizationType": "DogTags",
+      "customizationTypeName": "ECustomizationItemCategory/DogTag",
+      "items": [
+       "684180bc51bf8645f7067bc8",
+       "68418091b5b0c9e4c60f0e7a"
+      ]
+     },
+     {
+      "id": "6846990ed5d969efe3078408",
+      "name": "6846990ed5d969efe3078408 Name",
+      "customizationType": "Voice",
+      "customizationTypeName": "ECustomizationItemCategory/Voice"
+     },
+     {
+      "id": "683dacd53a9ebd9a650ce8a0",
+      "name": "Hideout/Mannequin/Pose/democracy",
+      "imageLink": "https://assets.tarkov.dev/customization-683dacd53a9ebd9a650ce8a0.webp",
+      "customizationType": "MannequinPose",
+      "customizationTypeName": "ECustomizationItemCategory/MannequinPose"
+     },
+     {
+      "id": "684696e8199c6a77dc0f9bc8",
+      "name": "684696e8199c6a77dc0f9bc8 Name",
+      "customizationType": "Voice",
+      "customizationTypeName": "ECustomizationItemCategory/Voice"
+     },
+     {
+      "id": "6841c50c3fcc417de40a676a",
+      "name": "6841c50c3fcc417de40a676a Name",
+      "imageLink": "https://assets.tarkov.dev/customization-6841c50c3fcc417de40a676a.webp",
+      "customizationType": "ShootingRangeMark",
+      "customizationTypeName": "Hideout/Customization/ShootingRangeMark/TabName"
+     },
+     {
+      "id": "6842ee4e110d3f922de72162",
+      "name": "UI/Quest/Reward/StubCaption",
+      "customizationType": "Stub",
+      "customizationTypeName": "UI/Quest/Reward/StubCaption",
+      "imageLink": "https://assets.tarkov.dev/customization-6842ee4e110d3f922de72162.webp"
+     }
+    ],
+    "traderDialogueUnlock": [],
+    "locationUnlock": []
+   },
+   "transferSettings": [
+    {
+     "gridWidth": 8,
+     "gridHeight": 5,
+     "itemFilters": {
+      "allowedCategories": [
+       "5448f3a14bdc2d27728b4569",
+       "5448f3ac4bdc2dce718b4569",
+       "567849dd4bdc2d150f8b456e",
+       "543be6674bdc2df1348b4569",
+       "57864c322459775490116fbf",
+       "57864bb7245977548b3b66c2",
+       "5d650c3e815116009f6201d2",
+       "57bef4c42459772e8d35a53b",
+       "5645bcb74bdc2ded0b8b4578",
+       "5422acb9af1c889c16000029",
+       "5448fe124bdc2da5018b4567"
+      ],
+      "allowedItems": [
+       "60098ad7c2240c0fe85c570a",
+       "590c661e86f7741e566b646a",
+       "590c678286f77426c9660122",
+       "5755356824597772cb798962",
+       "66507eabf5ddb0818b085b68",
+       "5ed515c8d380ab312177c0fa",
+       "5ed515f6915ec335206e4152",
+       "5c10c8fd86f7743d7d706df3",
+       "5ed515e03a40a50460332579",
+       "5ed51652f6c34d2cc26336a1",
+       "5ed5160a87bb8443d10680b5",
+       "5ed5166ad380ab312177c100",
+       "637b60c3b7afa97bfc3d7001",
+       "5ed515ece452db0eb56fc028",
+       "637b6179104668754b72f8f5",
+       "637b6251104668754b72f8f9",
+       "5c0e530286f7747fa1419862",
+       "637b612fb7afa97bfc3d7005",
+       "5c0e531286f7747fa54205c2",
+       "5c0e531d86f7747fa23f4d42",
+       "5fca13ca637ee0341a484f46",
+       "637b620db7afa97bfc3d7009",
+       "5c0e533786f7747fa23f4d47",
+       "5c0e534186f7747fa1419867",
+       "5fca138c2a7b221b2852a5c6",
+       "675a06b84ff23436160d802f",
+       "675a0288c3102563bd01c9c3",
+       "675a046b8f547d6cae01922e",
+       "675a04c01474133a0d0bb212",
+       "675a0a91af26c56ee1090728",
+       "675a0b8d4ff23436160d8031",
+       "675a0d2d57dd12f0260c4a31",
+       "675a0eacf905bde03d0f8253",
+       "675a0fbbb98bf391510bafcd",
+       "6759e19a8367ee2b0c0f4b92",
+       "6759e61067c8eb5cd10352f1",
+       "6759e6c39422e1708e0e9b81",
+       "6759e7a44ff23436160d7ff5",
+       "6759e8b1c3102563bd01c985",
+       "6759e91d8367ee2b0c0f4b94",
+       "675a125caf26c56ee109072a",
+       "675a04fdb8913ff13e0496bb",
+       "675a191f67c8eb5cd1035305",
+       "675a1a244ff23436160d8033",
+       "675a1af21474133a0d0bb216",
+       "675a1c129422e1708e0e9baa",
+       "675a1e502eac6c76e104ea1e",
+       "675a1f5c1474133a0d0bb218",
+       "675a081c1474133a0d0bb214",
+       "675a202b6aaafea7210915fd",
+       "675a20c83fb2de89670113b4",
+       "675a213ff905bde03d0f8255",
+       "5e2aee0a86f774755a234b62",
+       "5e2aedd986f7746d404f3aa4",
+       "5af0561e86f7745f5f3ad6ac",
+       "5672cb124bdc2d1a0f8b4568",
+       "5672cb304bdc2dc2088b456a",
+       "590a358486f77429692b2790",
+       "59e35cbb86f7741778269d83",
+       "5e2af29386f7746d4159f077",
+       "61bf7b6302b3924be92fa8c3",
+       "590c31c586f774245e3141b2",
+       "59e366c186f7741778269d85",
+       "5e2af22086f7746d3f3c33fa",
+       "5d1b327086f7742525194449",
+       "59e35ef086f7741777737012",
+       "5d1b39a386f774252339976f",
+       "5d1b32c186f774252167a530",
+       "590c346786f77423e50ed342",
+       "619cbf476b8a1b37a54eebf8",
+       "590c35a486f774273531c822",
+       "57347c5b245977448d35f6e1",
+       "57347c77245977448d35f6e2",
+       "655c652d60d0ac437100fed7",
+       "655c67ab0d37ca5135388f4b",
+       "655c66e40b2de553b618d4b8",
+       "66572c82ad599021091c6118",
+       "66572be36a723f7f005a066e",
+       "655c67782a1356436041c9c5",
+       "655c673673a43e23e857aebd",
+       "66572cbdad599021091c611a",
+       "655c663a6689c676ce57af85",
+       "655c669103999d3c810c025b",
+       "573474f924597738002c6174",
+       "5734758f24597738025ee253",
+       "573478bc24597738002c6175",
+       "66572b8d80b1cd4b6a67847f",
+       "59faff1d86f7746c51718c9c",
+       "59e3658a86f7741776641ac4",
+       "5bc9bc53d4351e00367fbcee",
+       "62a09cfe4f842e1bd12da3e4",
+       "5bc9bdb8d4351e003562b8a1",
+       "66b37ea4c5d72b0277488439",
+       "6656560053eaaa7a23349c86",
+       "59e3639286f7741777737013",
+       "5f745ee30acaeb0d490d8c5b",
+       "5df8a6a186f77412640e2e80",
+       "5df8a72c86f77412640e2e83",
+       "5df8a77486f77412672a1e3f",
+       "62a091170b9d3c46de5b6cf2",
+       "5c1267ee86f77416ec610f72",
+       "5e54f62086f774219b0f1937",
+       "59faf7ca86f7740dbe19f6c2",
+       "5d235a5986f77443f6329bc6",
+       "66b37eb4acff495a29492407",
+       "59e3647686f774176a362507",
+       "60391b0fb847c71012789415",
+       "67586bee39b1b82b0d0f9d06",
+       "590a373286f774287540368b",
+       "59fafb5d86f774067a6f2084",
+       "5e2af2bc86f7746d3f3c33fc",
+       "5bc9b355d4351e6d1509862a",
+       "5e2af37686f774755a234b65",
+       "60391a8b3364dc22b04d0ce5",
+       "590c5bbd86f774785762df04",
+       "590c5c9f86f77477c91c36e7",
+       "5b43575a86f77424f443fe62",
+       "57347b8b24597737dd42e192",
+       "56742c2e4bdc2d95058b456d",
+       "6389c6c7dbfd5e4b95197e68",
+       "5b4335ba86f7744d2837a264",
+       "5af0534a86f7743b6f354284",
+       "59e361e886f774176c10a2a5",
+       "59e3606886f77417674759a5",
+       "5d1b3a5d86f774252167ba22",
+       "5d1b3f2d86f774253763b735",
+       "62a0a043cf4a99369e2624a5",
+       "619cc01e0a7c3a1a2731940c",
+       "62a09cb7a04c0c5c6e0a84f8",
+       "5e2af4d286f7746d4159f07a",
+       "5e2af41e86f774755a234b67",
+       "5e2af47786f7746d404f3aaa",
+       "5e2af4a786f7746d3f3c3400",
+       "5e2af51086f7746d3f3c3402",
+       "573476d324597737da2adc13",
+       "573475fb24597737fb1379e1",
+       "5734770f24597738025ee254",
+       "573476f124597737e04bf328",
+       "60b0f7057897d47c5b04ab94",
+       "5af0484c86f7740f02001f7f",
+       "67449b6c89d5e1ddc603f504",
+       "5bc9c049d4351e44f824d360",
+       "6389c6463485cf0eeb260715",
+       "5e54f6af86f7742199090bf3",
+       "5c12688486f77426843c7d32",
+       "67586af7036d7f3da60c3612",
+       "5bc9be8fd4351e00334cae6e",
+       "62a08f4c4f842e1bd12d9d62",
+       "5d1b385e86f774252167b98a",
+       "5d1c819a86f774771b0acd6c",
+       "590c595c86f7747884343ad7",
+       "590c5a7286f7747884343aea",
+       "5d6fc78386f77449d825f9dc",
+       "5d6fc87386f77449db3db94e",
+       "5733279d245977289b77ec24",
+       "5b3f3af486f774679e752c1f",
+       "5b3f3b0186f774021a2afef7",
+       "5b3f3ade86f7746b6b790d8e",
+       "60b0f988c4449e4cb624c1da",
+       "5b3f16c486f7747c327f55f7",
+       "5b3f3b0e86f7746752107cda",
+       "664a5480bfcc521bad3192ca",
+       "619bdd8886e01e16f839a99c",
+       "619bddc6c9546643a67df6ee",
+       "619bddffc9546643a67df6f0",
+       "619bde3dc9546643a67df6f2",
+       "619bde7fc9546643a67df6f4",
+       "5f9949d869e2777a0e779ba5",
+       "619bdeb986e01e16f839a99e",
+       "619bdef8c9546643a67df6f6",
+       "619bdf9cc9546643a67df6f8",
+       "619bdfd4c9546643a67df6fa",
+       "67614b3ab8c060ebb204b106",
+       "69dd0de23dfe95d9e70b5ebb",
+       "6a31807f17005505b70d5827",
+       "6a3182dc6cd8de21cf0a3a7d",
+       "6a31830dde69ceafd805afa0",
+       "6a317b9692cfdcddcb02a58e",
+       "6a3181f178450ec91c0ea1aa",
+       "6a31824878450ec91c0ea1ae",
+       "6a3183258f113efdb7093622",
+       "6a31828557705071410ca00e",
+       "6a3182b72fd891345e047eef"
+      ],
+      "excludedItems": [],
+      "excludedCategories": []
+     }
+    },
+    {
+     "name": "arena/career/tabs/skills",
+     "skillType": "skills",
+     "transferRate": 0.15
+    },
+    {
+     "name": "WeaponMastering",
+     "skillType": "mastering",
+     "transferRate": 0.15
+    }
+   ],
+   "iconLink": "https://assets.tarkov.dev/prestige-3-icon.webp",
+   "imageLink": "https://assets.tarkov.dev/prestige-3-image.webp"
+  },
+  {
+   "id": "6842f121000d98ce33b9a60f",
+   "name": "6842f121000d98ce33b9a60f name",
+   "prestigeLevel": 4,
+   "conditions": [
+    {
+     "id": "6842f121cef417ef53cc90a0",
+     "description": "6842f121cef417ef53cc90a0",
+     "type": "playerLevel",
+     "count": 40,
+     "optional": false,
+     "playerLevel": 40,
+     "maps": []
+    },
+    {
+     "id": "6842f121c033d3512e2682d2",
+     "description": "6842f121c033d3512e2682d2",
+     "type": "taskStatus",
+     "count": null,
+     "optional": false,
+     "task": "68481881f43abfdda2058369",
+     "status": [
+      "complete"
+     ],
+     "maps": []
+    },
+    {
+     "id": "6842f121b2b5feddbb55172d",
+     "description": "6842f121b2b5feddbb55172d",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Strength",
+     "level": 15
+    },
+    {
+     "id": "6842f121b524778424c2faab",
+     "description": "6842f121b524778424c2faab",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Endurance",
+     "level": 15
+    },
+    {
+     "id": "6842f12139a9154e5a9014cd",
+     "description": "6842f12139a9154e5a9014cd",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Charisma",
+     "level": 12
+    },
+    {
+     "id": "6842f121ddf9d10aa5a1c254",
+     "description": "6842f121ddf9d10aa5a1c254",
+     "type": "hideoutStation",
+     "count": 1,
+     "optional": false,
+     "station": "5d484fdf654e7600691aadf8",
+     "stationLevel": 1,
+     "maps": []
+    },
+    {
+     "id": "6842f12162f7d28696db3a3e",
+     "description": "6842f12162f7d28696db3a3e",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd6654e76051d3cc791",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "69fa271c5df83bfc367bba15",
+     "description": "69fa271c5df83bfc367bba15",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fd1654e76006732bf2e",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "6842f121065f0486f7c5bb56",
+     "description": "6842f121065f0486f7c5bb56",
+     "type": "haveItem",
+     "count": 15000000,
+     "optional": false,
+     "items": [
+      "5449016a4bdc2d6f028b456f"
+     ],
+     "dogTagLevel": 0,
+     "maxDurability": 100,
+     "minDurability": 0,
+     "foundInRaid": false,
+     "maps": []
+    }
+   ],
+   "rewards": {
+    "traderStanding": [],
+    "items": [
+     {
+      "item": "6841b3463fcc417de40a6768",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "6841b1ff51bf8645f7067bca",
+      "count": 1,
+      "attributes": {}
+     }
+    ],
+    "offerUnlock": [],
+    "skillLevelReward": [
+     {
+      "level": 1,
+      "skill": "Charisma"
+     }
+    ],
+    "traderUnlock": [],
+    "craftUnlock": [],
+    "achievement": [],
+    "customization": [
+     {
+      "id": "6847e76f3f4cd20a97097a93",
+      "name": "6847e76f3f4cd20a97097a93 Name",
+      "imageLink": "https://assets.tarkov.dev/customization-6847e3010f5df094fb072599.webp",
+      "customizationType": "Body",
+      "customizationTypeName": "Upper body"
+     },
+     {
+      "id": "6841c7963fcc417de40a676c",
+      "name": "6841c7963fcc417de40a676c Name",
+      "imageLink": "https://assets.tarkov.dev/customization-6841c7963fcc417de40a676c.webp",
+      "customizationType": "ShootingRangeMark",
+      "customizationTypeName": "Hideout/Customization/ShootingRangeMark/TabName"
+     },
+     {
+      "id": "683dadc8675dbd613909cabb",
+      "name": "Hideout/Mannequin/Pose/jojo",
+      "imageLink": "https://assets.tarkov.dev/customization-683dadc8675dbd613909cabb.webp",
+      "customizationType": "MannequinPose",
+      "customizationTypeName": "ECustomizationItemCategory/MannequinPose"
+     },
+     {
+      "id": "6847e663f43abfdda205835a",
+      "name": "6847e663f43abfdda205835a Name",
+      "imageLink": "https://assets.tarkov.dev/customization-6847e338c9626d92b40d2789.webp",
+      "customizationType": "Body",
+      "customizationTypeName": "Upper body"
+     },
+     {
+      "id": "6841b11620f5c35b5301772b",
+      "name": "6841b11620f5c35b5301772b Name",
+      "customizationType": "DogTags",
+      "customizationTypeName": "ECustomizationItemCategory/DogTag",
+      "items": [
+       "684181208d035f60230f63f9",
+       "684180ee9b6d80d840042e8a"
+      ]
+     },
+     {
+      "id": "683dc6c1baa42e2bb4024922",
+      "name": "683dc6c1baa42e2bb4024922 Name",
+      "imageLink": "https://assets.tarkov.dev/customization-683dc6c1baa42e2bb4024922.webp",
+      "customizationType": "Floor",
+      "customizationTypeName": "Hideout/Customization/Floor/TabName"
+     },
+     {
+      "id": "6842f66bc045dd8b3c083e80",
+      "name": "UI/Quest/Reward/StubCaption",
+      "customizationType": "Stub",
+      "customizationTypeName": "UI/Quest/Reward/StubCaption",
+      "imageLink": "https://assets.tarkov.dev/customization-6842f66bc045dd8b3c083e80.webp"
+     }
+    ],
+    "traderDialogueUnlock": [],
+    "locationUnlock": []
+   },
+   "transferSettings": [
+    {
+     "gridWidth": 8,
+     "gridHeight": 6,
+     "itemFilters": {
+      "allowedCategories": [
+       "5448f3a14bdc2d27728b4569",
+       "5448f3ac4bdc2dce718b4569",
+       "567849dd4bdc2d150f8b456e",
+       "543be6674bdc2df1348b4569",
+       "57864c322459775490116fbf",
+       "57864bb7245977548b3b66c2",
+       "5d650c3e815116009f6201d2",
+       "57bef4c42459772e8d35a53b",
+       "5645bcb74bdc2ded0b8b4578",
+       "5422acb9af1c889c16000029",
+       "5448fe124bdc2da5018b4567"
+      ],
+      "allowedItems": [
+       "60098ad7c2240c0fe85c570a",
+       "590c661e86f7741e566b646a",
+       "590c678286f77426c9660122",
+       "5755356824597772cb798962",
+       "66507eabf5ddb0818b085b68",
+       "5ed515c8d380ab312177c0fa",
+       "5ed515f6915ec335206e4152",
+       "5c10c8fd86f7743d7d706df3",
+       "5ed515e03a40a50460332579",
+       "5ed51652f6c34d2cc26336a1",
+       "5ed5160a87bb8443d10680b5",
+       "5ed5166ad380ab312177c100",
+       "637b60c3b7afa97bfc3d7001",
+       "5ed515ece452db0eb56fc028",
+       "637b6179104668754b72f8f5",
+       "637b6251104668754b72f8f9",
+       "5c0e530286f7747fa1419862",
+       "637b612fb7afa97bfc3d7005",
+       "5c0e531286f7747fa54205c2",
+       "5c0e531d86f7747fa23f4d42",
+       "5fca13ca637ee0341a484f46",
+       "637b620db7afa97bfc3d7009",
+       "5c0e533786f7747fa23f4d47",
+       "5c0e534186f7747fa1419867",
+       "5fca138c2a7b221b2852a5c6",
+       "675a06b84ff23436160d802f",
+       "675a0288c3102563bd01c9c3",
+       "675a046b8f547d6cae01922e",
+       "675a04c01474133a0d0bb212",
+       "675a0a91af26c56ee1090728",
+       "675a0b8d4ff23436160d8031",
+       "675a0d2d57dd12f0260c4a31",
+       "675a0eacf905bde03d0f8253",
+       "675a0fbbb98bf391510bafcd",
+       "6759e19a8367ee2b0c0f4b92",
+       "6759e61067c8eb5cd10352f1",
+       "6759e6c39422e1708e0e9b81",
+       "6759e7a44ff23436160d7ff5",
+       "6759e8b1c3102563bd01c985",
+       "6759e91d8367ee2b0c0f4b94",
+       "675a125caf26c56ee109072a",
+       "675a04fdb8913ff13e0496bb",
+       "675a191f67c8eb5cd1035305",
+       "675a1a244ff23436160d8033",
+       "675a1af21474133a0d0bb216",
+       "675a1c129422e1708e0e9baa",
+       "675a1e502eac6c76e104ea1e",
+       "675a1f5c1474133a0d0bb218",
+       "675a081c1474133a0d0bb214",
+       "675a202b6aaafea7210915fd",
+       "675a20c83fb2de89670113b4",
+       "675a213ff905bde03d0f8255",
+       "5e2aee0a86f774755a234b62",
+       "5e2aedd986f7746d404f3aa4",
+       "5af0561e86f7745f5f3ad6ac",
+       "5672cb124bdc2d1a0f8b4568",
+       "5672cb304bdc2dc2088b456a",
+       "590a358486f77429692b2790",
+       "59e35cbb86f7741778269d83",
+       "5e2af29386f7746d4159f077",
+       "61bf7b6302b3924be92fa8c3",
+       "590c31c586f774245e3141b2",
+       "59e366c186f7741778269d85",
+       "5e2af22086f7746d3f3c33fa",
+       "5d1b327086f7742525194449",
+       "59e35ef086f7741777737012",
+       "5d1b39a386f774252339976f",
+       "5d1b32c186f774252167a530",
+       "590c346786f77423e50ed342",
+       "619cbf476b8a1b37a54eebf8",
+       "590c35a486f774273531c822",
+       "57347c5b245977448d35f6e1",
+       "57347c77245977448d35f6e2",
+       "655c652d60d0ac437100fed7",
+       "655c67ab0d37ca5135388f4b",
+       "655c66e40b2de553b618d4b8",
+       "66572c82ad599021091c6118",
+       "66572be36a723f7f005a066e",
+       "655c67782a1356436041c9c5",
+       "655c673673a43e23e857aebd",
+       "66572cbdad599021091c611a",
+       "655c663a6689c676ce57af85",
+       "655c669103999d3c810c025b",
+       "573474f924597738002c6174",
+       "5734758f24597738025ee253",
+       "573478bc24597738002c6175",
+       "66572b8d80b1cd4b6a67847f",
+       "59faff1d86f7746c51718c9c",
+       "59e3658a86f7741776641ac4",
+       "5bc9bc53d4351e00367fbcee",
+       "62a09cfe4f842e1bd12da3e4",
+       "5bc9bdb8d4351e003562b8a1",
+       "66b37ea4c5d72b0277488439",
+       "6656560053eaaa7a23349c86",
+       "59e3639286f7741777737013",
+       "5f745ee30acaeb0d490d8c5b",
+       "5df8a6a186f77412640e2e80",
+       "5df8a72c86f77412640e2e83",
+       "5df8a77486f77412672a1e3f",
+       "62a091170b9d3c46de5b6cf2",
+       "5c1267ee86f77416ec610f72",
+       "5e54f62086f774219b0f1937",
+       "59faf7ca86f7740dbe19f6c2",
+       "5d235a5986f77443f6329bc6",
+       "66b37eb4acff495a29492407",
+       "59e3647686f774176a362507",
+       "60391b0fb847c71012789415",
+       "67586bee39b1b82b0d0f9d06",
+       "590a373286f774287540368b",
+       "59fafb5d86f774067a6f2084",
+       "5e2af2bc86f7746d3f3c33fc",
+       "5bc9b355d4351e6d1509862a",
+       "5e2af37686f774755a234b65",
+       "60391a8b3364dc22b04d0ce5",
+       "590c5bbd86f774785762df04",
+       "590c5c9f86f77477c91c36e7",
+       "5b43575a86f77424f443fe62",
+       "57347b8b24597737dd42e192",
+       "56742c2e4bdc2d95058b456d",
+       "6389c6c7dbfd5e4b95197e68",
+       "5b4335ba86f7744d2837a264",
+       "5af0534a86f7743b6f354284",
+       "59e361e886f774176c10a2a5",
+       "59e3606886f77417674759a5",
+       "5d1b3a5d86f774252167ba22",
+       "5d1b3f2d86f774253763b735",
+       "62a0a043cf4a99369e2624a5",
+       "619cc01e0a7c3a1a2731940c",
+       "62a09cb7a04c0c5c6e0a84f8",
+       "5e2af4d286f7746d4159f07a",
+       "5e2af41e86f774755a234b67",
+       "5e2af47786f7746d404f3aaa",
+       "5e2af4a786f7746d3f3c3400",
+       "5e2af51086f7746d3f3c3402",
+       "573476d324597737da2adc13",
+       "573475fb24597737fb1379e1",
+       "5734770f24597738025ee254",
+       "573476f124597737e04bf328",
+       "60b0f7057897d47c5b04ab94",
+       "5af0484c86f7740f02001f7f",
+       "67449b6c89d5e1ddc603f504",
+       "5bc9c049d4351e44f824d360",
+       "6389c6463485cf0eeb260715",
+       "5e54f6af86f7742199090bf3",
+       "5c12688486f77426843c7d32",
+       "67586af7036d7f3da60c3612",
+       "5bc9be8fd4351e00334cae6e",
+       "62a08f4c4f842e1bd12d9d62",
+       "5d1b385e86f774252167b98a",
+       "5d1c819a86f774771b0acd6c",
+       "590c595c86f7747884343ad7",
+       "590c5a7286f7747884343aea",
+       "5d6fc78386f77449d825f9dc",
+       "5d6fc87386f77449db3db94e",
+       "5733279d245977289b77ec24",
+       "5b3f3af486f774679e752c1f",
+       "5b3f3b0186f774021a2afef7",
+       "5b3f3ade86f7746b6b790d8e",
+       "60b0f988c4449e4cb624c1da",
+       "5b3f16c486f7747c327f55f7",
+       "5b3f3b0e86f7746752107cda",
+       "664a5480bfcc521bad3192ca",
+       "619bdd8886e01e16f839a99c",
+       "619bddc6c9546643a67df6ee",
+       "619bddffc9546643a67df6f0",
+       "619bde3dc9546643a67df6f2",
+       "619bde7fc9546643a67df6f4",
+       "5f9949d869e2777a0e779ba5",
+       "619bdeb986e01e16f839a99e",
+       "619bdef8c9546643a67df6f6",
+       "619bdf9cc9546643a67df6f8",
+       "619bdfd4c9546643a67df6fa",
+       "67614b3ab8c060ebb204b106",
+       "69dd0de23dfe95d9e70b5ebb",
+       "6a31807f17005505b70d5827",
+       "6a3182dc6cd8de21cf0a3a7d",
+       "6a31830dde69ceafd805afa0",
+       "6a317b9692cfdcddcb02a58e",
+       "6a3181f178450ec91c0ea1aa",
+       "6a31824878450ec91c0ea1ae",
+       "6a3183258f113efdb7093622",
+       "6a31828557705071410ca00e",
+       "6a3182b72fd891345e047eef"
+      ],
+      "excludedItems": [],
+      "excludedCategories": []
+     }
+    },
+    {
+     "name": "arena/career/tabs/skills",
+     "skillType": "skills",
+     "transferRate": 0.2
+    },
+    {
+     "name": "WeaponMastering",
+     "skillType": "mastering",
+     "transferRate": 0.2
+    }
+   ],
+   "iconLink": "https://assets.tarkov.dev/prestige-4-icon.webp",
+   "imageLink": "https://assets.tarkov.dev/prestige-4-image.webp"
+  },
+  {
+   "id": "68d3ddb4fc101237e601d774",
+   "name": "68d3ddb4fc101237e601d774 name",
+   "prestigeLevel": 5,
+   "conditions": [
+    {
+     "id": "68d3ddb4082777aca7357284",
+     "description": "68d3ddb4082777aca7357284",
+     "type": "playerLevel",
+     "count": 47,
+     "optional": false,
+     "playerLevel": 47,
+     "maps": []
+    },
+    {
+     "id": "68d3ddb415034199b86b8d68",
+     "description": "68d3ddb415034199b86b8d68",
+     "type": "taskStatus",
+     "count": null,
+     "optional": false,
+     "task": "5c51aac186f77432ea65c552",
+     "status": [
+      "complete"
+     ],
+     "maps": []
+    },
+    {
+     "id": "68d3ddb4dbfce49d11eb96e6",
+     "description": "68d3ddb4dbfce49d11eb96e6",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Strength",
+     "level": 20
+    },
+    {
+     "id": "68d3ddb4288e9ebf7d9fd372",
+     "description": "68d3ddb4288e9ebf7d9fd372",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Endurance",
+     "level": 20
+    },
+    {
+     "id": "68d3ddb4e20dd5fd2bb1a3b1",
+     "description": "68d3ddb4e20dd5fd2bb1a3b1",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Charisma",
+     "level": 20
+    },
+    {
+     "id": "68d3ddb415cc358f89d70794",
+     "description": "68d3ddb415cc358f89d70794",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fdf654e7600691aadf8",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "68d3ddb41d2772dc2d632a6e",
+     "description": "68d3ddb41d2772dc2d632a6e",
+     "type": "hideoutStation",
+     "count": 3,
+     "optional": false,
+     "station": "5d484fb3654e7600681d9314",
+     "stationLevel": 3,
+     "maps": []
+    },
+    {
+     "id": "68d3ddb4c3a680af079c59a9",
+     "description": "68d3ddb4c3a680af079c59a9",
+     "type": "haveItem",
+     "count": 20000000,
+     "optional": false,
+     "items": [
+      "5449016a4bdc2d6f028b456f"
+     ],
+     "dogTagLevel": 0,
+     "maxDurability": 100,
+     "minDurability": 0,
+     "foundInRaid": false,
+     "maps": []
+    },
+    {
+     "id": "68d3ddb4fa5a084ed04ea23b",
+     "description": "68d3ddb4fa5a084ed04ea23b",
+     "type": "hideoutStation",
+     "count": 3,
+     "optional": false,
+     "station": "5d484fd6654e76051d3cc791",
+     "stationLevel": 3,
+     "maps": []
+    }
+   ],
+   "rewards": {
+    "traderStanding": [],
+    "items": [
+     {
+      "item": "6841b3ab322db20d190b4b9b",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "68f0f8a1375a44d1ed01ea4b",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "68f244ae22c8979ee308f4d8",
+      "count": 1,
+      "attributes": {}
+     }
+    ],
+    "offerUnlock": [],
+    "skillLevelReward": [
+     {
+      "level": 1,
+      "skill": "Charisma"
+     }
+    ],
+    "traderUnlock": [],
+    "craftUnlock": [],
+    "achievement": [],
+    "customization": [
+     {
+      "id": "68fb88b9d4b0e9617502c1c4",
+      "name": "68fb88b9d4b0e9617502c1c4 Name",
+      "customizationType": "Head",
+      "customizationTypeName": "ECustomizationItemCategory/Head"
+     },
+     {
+      "id": "6841c7f03fcc417de40a676e",
+      "name": "6841c7f03fcc417de40a676e Name",
+      "imageLink": "https://assets.tarkov.dev/customization-6841c7f03fcc417de40a676e.webp",
+      "customizationType": "ShootingRangeMark",
+      "customizationTypeName": "Hideout/Customization/ShootingRangeMark/TabName"
+     },
+     {
+      "id": "683db01a0dea92512e020550",
+      "name": "Hideout/Mannequin/Pose/t_pose",
+      "imageLink": "https://assets.tarkov.dev/customization-683db01a0dea92512e020550.webp",
+      "customizationType": "MannequinPose",
+      "customizationTypeName": "ECustomizationItemCategory/MannequinPose"
+     },
+     {
+      "id": "68fb8872fb3842532002cbc1",
+      "name": "68fb8872fb3842532002cbc1 Name",
+      "customizationType": "Head",
+      "customizationTypeName": "ECustomizationItemCategory/Head"
+     },
+     {
+      "id": "68f113af8c147e61f50fb520",
+      "name": "68f113af8c147e61f50fb520 Name",
+      "customizationType": "DogTags",
+      "customizationTypeName": "ECustomizationItemCategory/DogTag",
+      "items": [
+       "68f0f60a121d878a2303eedb",
+       "68f0f64f183146ea530330aa"
+      ]
+     },
+     {
+      "id": "683dc6aa57f38ea79c0073f1",
+      "name": "683dc6aa57f38ea79c0073f1 Name",
+      "imageLink": "https://assets.tarkov.dev/customization-683dc6aa57f38ea79c0073f1.webp",
+      "customizationType": "Wall",
+      "customizationTypeName": "Hideout/Customization/Wall/TabName"
+     },
+     {
+      "id": "68d3ddb4031c828b6bb0821c",
+      "name": "UI/Quest/Reward/StubCaption",
+      "customizationType": "Stub",
+      "customizationTypeName": "UI/Quest/Reward/StubCaption",
+      "imageLink": "https://assets.tarkov.dev/customization-68d3ddb4031c828b6bb0821c.webp"
+     }
+    ],
+    "traderDialogueUnlock": [],
+    "locationUnlock": []
+   },
+   "transferSettings": [
+    {
+     "gridWidth": 8,
+     "gridHeight": 7,
+     "itemFilters": {
+      "allowedCategories": [
+       "5448f3a14bdc2d27728b4569",
+       "5448f3ac4bdc2dce718b4569",
+       "567849dd4bdc2d150f8b456e",
+       "543be6674bdc2df1348b4569",
+       "57864c322459775490116fbf",
+       "57864bb7245977548b3b66c2",
+       "5d650c3e815116009f6201d2",
+       "57bef4c42459772e8d35a53b",
+       "5645bcb74bdc2ded0b8b4578",
+       "5422acb9af1c889c16000029",
+       "5448fe124bdc2da5018b4567"
+      ],
+      "allowedItems": [
+       "60098ad7c2240c0fe85c570a",
+       "590c661e86f7741e566b646a",
+       "590c678286f77426c9660122",
+       "5755356824597772cb798962",
+       "66507eabf5ddb0818b085b68",
+       "5ed515c8d380ab312177c0fa",
+       "5ed515f6915ec335206e4152",
+       "5c10c8fd86f7743d7d706df3",
+       "5ed515e03a40a50460332579",
+       "5ed51652f6c34d2cc26336a1",
+       "5ed5160a87bb8443d10680b5",
+       "5ed5166ad380ab312177c100",
+       "637b60c3b7afa97bfc3d7001",
+       "5ed515ece452db0eb56fc028",
+       "637b6179104668754b72f8f5",
+       "637b6251104668754b72f8f9",
+       "5c0e530286f7747fa1419862",
+       "637b612fb7afa97bfc3d7005",
+       "5c0e531286f7747fa54205c2",
+       "5c0e531d86f7747fa23f4d42",
+       "5fca13ca637ee0341a484f46",
+       "637b620db7afa97bfc3d7009",
+       "5c0e533786f7747fa23f4d47",
+       "5c0e534186f7747fa1419867",
+       "5fca138c2a7b221b2852a5c6",
+       "675a06b84ff23436160d802f",
+       "675a0288c3102563bd01c9c3",
+       "675a046b8f547d6cae01922e",
+       "675a04c01474133a0d0bb212",
+       "675a0a91af26c56ee1090728",
+       "675a0b8d4ff23436160d8031",
+       "675a0d2d57dd12f0260c4a31",
+       "675a0eacf905bde03d0f8253",
+       "675a0fbbb98bf391510bafcd",
+       "6759e19a8367ee2b0c0f4b92",
+       "6759e61067c8eb5cd10352f1",
+       "6759e6c39422e1708e0e9b81",
+       "6759e7a44ff23436160d7ff5",
+       "6759e8b1c3102563bd01c985",
+       "6759e91d8367ee2b0c0f4b94",
+       "675a125caf26c56ee109072a",
+       "675a04fdb8913ff13e0496bb",
+       "675a191f67c8eb5cd1035305",
+       "675a1a244ff23436160d8033",
+       "675a1af21474133a0d0bb216",
+       "675a1c129422e1708e0e9baa",
+       "675a1e502eac6c76e104ea1e",
+       "675a1f5c1474133a0d0bb218",
+       "675a081c1474133a0d0bb214",
+       "675a202b6aaafea7210915fd",
+       "675a20c83fb2de89670113b4",
+       "675a213ff905bde03d0f8255",
+       "5e2aee0a86f774755a234b62",
+       "5e2aedd986f7746d404f3aa4",
+       "5af0561e86f7745f5f3ad6ac",
+       "5672cb124bdc2d1a0f8b4568",
+       "5672cb304bdc2dc2088b456a",
+       "590a358486f77429692b2790",
+       "59e35cbb86f7741778269d83",
+       "5e2af29386f7746d4159f077",
+       "61bf7b6302b3924be92fa8c3",
+       "590c31c586f774245e3141b2",
+       "59e366c186f7741778269d85",
+       "5e2af22086f7746d3f3c33fa",
+       "5d1b327086f7742525194449",
+       "59e35ef086f7741777737012",
+       "5d1b39a386f774252339976f",
+       "5d1b32c186f774252167a530",
+       "590c346786f77423e50ed342",
+       "619cbf476b8a1b37a54eebf8",
+       "590c35a486f774273531c822",
+       "57347c5b245977448d35f6e1",
+       "57347c77245977448d35f6e2",
+       "655c652d60d0ac437100fed7",
+       "655c67ab0d37ca5135388f4b",
+       "655c66e40b2de553b618d4b8",
+       "66572c82ad599021091c6118",
+       "66572be36a723f7f005a066e",
+       "655c67782a1356436041c9c5",
+       "655c673673a43e23e857aebd",
+       "66572cbdad599021091c611a",
+       "655c663a6689c676ce57af85",
+       "655c669103999d3c810c025b",
+       "573474f924597738002c6174",
+       "5734758f24597738025ee253",
+       "573478bc24597738002c6175",
+       "66572b8d80b1cd4b6a67847f",
+       "59faff1d86f7746c51718c9c",
+       "59e3658a86f7741776641ac4",
+       "5bc9bc53d4351e00367fbcee",
+       "62a09cfe4f842e1bd12da3e4",
+       "5bc9bdb8d4351e003562b8a1",
+       "66b37ea4c5d72b0277488439",
+       "6656560053eaaa7a23349c86",
+       "59e3639286f7741777737013",
+       "5f745ee30acaeb0d490d8c5b",
+       "5df8a6a186f77412640e2e80",
+       "5df8a72c86f77412640e2e83",
+       "5df8a77486f77412672a1e3f",
+       "62a091170b9d3c46de5b6cf2",
+       "5c1267ee86f77416ec610f72",
+       "5e54f62086f774219b0f1937",
+       "59faf7ca86f7740dbe19f6c2",
+       "5d235a5986f77443f6329bc6",
+       "66b37eb4acff495a29492407",
+       "59e3647686f774176a362507",
+       "60391b0fb847c71012789415",
+       "67586bee39b1b82b0d0f9d06",
+       "590a373286f774287540368b",
+       "59fafb5d86f774067a6f2084",
+       "5e2af2bc86f7746d3f3c33fc",
+       "5bc9b355d4351e6d1509862a",
+       "5e2af37686f774755a234b65",
+       "60391a8b3364dc22b04d0ce5",
+       "590c5bbd86f774785762df04",
+       "590c5c9f86f77477c91c36e7",
+       "5b43575a86f77424f443fe62",
+       "57347b8b24597737dd42e192",
+       "56742c2e4bdc2d95058b456d",
+       "6389c6c7dbfd5e4b95197e68",
+       "5b4335ba86f7744d2837a264",
+       "5af0534a86f7743b6f354284",
+       "59e361e886f774176c10a2a5",
+       "59e3606886f77417674759a5",
+       "5d1b3a5d86f774252167ba22",
+       "5d1b3f2d86f774253763b735",
+       "62a0a043cf4a99369e2624a5",
+       "619cc01e0a7c3a1a2731940c",
+       "62a09cb7a04c0c5c6e0a84f8",
+       "5e2af4d286f7746d4159f07a",
+       "5e2af41e86f774755a234b67",
+       "5e2af47786f7746d404f3aaa",
+       "5e2af4a786f7746d3f3c3400",
+       "5e2af51086f7746d3f3c3402",
+       "573476d324597737da2adc13",
+       "573475fb24597737fb1379e1",
+       "5734770f24597738025ee254",
+       "573476f124597737e04bf328",
+       "60b0f7057897d47c5b04ab94",
+       "5af0484c86f7740f02001f7f",
+       "67449b6c89d5e1ddc603f504",
+       "5bc9c049d4351e44f824d360",
+       "6389c6463485cf0eeb260715",
+       "5e54f6af86f7742199090bf3",
+       "5c12688486f77426843c7d32",
+       "67586af7036d7f3da60c3612",
+       "5bc9be8fd4351e00334cae6e",
+       "62a08f4c4f842e1bd12d9d62",
+       "5d1b385e86f774252167b98a",
+       "5d1c819a86f774771b0acd6c",
+       "590c595c86f7747884343ad7",
+       "590c5a7286f7747884343aea",
+       "5d6fc78386f77449d825f9dc",
+       "5d6fc87386f77449db3db94e",
+       "5733279d245977289b77ec24",
+       "5b3f3af486f774679e752c1f",
+       "5b3f3b0186f774021a2afef7",
+       "5b3f3ade86f7746b6b790d8e",
+       "60b0f988c4449e4cb624c1da",
+       "5b3f16c486f7747c327f55f7",
+       "5b3f3b0e86f7746752107cda",
+       "664a5480bfcc521bad3192ca",
+       "619bdd8886e01e16f839a99c",
+       "619bddc6c9546643a67df6ee",
+       "619bddffc9546643a67df6f0",
+       "619bde3dc9546643a67df6f2",
+       "619bde7fc9546643a67df6f4",
+       "5f9949d869e2777a0e779ba5",
+       "619bdeb986e01e16f839a99e",
+       "619bdef8c9546643a67df6f6",
+       "619bdf9cc9546643a67df6f8",
+       "619bdfd4c9546643a67df6fa",
+       "67614b3ab8c060ebb204b106",
+       "69dd0de23dfe95d9e70b5ebb",
+       "6a31807f17005505b70d5827",
+       "6a3182dc6cd8de21cf0a3a7d",
+       "6a31830dde69ceafd805afa0",
+       "6a317b9692cfdcddcb02a58e",
+       "6a3181f178450ec91c0ea1aa",
+       "6a31824878450ec91c0ea1ae",
+       "6a3183258f113efdb7093622",
+       "6a31828557705071410ca00e",
+       "6a3182b72fd891345e047eef"
+      ],
+      "excludedItems": [],
+      "excludedCategories": []
+     }
+    },
+    {
+     "name": "arena/career/tabs/skills",
+     "skillType": "skills",
+     "transferRate": 0.25
+    },
+    {
+     "name": "WeaponMastering",
+     "skillType": "mastering",
+     "transferRate": 0.25
+    }
+   ],
+   "iconLink": "https://assets.tarkov.dev/prestige-5-icon.webp",
+   "imageLink": "https://assets.tarkov.dev/prestige-5-image.webp"
+  },
+  {
+   "id": "68d3e6f46a7ba36646713fa6",
+   "name": "68d3e6f46a7ba36646713fa6 name",
+   "prestigeLevel": 6,
+   "conditions": [
+    {
+     "id": "68d3e6f49ce46cdad00a8225",
+     "description": "68d3e6f49ce46cdad00a8225",
+     "type": "playerLevel",
+     "count": 47,
+     "optional": false,
+     "playerLevel": 47,
+     "maps": []
+    },
+    {
+     "id": "68d3e6f40b976d94f72dde5e",
+     "description": "68d3e6f40b976d94f72dde5e",
+     "type": "taskStatus",
+     "count": null,
+     "optional": false,
+     "task": "5c51aac186f77432ea65c552",
+     "status": [
+      "complete"
+     ],
+     "maps": []
+    },
+    {
+     "id": "68d3e6f479d37030452be22d",
+     "description": "68d3e6f479d37030452be22d",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Strength",
+     "level": 20
+    },
+    {
+     "id": "68d3e6f4c3a6f61ae9dd0346",
+     "description": "68d3e6f4c3a6f61ae9dd0346",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Endurance",
+     "level": 20
+    },
+    {
+     "id": "68d3e6f4dff37d0dff3ee61d",
+     "description": "68d3e6f4dff37d0dff3ee61d",
+     "type": "skill",
+     "optional": false,
+     "maps": [],
+     "skill": "Charisma",
+     "level": 20
+    },
+    {
+     "id": "68d3e6f4267a3438dcfa0538",
+     "description": "68d3e6f4267a3438dcfa0538",
+     "type": "hideoutStation",
+     "count": 2,
+     "optional": false,
+     "station": "5d484fdf654e7600691aadf8",
+     "stationLevel": 2,
+     "maps": []
+    },
+    {
+     "id": "68d3e6f4884fefb665ba6d33",
+     "description": "68d3e6f4884fefb665ba6d33",
+     "type": "hideoutStation",
+     "count": 3,
+     "optional": false,
+     "station": "5d484fb3654e7600681d9314",
+     "stationLevel": 3,
+     "maps": []
+    },
+    {
+     "id": "68d3e6f46425c6914bf40041",
+     "description": "68d3e6f46425c6914bf40041",
+     "type": "hideoutStation",
+     "count": 3,
+     "optional": false,
+     "station": "5d484fd6654e76051d3cc791",
+     "stationLevel": 3,
+     "maps": []
+    },
+    {
+     "id": "68d3e6f42716e9ceb94e9b6b",
+     "description": "68d3e6f42716e9ceb94e9b6b",
+     "type": "haveItem",
+     "count": 20000000,
+     "optional": false,
+     "items": [
+      "5449016a4bdc2d6f028b456f"
+     ],
+     "dogTagLevel": 0,
+     "maxDurability": 100,
+     "minDurability": 0,
+     "foundInRaid": false,
+     "maps": []
+    }
+   ],
+   "rewards": {
+    "traderStanding": [],
+    "items": [
+     {
+      "item": "68f0f8f1a1e799f1c3027c71",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "68f117b8121d878a2303eee0",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "68f11224197b61ffe703b16f",
+      "count": 1,
+      "attributes": {}
+     },
+     {
+      "item": "68d65766916a108d7a023c98",
+      "count": 1,
+      "attributes": {}
+     }
+    ],
+    "offerUnlock": [],
+    "skillLevelReward": [
+     {
+      "level": 1,
+      "skill": "Charisma"
+     }
+    ],
+    "traderUnlock": [],
+    "craftUnlock": [],
+    "achievement": [],
+    "customization": [
+     {
+      "id": "683dc67e5e8c96c28e0ce6f8",
+      "name": "683dc67e5e8c96c28e0ce6f8 Name",
+      "imageLink": "https://assets.tarkov.dev/customization-683dc67e5e8c96c28e0ce6f8.webp",
+      "customizationType": "Ceiling",
+      "customizationTypeName": "Hideout/Customization/Ceiling/TabName"
+     },
+     {
+      "id": "68f11506a1e799f1c3027c79",
+      "name": "68f11506a1e799f1c3027c79 Name",
+      "customizationType": "ShootingRangeMark",
+      "customizationTypeName": "Hideout/Customization/ShootingRangeMark/TabName"
+     },
+     {
+      "id": "68f11478a1e799f1c3027c77",
+      "name": "68f11478a1e799f1c3027c77 Name",
+      "customizationType": "DogTags",
+      "customizationTypeName": "ECustomizationItemCategory/DogTag",
+      "items": [
+       "68f0f63c645c14a02104142a",
+       "68f0f662859ebec8d501b76a"
+      ]
+     },
+     {
+      "id": "68f12827372e7bb1de0d7361",
+      "name": "MiamiEnvironmentUiType",
+      "imageLink": "https://assets.tarkov.dev/customization-68f12827372e7bb1de0d7361.webp",
+      "customizationType": "EnvironmentUI",
+      "customizationTypeName": "ECustomizationItemCategory/Environment"
+     },
+     {
+      "id": "68d3e6f4576fc57902760b63",
+      "name": "UI/Quest/Reward/StubCaption",
+      "customizationType": "Stub",
+      "customizationTypeName": "UI/Quest/Reward/StubCaption",
+      "imageLink": "https://assets.tarkov.dev/customization-68d3e6f4576fc57902760b63.webp"
+     },
+     {
+      "id": "68f0f556e3aa0f5eb903faca",
+      "name": "Hideout/Mannequin/Pose/praise",
+      "imageLink": "https://assets.tarkov.dev/customization-68f0f556e3aa0f5eb903faca.webp",
+      "customizationType": "MannequinPose",
+      "customizationTypeName": "ECustomizationItemCategory/MannequinPose"
+     }
+    ],
+    "traderDialogueUnlock": [],
+    "locationUnlock": []
+   },
+   "transferSettings": [
+    {
+     "gridWidth": 8,
+     "gridHeight": 8,
+     "itemFilters": {
+      "allowedCategories": [
+       "5448f3a14bdc2d27728b4569",
+       "5448f3ac4bdc2dce718b4569",
+       "567849dd4bdc2d150f8b456e",
+       "543be6674bdc2df1348b4569",
+       "57864c322459775490116fbf",
+       "57864bb7245977548b3b66c2",
+       "5d650c3e815116009f6201d2",
+       "57bef4c42459772e8d35a53b",
+       "5645bcb74bdc2ded0b8b4578",
+       "5422acb9af1c889c16000029",
+       "5448fe124bdc2da5018b4567"
+      ],
+      "allowedItems": [
+       "60098ad7c2240c0fe85c570a",
+       "590c661e86f7741e566b646a",
+       "590c678286f77426c9660122",
+       "5755356824597772cb798962",
+       "66507eabf5ddb0818b085b68",
+       "5ed515c8d380ab312177c0fa",
+       "5ed515f6915ec335206e4152",
+       "5c10c8fd86f7743d7d706df3",
+       "5ed515e03a40a50460332579",
+       "5ed51652f6c34d2cc26336a1",
+       "5ed5160a87bb8443d10680b5",
+       "5ed5166ad380ab312177c100",
+       "637b60c3b7afa97bfc3d7001",
+       "5ed515ece452db0eb56fc028",
+       "637b6179104668754b72f8f5",
+       "637b6251104668754b72f8f9",
+       "5c0e530286f7747fa1419862",
+       "637b612fb7afa97bfc3d7005",
+       "5c0e531286f7747fa54205c2",
+       "5c0e531d86f7747fa23f4d42",
+       "5fca13ca637ee0341a484f46",
+       "637b620db7afa97bfc3d7009",
+       "5c0e533786f7747fa23f4d47",
+       "5c0e534186f7747fa1419867",
+       "5fca138c2a7b221b2852a5c6",
+       "675a06b84ff23436160d802f",
+       "675a0288c3102563bd01c9c3",
+       "675a046b8f547d6cae01922e",
+       "675a04c01474133a0d0bb212",
+       "675a0a91af26c56ee1090728",
+       "675a0b8d4ff23436160d8031",
+       "675a0d2d57dd12f0260c4a31",
+       "675a0eacf905bde03d0f8253",
+       "675a0fbbb98bf391510bafcd",
+       "6759e19a8367ee2b0c0f4b92",
+       "6759e61067c8eb5cd10352f1",
+       "6759e6c39422e1708e0e9b81",
+       "6759e7a44ff23436160d7ff5",
+       "6759e8b1c3102563bd01c985",
+       "6759e91d8367ee2b0c0f4b94",
+       "675a125caf26c56ee109072a",
+       "675a04fdb8913ff13e0496bb",
+       "675a191f67c8eb5cd1035305",
+       "675a1a244ff23436160d8033",
+       "675a1af21474133a0d0bb216",
+       "675a1c129422e1708e0e9baa",
+       "675a1e502eac6c76e104ea1e",
+       "675a1f5c1474133a0d0bb218",
+       "675a081c1474133a0d0bb214",
+       "675a202b6aaafea7210915fd",
+       "675a20c83fb2de89670113b4",
+       "675a213ff905bde03d0f8255",
+       "5e2aee0a86f774755a234b62",
+       "5e2aedd986f7746d404f3aa4",
+       "5af0561e86f7745f5f3ad6ac",
+       "5672cb124bdc2d1a0f8b4568",
+       "5672cb304bdc2dc2088b456a",
+       "590a358486f77429692b2790",
+       "59e35cbb86f7741778269d83",
+       "5e2af29386f7746d4159f077",
+       "61bf7b6302b3924be92fa8c3",
+       "590c31c586f774245e3141b2",
+       "59e366c186f7741778269d85",
+       "5e2af22086f7746d3f3c33fa",
+       "5d1b327086f7742525194449",
+       "59e35ef086f7741777737012",
+       "5d1b39a386f774252339976f",
+       "5d1b32c186f774252167a530",
+       "590c346786f77423e50ed342",
+       "619cbf476b8a1b37a54eebf8",
+       "590c35a486f774273531c822",
+       "57347c5b245977448d35f6e1",
+       "57347c77245977448d35f6e2",
+       "655c652d60d0ac437100fed7",
+       "655c67ab0d37ca5135388f4b",
+       "655c66e40b2de553b618d4b8",
+       "66572c82ad599021091c6118",
+       "66572be36a723f7f005a066e",
+       "655c67782a1356436041c9c5",
+       "655c673673a43e23e857aebd",
+       "66572cbdad599021091c611a",
+       "655c663a6689c676ce57af85",
+       "655c669103999d3c810c025b",
+       "573474f924597738002c6174",
+       "5734758f24597738025ee253",
+       "573478bc24597738002c6175",
+       "66572b8d80b1cd4b6a67847f",
+       "59faff1d86f7746c51718c9c",
+       "59e3658a86f7741776641ac4",
+       "5bc9bc53d4351e00367fbcee",
+       "62a09cfe4f842e1bd12da3e4",
+       "5bc9bdb8d4351e003562b8a1",
+       "66b37ea4c5d72b0277488439",
+       "6656560053eaaa7a23349c86",
+       "59e3639286f7741777737013",
+       "5f745ee30acaeb0d490d8c5b",
+       "5df8a6a186f77412640e2e80",
+       "5df8a72c86f77412640e2e83",
+       "5df8a77486f77412672a1e3f",
+       "62a091170b9d3c46de5b6cf2",
+       "5c1267ee86f77416ec610f72",
+       "5e54f62086f774219b0f1937",
+       "59faf7ca86f7740dbe19f6c2",
+       "5d235a5986f77443f6329bc6",
+       "66b37eb4acff495a29492407",
+       "59e3647686f774176a362507",
+       "60391b0fb847c71012789415",
+       "67586bee39b1b82b0d0f9d06",
+       "590a373286f774287540368b",
+       "59fafb5d86f774067a6f2084",
+       "5e2af2bc86f7746d3f3c33fc",
+       "5bc9b355d4351e6d1509862a",
+       "5e2af37686f774755a234b65",
+       "60391a8b3364dc22b04d0ce5",
+       "590c5bbd86f774785762df04",
+       "590c5c9f86f77477c91c36e7",
+       "5b43575a86f77424f443fe62",
+       "57347b8b24597737dd42e192",
+       "56742c2e4bdc2d95058b456d",
+       "6389c6c7dbfd5e4b95197e68",
+       "5b4335ba86f7744d2837a264",
+       "5af0534a86f7743b6f354284",
+       "59e361e886f774176c10a2a5",
+       "59e3606886f77417674759a5",
+       "5d1b3a5d86f774252167ba22",
+       "5d1b3f2d86f774253763b735",
+       "62a0a043cf4a99369e2624a5",
+       "619cc01e0a7c3a1a2731940c",
+       "62a09cb7a04c0c5c6e0a84f8",
+       "5e2af4d286f7746d4159f07a",
+       "5e2af41e86f774755a234b67",
+       "5e2af47786f7746d404f3aaa",
+       "5e2af4a786f7746d3f3c3400",
+       "5e2af51086f7746d3f3c3402",
+       "573476d324597737da2adc13",
+       "573475fb24597737fb1379e1",
+       "5734770f24597738025ee254",
+       "573476f124597737e04bf328",
+       "60b0f7057897d47c5b04ab94",
+       "5af0484c86f7740f02001f7f",
+       "67449b6c89d5e1ddc603f504",
+       "5bc9c049d4351e44f824d360",
+       "6389c6463485cf0eeb260715",
+       "5e54f6af86f7742199090bf3",
+       "5c12688486f77426843c7d32",
+       "67586af7036d7f3da60c3612",
+       "5bc9be8fd4351e00334cae6e",
+       "62a08f4c4f842e1bd12d9d62",
+       "5d1b385e86f774252167b98a",
+       "5d1c819a86f774771b0acd6c",
+       "590c595c86f7747884343ad7",
+       "590c5a7286f7747884343aea",
+       "5d6fc78386f77449d825f9dc",
+       "5d6fc87386f77449db3db94e",
+       "5733279d245977289b77ec24",
+       "5b3f3af486f774679e752c1f",
+       "5b3f3b0186f774021a2afef7",
+       "5b3f3ade86f7746b6b790d8e",
+       "60b0f988c4449e4cb624c1da",
+       "5b3f16c486f7747c327f55f7",
+       "5b3f3b0e86f7746752107cda",
+       "664a5480bfcc521bad3192ca",
+       "619bdd8886e01e16f839a99c",
+       "619bddc6c9546643a67df6ee",
+       "619bddffc9546643a67df6f0",
+       "619bde3dc9546643a67df6f2",
+       "619bde7fc9546643a67df6f4",
+       "5f9949d869e2777a0e779ba5",
+       "619bdeb986e01e16f839a99e",
+       "619bdef8c9546643a67df6f6",
+       "619bdf9cc9546643a67df6f8",
+       "619bdfd4c9546643a67df6fa",
+       "67614b3ab8c060ebb204b106",
+       "69dd0de23dfe95d9e70b5ebb",
+       "6a31807f17005505b70d5827",
+       "6a3182dc6cd8de21cf0a3a7d",
+       "6a31830dde69ceafd805afa0",
+       "6a317b9692cfdcddcb02a58e",
+       "6a3181f178450ec91c0ea1aa",
+       "6a31824878450ec91c0ea1ae",
+       "6a3183258f113efdb7093622",
+       "6a31828557705071410ca00e",
+       "6a3182b72fd891345e047eef"
+      ],
+      "excludedItems": [],
+      "excludedCategories": []
+     }
+    },
+    {
+     "name": "arena/career/tabs/skills",
+     "skillType": "skills",
+     "transferRate": 0.3
+    },
+    {
+     "name": "WeaponMastering",
+     "skillType": "mastering",
+     "transferRate": 0.3
+    }
+   ],
+   "iconLink": "https://assets.tarkov.dev/prestige-6-icon.webp",
+   "imageLink": "https://assets.tarkov.dev/prestige-6-image.webp"
+  }
+ ],
+ "achievements": [
+  {
+   "id": "6512ea46f7a078264a4376e4",
+   "name": "PMC's Best Friend",
+   "slug": "pmcs-best-friend",
+   "description": "Survive and extract from Interchange through the Scav Co-Op extraction while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 2.15,
+   "image_url": "https://assets.tarkov.dev/achievement-6512ea46f7a078264a4376e4-icon.webp"
+  },
+  {
+   "id": "6512eb3ddfb0ae1ee75a0376",
+   "name": "Traveler",
+   "slug": "traveler",
+   "description": "Survive and extract from every location in Tarkov while playing as a PMC ",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 6.82,
+   "image_url": "https://assets.tarkov.dev/achievement-6512eb3ddfb0ae1ee75a0376-icon.webp"
+  },
+  {
+   "id": "6512f16bde333c33d5127cbc",
+   "name": "Killer of Killers",
+   "slug": "killer-of-killers",
+   "description": "Eliminate one of the hooded men with their own knife at night time while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 0.09,
+   "image_url": "https://assets.tarkov.dev/achievement-6512f16bde333c33d5127cbc-icon.webp"
+  },
+  {
+   "id": "6512f1e3be73cc7f07358ed5",
+   "name": "Art of Style",
+   "slug": "art-of-style",
+   "description": "Neutralize Killa for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 6.63,
+   "image_url": "https://assets.tarkov.dev/achievement-6512f1e3be73cc7f07358ed5-icon.webp"
+  },
+  {
+   "id": "6513eb6e0dc723592b0f9095",
+   "name": "Call Your Brother",
+   "slug": "call-your-brother",
+   "description": "Neutralize Tagilla for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 11.79,
+   "image_url": "https://assets.tarkov.dev/achievement-6513eb6e0dc723592b0f9095-icon.webp"
+  },
+  {
+   "id": "6513ed89cf2f1c285e606068",
+   "name": "Silence of the Sawmill",
+   "slug": "silence-of-the-sawmill",
+   "description": "Neutralize Shturman for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 9.93,
+   "image_url": "https://assets.tarkov.dev/achievement-6513ed89cf2f1c285e606068-icon.webp"
+  },
+  {
+   "id": "6513ee11a3dd9b6aa7159b4a",
+   "name": "Deal to Make",
+   "slug": "deal-to-make",
+   "description": "Neutralize Reshala for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 12.45,
+   "image_url": "https://assets.tarkov.dev/achievement-6513ee11a3dd9b6aa7159b4a-icon.webp"
+  },
+  {
+   "id": "6513eec00dc723592b0f90cc",
+   "name": "Grouse Hunting",
+   "slug": "grouse-hunting",
+   "description": "Neutralize Glukhar for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 6.66,
+   "image_url": "https://assets.tarkov.dev/achievement-6513eec00dc723592b0f90cc-icon.webp"
+  },
+  {
+   "id": "6513efa1b49e3253755f47eb",
+   "name": "Sanatorium Orderly",
+   "slug": "sanatorium-orderly",
+   "description": "Neutralize Sanitar for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 8.65,
+   "image_url": "https://assets.tarkov.dev/achievement-6513efa1b49e3253755f47eb-icon.webp"
+  },
+  {
+   "id": "6513f0a10dc723592b0f90cf",
+   "name": "Funny Graveyard Keeper",
+   "slug": "funny-graveyard-keeper",
+   "description": "Neutralize Kaban for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 4.29,
+   "image_url": "https://assets.tarkov.dev/achievement-6513f0a10dc723592b0f90cf-icon.webp"
+  },
+  {
+   "id": "6513f1feec10ff011f17c7ea",
+   "name": "Now There Are Three of Them!",
+   "slug": "now-there-are-three-of-them",
+   "description": "Neutralize Knight, Birdeye, and Big Pipe in a single raid for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 4.99,
+   "image_url": "https://assets.tarkov.dev/achievement-6513f1feec10ff011f17c7ea-icon.webp"
+  },
+  {
+   "id": "6513f28cb49e3253755f47f3",
+   "name": "The Blind Watcher",
+   "slug": "the-blind-watcher",
+   "description": "Neutralize Zryachiy for the first time while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 0.74,
+   "image_url": "https://assets.tarkov.dev/achievement-6513f28cb49e3253755f47f3-icon.webp"
+  },
+  {
+   "id": "65140ab8ec10ff011f17cc10",
+   "name": "What Not To Wear",
+   "slug": "what-not-to-wear",
+   "description": "Neutralize Killa 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.3,
+   "image_url": "https://assets.tarkov.dev/achievement-65140ab8ec10ff011f17cc10-icon.webp"
+  },
+  {
+   "id": "65140b55cf2f1c285e606414",
+   "name": "Hammer and Scythe",
+   "slug": "hammer-and-scythe",
+   "description": "Neutralize Tagilla 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.63,
+   "image_url": "https://assets.tarkov.dev/achievement-65140b55cf2f1c285e606414-icon.webp"
+  },
+  {
+   "id": "65140bbec31fcb0e163577b9",
+   "name": "King of the Sawmill",
+   "slug": "king-of-the-sawmill",
+   "description": "Neutralize Shturman 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.54,
+   "image_url": "https://assets.tarkov.dev/achievement-65140bbec31fcb0e163577b9-icon.webp"
+  },
+  {
+   "id": "65140c00b1c08b0feb216d50",
+   "name": "This Is a Tarkov Showdown",
+   "slug": "this-is-a-tarkov-showdown",
+   "description": "Neutralize Reshala 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.57,
+   "image_url": "https://assets.tarkov.dev/achievement-65140c00b1c08b0feb216d50-icon.webp"
+  },
+  {
+   "id": "65141032a3dd9b6aa7159ed3",
+   "name": "Another Cold Case",
+   "slug": "another-cold-case",
+   "description": "Neutralize Glukhar 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.2,
+   "image_url": "https://assets.tarkov.dev/achievement-65141032a3dd9b6aa7159ed3-icon.webp"
+  },
+  {
+   "id": "651411f1cf2f1c285e606423",
+   "name": "Who Called the Doctor?",
+   "slug": "who-called-the-doctor",
+   "description": "Neutralize Sanitar 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.23,
+   "image_url": "https://assets.tarkov.dev/achievement-651411f1cf2f1c285e606423-icon.webp"
+  },
+  {
+   "id": "651412b8c31fcb0e163577c5",
+   "name": "Old Dog With Old tricks",
+   "slug": "old-dog-with-old-tricks",
+   "description": "Neutralize Kaban 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.26,
+   "image_url": "https://assets.tarkov.dev/achievement-651412b8c31fcb0e163577c5-icon.webp"
+  },
+  {
+   "id": "6514134eec10ff011f17cc26",
+   "name": "I Hear the Voice of Darkness",
+   "slug": "i-hear-the-voice-of-darkness",
+   "description": "Neutralize Knight 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.89,
+   "image_url": "https://assets.tarkov.dev/achievement-6514134eec10ff011f17cc26-icon.webp"
+  },
+  {
+   "id": "651413e9c31fcb0e163577c9",
+   "name": "Now That's a Good Shot",
+   "slug": "now-thats-a-good-shot",
+   "description": "Neutralize Zryachiy 15 times while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.07,
+   "image_url": "https://assets.tarkov.dev/achievement-651413e9c31fcb0e163577c9-icon.webp"
+  },
+  {
+   "id": "6514143d59647d2cb3213c93",
+   "name": "Master of ULTRA",
+   "slug": "master-of-ultra",
+   "description": "Neutralize Killa 100 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "legendary",
+   "players_completed_percent": 0.14,
+   "image_url": "https://assets.tarkov.dev/achievement-6514143d59647d2cb3213c93-icon.webp"
+  },
+  {
+   "id": "651415feb49e3253755f4b68",
+   "name": "Long Live the King!",
+   "slug": "long-live-the-king",
+   "description": "Neutralize every Boss once while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.48,
+   "image_url": "https://assets.tarkov.dev/achievement-651415feb49e3253755f4b68-icon.webp"
+  },
+  {
+   "id": "6514174fb1c08b0feb216d73",
+   "name": "Chris's Heir",
+   "slug": "chriss-heir",
+   "description": "Eliminate a PMC operative with a headshot from over 500 meters away while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.22,
+   "image_url": "https://assets.tarkov.dev/achievement-6514174fb1c08b0feb216d73-icon.webp"
+  },
+  {
+   "id": "651417d6ec10ff011f17cc31",
+   "name": "John's Heir",
+   "slug": "johns-heir",
+   "description": "Eliminate 4 PMC operatives with a headshot while using a pistol in a single raid while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 0.25,
+   "image_url": "https://assets.tarkov.dev/achievement-651417d6ec10ff011f17cc31-icon.webp"
+  },
+  {
+   "id": "6514184ec31fcb0e163577d2",
+   "name": "Killer7",
+   "slug": "killer7",
+   "description": "Eliminate 7 PMC operatives in a single raid while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.71,
+   "image_url": "https://assets.tarkov.dev/achievement-6514184ec31fcb0e163577d2-icon.webp"
+  },
+  {
+   "id": "651419eea3dd9b6aa7159ee5",
+   "name": "Blind Fury",
+   "slug": "blind-fury",
+   "description": "Eliminate any enemy while suffering from the Flash effect while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 6.13,
+   "image_url": "https://assets.tarkov.dev/achievement-651419eea3dd9b6aa7159ee5-icon.webp"
+  },
+  {
+   "id": "65141a3059647d2cb3213c9e",
+   "name": "Make a Notch",
+   "slug": "make-a-notch",
+   "description": "Eliminate 30 PMC operatives with a melee weapon while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 0.03,
+   "image_url": "https://assets.tarkov.dev/achievement-65141a3059647d2cb3213c9e-icon.webp"
+  },
+  {
+   "id": "65141ab70dc723592b0f9482",
+   "name": "Drunken Master",
+   "slug": "drunken-master",
+   "description": "Eliminate a PMC operative with a headshot while under the alcohol effect while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 0.78,
+   "image_url": "https://assets.tarkov.dev/achievement-65141ab70dc723592b0f9482-icon.webp"
+  },
+  {
+   "id": "65141b9859647d2cb3213ca2",
+   "name": "U-SUCC",
+   "slug": "u-succ",
+   "description": "Eliminate 50 USEC PMC operatives",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 9.62,
+   "image_url": "https://assets.tarkov.dev/achievement-65141b9859647d2cb3213ca2-icon.webp"
+  },
+  {
+   "id": "65141bdfcf2f1c285e606446",
+   "name": "BEAR With Me",
+   "slug": "bear-with-me",
+   "description": "Eliminate 50 BEAR PMC operatives",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 7.53,
+   "image_url": "https://assets.tarkov.dev/achievement-65141bdfcf2f1c285e606446-icon.webp"
+  },
+  {
+   "id": "65141c30ec10ff011f17cc3b",
+   "name": "Welcome to Tarkov",
+   "slug": "welcome-to-tarkov",
+   "description": "Die in Tarkov for the first time",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 49.16,
+   "image_url": "https://assets.tarkov.dev/achievement-65141c30ec10ff011f17cc3b-icon.webp"
+  },
+  {
+   "id": "65141c80ec10ff011f17cc3e",
+   "name": "First Time Always Hurts",
+   "slug": "first-time-always-hurts",
+   "description": "Survive a raid without the Run-through status for the first time",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 41.28,
+   "image_url": "https://assets.tarkov.dev/achievement-65141c80ec10ff011f17cc3e-icon.webp"
+  },
+  {
+   "id": "65141cd2cf2f1c285e606449",
+   "name": "Ready for Anything",
+   "slug": "ready-for-anything",
+   "description": "Survive 10 consecutive raids while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 5.56,
+   "image_url": "https://assets.tarkov.dev/achievement-65141cd2cf2f1c285e606449-icon.webp"
+  },
+  {
+   "id": "65141dd6303df252af1c72c9",
+   "name": "PMC",
+   "slug": "pmc",
+   "description": "Survive 300 raids while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 2.96,
+   "image_url": "https://assets.tarkov.dev/achievement-65141dd6303df252af1c72c9-icon.webp"
+  },
+  {
+   "id": "65141e37cf2f1c285e606361",
+   "name": "That's What She Said",
+   "slug": "thats-what-she-said",
+   "description": "Search the office in Factory while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 22.6,
+   "image_url": "https://assets.tarkov.dev/achievement-65141e37cf2f1c285e606361-icon.webp"
+  },
+  {
+   "id": "65141eb5c31fcb0e163577dd",
+   "name": "Lost",
+   "slug": "lost",
+   "description": "Locate the crashed plane on Woods while playing as a PMC",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 27.96,
+   "image_url": "https://assets.tarkov.dev/achievement-65141eb5c31fcb0e163577dd-icon.webp"
+  },
+  {
+   "id": "6514321bec10ff011f17ccac",
+   "name": "Firefly",
+   "slug": "firefly",
+   "description": "Meet Lightkeeper for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "legendary",
+   "players_completed_percent": 1.28,
+   "image_url": "https://assets.tarkov.dev/achievement-6514321bec10ff011f17ccac-icon.webp"
+  },
+  {
+   "id": "6527d2e2c656a951ad1528c3",
+   "name": "Smoke the Peace Pipe",
+   "slug": "smoke-the-peace-pipe",
+   "description": "Neutralize Big Pipe 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.23,
+   "image_url": "https://assets.tarkov.dev/achievement-6527d2e2c656a951ad1528c3-icon.webp"
+  },
+  {
+   "id": "6527d3aac656a951ad1528ce",
+   "name": "The Red Book",
+   "slug": "the-red-book",
+   "description": "Neutralize Birdeye 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.23,
+   "image_url": "https://assets.tarkov.dev/achievement-6527d3aac656a951ad1528ce-icon.webp"
+  },
+  {
+   "id": "6527ee4a647c29201011defe",
+   "name": "You Are Not My Brother",
+   "slug": "you-are-not-my-brother",
+   "description": "Eliminate a Scav while playing as a Scav",
+   "hidden": true,
+   "side": "Savage",
+   "rarity": "common",
+   "players_completed_percent": 35.43,
+   "image_url": "https://assets.tarkov.dev/achievement-6527ee4a647c29201011defe-icon.webp"
+  },
+  {
+   "id": "6529097eccf6aa5f8737b3d0",
+   "name": "Snowball",
+   "slug": "snowball",
+   "description": "Neutralize every Boss without dying while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "legendary",
+   "players_completed_percent": 0.08,
+   "image_url": "https://assets.tarkov.dev/achievement-6529097eccf6aa5f8737b3d0-icon.webp"
+  },
+  {
+   "id": "655b49bc91aa9e07687ae47c",
+   "name": "Justice",
+   "slug": "justice",
+   "description": "Neutralize Kollontay for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 4.67,
+   "image_url": "https://assets.tarkov.dev/achievement-655b49bc91aa9e07687ae47c-icon.webp"
+  },
+  {
+   "id": "655b4a576689c676ce57acb6",
+   "name": "True Crime",
+   "slug": "true-crime",
+   "description": "Neutralize Kollontay 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.19,
+   "image_url": "https://assets.tarkov.dev/achievement-655b4a576689c676ce57acb6-icon.webp"
+  },
+  {
+   "id": "660fe21454670811e304c045",
+   "name": "Maslenitsa",
+   "slug": "maslenitsa",
+   "description": "Сomplete the Maslenitsa 2024 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.01,
+   "image_url": "https://assets.tarkov.dev/achievement-660fe21454670811e304c045-icon.webp"
+  },
+  {
+   "id": "6634c8886e083a141f4aa3f4",
+   "name": "Cardinal Richelieu",
+   "slug": "cardinal-richelieu",
+   "description": "Find out who actually controls Tarkov and complete The Tarkov Mystery event task line",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.05,
+   "image_url": "https://assets.tarkov.dev/achievement-6634c8886e083a141f4aa3f4-icon.webp"
+  },
+  {
+   "id": "6634ca69ee506a5c3e61be56",
+   "name": "INVOLVED IN PEACE",
+   "slug": "involved-in-peace",
+   "description": "Pick Peacekeeper's side and complete The Tarkov Mystery event task line",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.06,
+   "image_url": "https://assets.tarkov.dev/achievement-6634ca69ee506a5c3e61be56-icon.webp"
+  },
+  {
+   "id": "6634cae870af846d2868dada",
+   "name": "Local Strong Man",
+   "slug": "local-strong-man",
+   "description": "Pick Skier's side and complete The Tarkov Mystery event task line",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.33,
+   "image_url": "https://assets.tarkov.dev/achievement-6634cae870af846d2868dada-icon.webp"
+  },
+  {
+   "id": "664f1f8768508d74604bf556",
+   "name": "The Kappa Path",
+   "slug": "the-kappa-path",
+   "description": "Obtain Secure container Kappa",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 1.37,
+   "image_url": "https://assets.tarkov.dev/achievement-664f1f8768508d74604bf556-icon.webp"
+  },
+  {
+   "id": "664f23e44702fd5db50ee732",
+   "name": "Jack of All Trades",
+   "slug": "jack-of-all-trades",
+   "description": "Complete all of Gunsmith series tasks",
+   "hidden": false,
+   "side": "All",
+   "rarity": "rare",
+   "players_completed_percent": 2.53,
+   "image_url": "https://assets.tarkov.dev/achievement-664f23e44702fd5db50ee732-icon.webp"
+  },
+  {
+   "id": "66742c003a67b164a300fcbf",
+   "name": "A Key to Salvation",
+   "slug": "a-key-to-salvation",
+   "description": "Help Therapist save lives and complete the Key to Salvation event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.28,
+   "image_url": "https://assets.tarkov.dev/achievement-66742c003a67b164a300fcbf-icon.webp"
+  },
+  {
+   "id": "668bf47c781d446fdc083711",
+   "name": "High Competition",
+   "slug": "high-competition",
+   "description": "Choose your side and complete the Arms Race event task line",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "legendary",
+   "players_completed_percent": 0.17,
+   "image_url": "https://assets.tarkov.dev/achievement-668bf47c781d446fdc083711-icon.webp"
+  },
+  {
+   "id": "66b493bc2d8cd3b5e90a3648",
+   "name": "Marathon",
+   "slug": "marathon",
+   "description": "Visit all locations in one raid as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "legendary",
+   "players_completed_percent": 0.26,
+   "image_url": "https://assets.tarkov.dev/achievement-66b493bc2d8cd3b5e90a3648-icon.webp"
+  },
+  {
+   "id": "66c328aca91e7d66fa1b0b7b",
+   "name": "Vagabond",
+   "slug": "vagabond",
+   "description": "Use the transit from any location",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 14.51,
+   "image_url": "https://assets.tarkov.dev/achievement-66c328aca91e7d66fa1b0b7b-icon.webp"
+  },
+  {
+   "id": "66c328de9dc78468f4040f35",
+   "name": "Time To Clean My Karma",
+   "slug": "time-to-clean-my-karma",
+   "description": "Neutralize Partisan for the first time while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 11.78,
+   "image_url": "https://assets.tarkov.dev/achievement-66c328de9dc78468f4040f35-icon.webp"
+  },
+  {
+   "id": "66c32996b4c0c017a3319cc3",
+   "name": "Samsara Wheel Spins Again",
+   "slug": "samsara-wheel-spins-again",
+   "description": "Neutralize Partisan 15 times while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.35,
+   "image_url": "https://assets.tarkov.dev/achievement-66c32996b4c0c017a3319cc3-icon.webp"
+  },
+  {
+   "id": "66e2a7e5919bad697104f4b3",
+   "name": "Highway to the Danger Zone",
+   "slug": "highway-to-the-danger-zone",
+   "description": "Complete the Mortar Strike 2024 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.26,
+   "image_url": "https://assets.tarkov.dev/achievement-66e2a7e5919bad697104f4b3-icon.webp"
+  },
+  {
+   "id": "670feb95a4e71050310cc14b",
+   "name": "Complete Remission",
+   "slug": "complete-remission",
+   "description": "Cure all the infected and complete the Halloween 2024 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.2,
+   "image_url": "https://assets.tarkov.dev/achievement-670feb95a4e71050310cc14b-icon.webp"
+  },
+  {
+   "id": "670febed5ee0fc738a0965a4",
+   "name": "Fatal Outcome",
+   "slug": "fatal-outcome",
+   "description": "Destroy the virus along with all the infected and complete the Halloween 2024 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.16,
+   "image_url": "https://assets.tarkov.dev/achievement-670febed5ee0fc738a0965a4-icon.webp"
+  },
+  {
+   "id": "675709bef4e2a2ce0f058f56",
+   "name": "All-Wheel Drive",
+   "slug": "all-wheel-drive",
+   "description": "Resolve the issue with the BTR driver one way or another",
+   "hidden": false,
+   "side": "All",
+   "rarity": "rare",
+   "players_completed_percent": 0.48,
+   "image_url": "https://assets.tarkov.dev/achievement-675709bef4e2a2ce0f058f56-icon.webp"
+  },
+  {
+   "id": "675998a894008342eb04e47f",
+   "name": "Khorovod",
+   "slug": "khorovod",
+   "description": "Celebrate Christmas and New Year and complete the Khorovod 2024 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.11,
+   "image_url": "https://assets.tarkov.dev/achievement-675998a894008342eb04e47f-icon.webp"
+  },
+  {
+   "id": "676091c0f457869a94017a23",
+   "name": "Prestigious",
+   "slug": "prestigious",
+   "description": "Earn the Prestige level 1",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 1.23,
+   "image_url": "https://assets.tarkov.dev/achievement-676091c0f457869a94017a23-icon.webp"
+  },
+  {
+   "id": "676094451fec2f7426093be6",
+   "name": "More Prestigious",
+   "slug": "more-prestigious",
+   "description": "Earn the Prestige level 2",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.45,
+   "image_url": "https://assets.tarkov.dev/achievement-676094451fec2f7426093be6-icon.webp"
+  },
+  {
+   "id": "67a0e57117e34930e50075f3",
+   "name": "In Search of an Exit",
+   "slug": "in-search-of-an-exit",
+   "description": "Complete the Labyrinth 2025 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.23,
+   "image_url": "https://assets.tarkov.dev/achievement-67a0e57117e34930e50075f3-icon.webp"
+  },
+  {
+   "id": "67a0e57b972c11a3f50773b2",
+   "name": "Dungeon Master",
+   "slug": "dungeon-master",
+   "description": "Complete the Labyrinth 2025 event task line and all side tasks",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.07,
+   "image_url": "https://assets.tarkov.dev/achievement-67a0e57b972c11a3f50773b2-icon.webp"
+  },
+  {
+   "id": "67c838a4c566b0028f0f2d07",
+   "name": "All on Red",
+   "slug": "all-on-red",
+   "description": "Go all in on the BEAR squad beyond the cordon and complete Skier's Profitable Venture task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "rare",
+   "players_completed_percent": 0.06,
+   "image_url": "https://assets.tarkov.dev/achievement-67c838a4c566b0028f0f2d07-icon.webp"
+  },
+  {
+   "id": "67fce0c2f18dc20eae02240b",
+   "name": "Star Called Sun",
+   "slug": "star-called-sun",
+   "description": "Obliterate a cultist while using the RShG-2 rocket launcher",
+   "hidden": true,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.08,
+   "image_url": "https://assets.tarkov.dev/achievement-67fce0c2f18dc20eae02240b-icon.webp"
+  },
+  {
+   "id": "6842c25bd02bc07d70054019",
+   "name": "Keeping Up the Pace",
+   "slug": "keeping-up-the-pace",
+   "description": "Earn the Prestige level 3",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.2,
+   "image_url": "https://assets.tarkov.dev/achievement-6842c25bd02bc07d70054019-icon.webp"
+  },
+  {
+   "id": "6842c27a38482d35ac0bd847",
+   "name": "Higher and Higher",
+   "slug": "higher-and-higher",
+   "description": "Earn the Prestige level 4",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.09,
+   "image_url": "https://assets.tarkov.dev/achievement-6842c27a38482d35ac0bd847-icon.webp"
+  },
+  {
+   "id": "685d3d6b81d993fda109cdb8",
+   "name": "One Last Ride",
+   "slug": "one-last-ride",
+   "description": "Experience the Hardcore Wipe",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 2.06,
+   "image_url": "https://assets.tarkov.dev/achievement-685d3d6b81d993fda109cdb8-icon.webp"
+  },
+  {
+   "id": "685d6539127e4806240f3bcd",
+   "name": "Through to the End",
+   "slug": "through-to-the-end",
+   "description": "Collect the scars of the Hardcore Wipe",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.12,
+   "image_url": "https://assets.tarkov.dev/achievement-685d6539127e4806240f3bcd-icon.webp"
+  },
+  {
+   "id": "68936a7a672ffe94a509446b",
+   "name": "Targrad Tales",
+   "slug": "targrad-tales",
+   "description": "He that steals honey, should beware of the sting",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.31,
+   "image_url": "https://assets.tarkov.dev/achievement-68936a7a672ffe94a509446b-icon.webp"
+  },
+  {
+   "id": "68d3fe84757f8967ec09099b",
+   "name": "Five Plus",
+   "slug": "five-plus",
+   "description": "Earn the Prestige level 5",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.04,
+   "image_url": "https://assets.tarkov.dev/achievement-68d3fe84757f8967ec09099b-icon.webp"
+  },
+  {
+   "id": "68d3ff840531ed76e808866c",
+   "name": "No Limit to Perfection",
+   "slug": "no-limit-to-perfection",
+   "description": "Earn the Prestige level 6",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.02,
+   "image_url": "https://assets.tarkov.dev/achievement-68d3ff840531ed76e808866c-icon.webp"
+  },
+  {
+   "id": "68dfdeb7958a19b62b0ae460",
+   "name": "Going Light",
+   "slug": "going-light",
+   "description": "Final prep before the release!",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.97,
+   "image_url": "https://assets.tarkov.dev/achievement-68dfdeb7958a19b62b0ae460-icon.webp"
+  },
+  {
+   "id": "68e8f02ff3a1196d1a05f2cb",
+   "name": "Survivor",
+   "slug": "survivor",
+   "description": "Escape from Tarkov no matter the cost",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.04,
+   "image_url": "https://assets.tarkov.dev/achievement-68e8f02ff3a1196d1a05f2cb-icon.webp"
+  },
+  {
+   "id": "68e8f042b8efa2bbeb009d89",
+   "name": "Fallen",
+   "slug": "fallen",
+   "description": "Escape from Tarkov only to fall in the darkness",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.1,
+   "image_url": "https://assets.tarkov.dev/achievement-68e8f042b8efa2bbeb009d89-icon.webp"
+  },
+  {
+   "id": "68e8f04eb841bc8ac305350a",
+   "name": "Debtor",
+   "slug": "debtor",
+   "description": "Escape from Tarkov without ever escaping from yourself",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.09,
+   "image_url": "https://assets.tarkov.dev/achievement-68e8f04eb841bc8ac305350a-icon.webp"
+  },
+  {
+   "id": "68e8f0575eb7e5ce5000ba0a",
+   "name": "Savior",
+   "slug": "savior",
+   "description": "Escape from Tarkov to save the humanity",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.3,
+   "image_url": "https://assets.tarkov.dev/achievement-68e8f0575eb7e5ce5000ba0a-icon.webp"
+  },
+  {
+   "id": "68f76335c3f68167b8029c18",
+   "name": "Survivor (PVE ZONE)",
+   "slug": "survivor-pve-zone",
+   "description": "Escape from Tarkov no matter the cost",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.04,
+   "image_url": "https://assets.tarkov.dev/achievement-68f76335c3f68167b8029c18-icon.webp"
+  },
+  {
+   "id": "68f76344bc0e8927900279f0",
+   "name": "Fallen (PVE ZONE)",
+   "slug": "fallen-pve-zone",
+   "description": "Escape from Tarkov only to fall in the darkness",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.1,
+   "image_url": "https://assets.tarkov.dev/achievement-68f76344bc0e8927900279f0-icon.webp"
+  },
+  {
+   "id": "68f76353c152253a5b01a612",
+   "name": "Debtor (PVE ZONE)",
+   "slug": "debtor-pve-zone",
+   "description": "Escape from Tarkov without ever escaping from yourself",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.09,
+   "image_url": "https://assets.tarkov.dev/achievement-68f76353c152253a5b01a612-icon.webp"
+  },
+  {
+   "id": "68f7635e006f73031b0336fa",
+   "name": "Savior (PVE ZONE)",
+   "slug": "savior-pve-zone",
+   "description": "Escape from Tarkov to save the humanity",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.3,
+   "image_url": "https://assets.tarkov.dev/achievement-68f7635e006f73031b0336fa-icon.webp"
+  },
+  {
+   "id": "691212088e10a4e1fb0f48c4",
+   "name": "Man of His Word",
+   "slug": "man-of-his-word",
+   "description": "Complete the task given to you to the end",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 1.47,
+   "image_url": "https://assets.tarkov.dev/achievement-691212088e10a4e1fb0f48c4-icon.webp"
+  },
+  {
+   "id": "691213563d597b2ef80a21cf",
+   "name": "Just Business",
+   "slug": "just-business",
+   "description": "Double-cross Prapor",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.92,
+   "image_url": "https://assets.tarkov.dev/achievement-691213563d597b2ef80a21cf-icon.webp"
+  },
+  {
+   "id": "691213956b60607135006811",
+   "name": "Pathfinder",
+   "slug": "pathfinder",
+   "description": "Fully explore Tarkov and its inhabitants",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 3.19,
+   "image_url": "https://assets.tarkov.dev/achievement-691213956b60607135006811-icon.webp"
+  },
+  {
+   "id": "691213c8680e04c5da0571eb",
+   "name": "Inferno",
+   "slug": "inferno",
+   "description": "Learn everything about the Blue Fire",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.73,
+   "image_url": "https://assets.tarkov.dev/achievement-691213c8680e04c5da0571eb-icon.webp"
+  },
+  {
+   "id": "691213f0dbcdbbc54402fe00",
+   "name": "Trail of Breadcrumbs",
+   "slug": "trail-of-breadcrumbs",
+   "description": "Find traces of a mysterious organization in Tarkov",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.52,
+   "image_url": "https://assets.tarkov.dev/achievement-691213f0dbcdbbc54402fe00-icon.webp"
+  },
+  {
+   "id": "6912145e52ddd29bf002d343",
+   "name": "Through Another's Eyes",
+   "slug": "through-anothers-eyes",
+   "description": "Discover what the cultists were really after",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.51,
+   "image_url": "https://assets.tarkov.dev/achievement-6912145e52ddd29bf002d343-icon.webp"
+  },
+  {
+   "id": "69121487d2f0e6de2f0561ef",
+   "name": "Pay Your Debt",
+   "slug": "pay-your-debt",
+   "description": "Learn what happened to Kozlov",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.83,
+   "image_url": "https://assets.tarkov.dev/achievement-69121487d2f0e6de2f0561ef-icon.webp"
+  },
+  {
+   "id": "691214c93d597b2ef80a2206",
+   "name": "Theseus",
+   "slug": "theseus",
+   "description": "Uncover the secret of The Labyrinth",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.91,
+   "image_url": "https://assets.tarkov.dev/achievement-691214c93d597b2ef80a2206-icon.webp"
+  },
+  {
+   "id": "691214eafc9b2bc7f3042a57",
+   "name": "This Is All (Not) Coincidence",
+   "slug": "this-is-all-not-coincidence",
+   "description": "Find out what happened to a certain BEAR squad",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.42,
+   "image_url": "https://assets.tarkov.dev/achievement-691214eafc9b2bc7f3042a57-icon.webp"
+  },
+  {
+   "id": "69121515e329984a340f00b4",
+   "name": "Enough of Your Games!",
+   "slug": "enough-of-your-games",
+   "description": "Refuse to fall for Mr. Kerman's schemes",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.14,
+   "image_url": "https://assets.tarkov.dev/achievement-69121515e329984a340f00b4-icon.webp"
+  },
+  {
+   "id": "6912153f761a11e52408fbd2",
+   "name": "Easy Way",
+   "slug": "easy-way",
+   "description": "Use the instructions given by TerraGroup. Wonder what could go wrong?",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.07,
+   "image_url": "https://assets.tarkov.dev/achievement-6912153f761a11e52408fbd2-icon.webp"
+  },
+  {
+   "id": "6912156f3d597b2ef80a2209",
+   "name": "U-Turn",
+   "slug": "u-turn",
+   "description": "Agree to the job only to change your mind after",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.11,
+   "image_url": "https://assets.tarkov.dev/achievement-6912156f3d597b2ef80a2209-icon.webp"
+  },
+  {
+   "id": "6912159adf87c6a94a0b9f34",
+   "name": "Will It Blow?",
+   "slug": "will-it-blow",
+   "description": "Hand the case with dangerous contents to the wrong people. You clearly had no other choice!",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.11,
+   "image_url": "https://assets.tarkov.dev/achievement-6912159adf87c6a94a0b9f34-icon.webp"
+  },
+  {
+   "id": "691215e8680e04c5da057e57",
+   "name": "Little Triumphs",
+   "slug": "little-triumphs",
+   "description": "Gather evidence of all of TerraGroup's \"minor\" misdeeds",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.25,
+   "image_url": "https://assets.tarkov.dev/achievement-691215e8680e04c5da057e57-icon.webp"
+  },
+  {
+   "id": "691216216cd39d8e1d09173b",
+   "name": "I Am Speed",
+   "slug": "i-am-speed",
+   "description": "Complete Prapor's tasks within three days",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.02,
+   "image_url": "https://assets.tarkov.dev/achievement-691216216cd39d8e1d09173b-icon.webp"
+  },
+  {
+   "id": "6912163e680e04c5da057e5b",
+   "name": "Better Served",
+   "slug": "better-served",
+   "description": "Refuse to sell TerraGroup technology",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.52,
+   "image_url": "https://assets.tarkov.dev/achievement-6912163e680e04c5da057e5b-icon.webp"
+  },
+  {
+   "id": "6912168c52ddd29bf002d37a",
+   "name": "When the Light Fades",
+   "slug": "when-the-light-fades",
+   "description": "Free Tarkov from the priests' eyes",
+   "hidden": true,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.48,
+   "image_url": "https://assets.tarkov.dev/achievement-6912168c52ddd29bf002d37a-icon.webp"
+  },
+  {
+   "id": "693a83434cb1cf587c0a63f9",
+   "name": "Whiteout",
+   "slug": "whiteout",
+   "description": "Celebrate Christmas and New Year and complete the Kolotun 2025 event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.82,
+   "image_url": "https://assets.tarkov.dev/achievement-693a83434cb1cf587c0a63f9-icon.webp"
+  },
+  {
+   "id": "6984ab58ee0ae2c0d5075f33",
+   "name": "Duck Hunt",
+   "slug": "duck-hunt",
+   "description": "Complete the Duck Hunt 2026 event task",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.35,
+   "image_url": "https://assets.tarkov.dev/achievement-6984ab58ee0ae2c0d5075f33-icon.webp"
+  },
+  {
+   "id": "69de1be5d378f8aef8008409",
+   "name": "Habet, hoc habet!",
+   "slug": "habet-hoc-habet",
+   "description": "Help Skier disrupt the start of the new season in Arena and complete the Casus Belli event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.06,
+   "image_url": "https://assets.tarkov.dev/achievement-69de1be5d378f8aef8008409-icon.webp"
+  },
+  {
+   "id": "69de1c2be33584b09a098e93",
+   "name": "Morituri te salutant",
+   "slug": "morituri-te-salutant",
+   "description": "Help Ref save the start of the new season in Arena and complete the Casus Belli event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.16,
+   "image_url": "https://assets.tarkov.dev/achievement-69de1c2be33584b09a098e93-icon.webp"
+  },
+  {
+   "id": "6a0344563743e4b101070b92",
+   "name": "Cracks in the Ice",
+   "slug": "cracks-in-the-ice",
+   "description": "Decrypt the data of The Unheard from the archives aboard the icebreaker \"Boreas\"",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.3,
+   "image_url": "https://assets.tarkov.dev/achievement-6a0344563743e4b101070b92-icon.webp"
+  },
+  {
+   "id": "6a03447fb2e3003f8706a400",
+   "name": "Part of the Ship, Part of the Crew",
+   "slug": "part-of-the-ship-part-of-the-crew",
+   "description": "Learn all the secrets of the icebreaker \"Boreas\"",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.21,
+   "image_url": "https://assets.tarkov.dev/achievement-6a03447fb2e3003f8706a400-icon.webp"
+  },
+  {
+   "id": "6a04f93d7a6a2b325906bb5c",
+   "name": "Awaiting Departure",
+   "slug": "awaiting-departure",
+   "description": "Complete the Full Speed Ahead event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.25,
+   "image_url": "https://assets.tarkov.dev/achievement-6a04f93d7a6a2b325906bb5c-icon.webp"
+  },
+  {
+   "id": "6a11d9028fd274eb6207c0bc",
+   "name": "I’m on a Boat",
+   "slug": "im-on-a-boat",
+   "description": "Neutralize 4 members of The Wedge's squad while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "common",
+   "players_completed_percent": 0.88,
+   "image_url": "https://assets.tarkov.dev/achievement-6a11d9028fd274eb6207c0bc-icon.webp"
+  },
+  {
+   "id": "6a11d98a1e4337ff1d0a6dbe",
+   "name": "Who Dares Wins",
+   "slug": "who-dares-wins",
+   "description": "Neutralize 60 members of The Wedge's squad while playing as a PMC",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "rare",
+   "players_completed_percent": 0.22,
+   "image_url": "https://assets.tarkov.dev/achievement-6a11d98a1e4337ff1d0a6dbe-icon.webp"
+  },
+  {
+   "id": "6a399cb92c8999ddbd01268b",
+   "name": "I Am the Law",
+   "slug": "i-am-the-law",
+   "description": "Help Jaeger bring order to the nature reserve and complete the Wild Wild Woods event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.73,
+   "image_url": "https://assets.tarkov.dev/achievement-6a399cb92c8999ddbd01268b-icon.webp"
+  },
+  {
+   "id": "6a4fbdaf39f54f9c000f1575",
+   "name": "Going Dark",
+   "slug": "going-dark",
+   "description": "Encounter the Black Division forces and complete the Blackout event task line",
+   "hidden": false,
+   "side": "All",
+   "rarity": "legendary",
+   "players_completed_percent": 0.38,
+   "image_url": "https://assets.tarkov.dev/achievement-6a4fbdaf39f54f9c000f1575-icon.webp"
+  },
+  {
+   "id": "6a59f63cacaee8fa5d013981",
+   "name": "Don't Need Any Help",
+   "slug": "dont-need-any-help",
+   "description": "Reach level 30 with a seasonal character without selecting any Personal Positive modifiers",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0.45,
+   "image_url": "https://assets.tarkov.dev/achievement-6a59f63cacaee8fa5d013981-icon.webp"
+  },
+  {
+   "id": "6a59f64174b4c1a38702a8a6",
+   "name": "Imposter",
+   "slug": "imposter",
+   "description": "Eliminate 100 Black Division operatives while using their own equipment",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0.01,
+   "image_url": "https://assets.tarkov.dev/achievement-6a59f64174b4c1a38702a8a6-icon.webp"
+  },
+  {
+   "id": "6a59f64965aa8755e000b95c",
+   "name": "Believer",
+   "slug": "believer",
+   "description": "Reach level 30 with a seasonal character",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0.45,
+   "image_url": "https://assets.tarkov.dev/achievement-6a59f64965aa8755e000b95c-icon.webp"
+  },
+  {
+   "id": "6a5df324129316dcbe0da3da",
+   "name": "I Had a Plan",
+   "slug": "i-had-a-plan",
+   "description": "Reach level 30 with a seasonal character after selecting 10 Personal Negative modifiers",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5df324129316dcbe0da3da-icon.webp"
+  },
+  {
+   "id": "6a5df6b0c901d2199d017048",
+   "name": "One Is Good, Two Is Better",
+   "slug": "one-is-good-two-is-better",
+   "description": "Select the Kappa Protocol modifier and then earn a second Kappa secure container by completing the task Collector",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5df6b0c901d2199d017048-icon.webp"
+  },
+  {
+   "id": "6a5df752accb14ca770ccb07",
+   "name": "Genetic Lottery",
+   "slug": "genetic-lottery",
+   "description": "Reach level 30 with a seasonal character after selecting the following modifiers: Hemophilia, Osteoporosis, Polydipsia, Allergic, and Third Leg",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5df752accb14ca770ccb07-icon.webp"
+  },
+  {
+   "id": "6a5dfd7b5c12f0b8a80c453c",
+   "name": "We Have Hardcore at Home",
+   "slug": "we-have-hardcore-at-home",
+   "description": "Obtain secure container Kappa after selecting the Broken Secure Container and No Flea Market modifiers",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5dfd7b5c12f0b8a80c453c-icon.webp"
+  },
+  {
+   "id": "6a5dfd8653ab08ce0d093aa6",
+   "name": "You Call That a Challenge?",
+   "slug": "you-call-that-a-challenge",
+   "description": "Complete every Survivalist Path task after selecting any 5 of the following modifiers: Marathon Runner, Youth, Hercules, Thrombophilia, Hypodipsia, Polyphagia, Sturdy Bones, and Prodigy",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5dfd8653ab08ce0d093aa6-icon.webp"
+  },
+  {
+   "id": "6a5dfed95c12f0b8a80c4545",
+   "name": "Entrepreneur Born in Heaven",
+   "slug": "entrepreneur-born-in-heaven",
+   "description": "Have 500 million RUB, 1 million EUR, and 1 million USD at the same time after selecting the Street Tax modifier",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5dfed95c12f0b8a80c4545-icon.webp"
+  },
+  {
+   "id": "6a5e2d53e88fae7c180232f8",
+   "name": "Top Secret",
+   "slug": "top-secret",
+   "description": "Have every type of TerraGroup documentation in your inventory, excluding Classified Documents",
+   "hidden": false,
+   "side": "All",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a5e2d53e88fae7c180232f8-icon.webp"
+  },
+  {
+   "id": "6a60f75f1a1222ee000baf0d",
+   "name": "Dawn of a New Era",
+   "slug": "dawn-of-a-new-era",
+   "description": "Obtain Secure container Kappa after the introduction of the Seasons system",
+   "hidden": false,
+   "side": "Pmc",
+   "rarity": "legendary",
+   "players_completed_percent": 0.32,
+   "image_url": "https://assets.tarkov.dev/achievement-6a60f75f1a1222ee000baf0d-icon.webp"
+  },
+  {
+   "id": "6a6870b6e37edc03f00a678d",
+   "name": "Profit Over Principles",
+   "slug": "profit-over-principles",
+   "description": "Complete Fence's task line in Season 1 KORD BREACH and hand over the laptop from the unknown facility to either Mechanic or Fence",
+   "hidden": false,
+   "side": "All",
+   "rarity": "seasonal",
+   "players_completed_percent": 0,
+   "image_url": "https://assets.tarkov.dev/achievement-6a6870b6e37edc03f00a678d-icon.webp"
+  }
+ ]
+}
