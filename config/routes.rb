@@ -16,6 +16,7 @@ Rails.application.routes.draw do
 
   resources :stations, only: [ :index, :show ], path: "hideout", param: :slug
   resources :traders, only: [ :index, :show ], param: :slug
+  resources :maps, only: [ :index, :show ], param: :slug
 
   namespace :admin do
     resources :items, :tasks, :requirements, :rewards, :leads_tos,

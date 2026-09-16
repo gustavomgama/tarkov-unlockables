@@ -325,6 +325,17 @@ end
 ItemCurrency.where(trader: "Therapist", min_trader_level: 4)
 ```
 
+### Maps
+
+```ruby
+map = Map.find_by(slug: "customs")
+
+map.raid_duration            # 35 (minutes)
+map.bosses                   # [{ "name" => "Reshala", "spawn_chance" => 0.6, "escorts" => [...] }]
+map.extracts                 # [{ "name" => "ZB-1011", "faction" => "shared" }, …]
+map.transits                 # [{ "name" => "Transit to Reserve", "map_name" => "Reserve" }]
+```
+
 ### Task objectives and keys
 
 ```ruby

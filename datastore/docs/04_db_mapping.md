@@ -11,14 +11,14 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | | canonical | Postgres | why they differ |
 | --- | ---: | ---: | --- |
 | items | 5,481 | 5,481 | 1:1 on `bsg_id`. Slots, grids, `properties`, `physical` and acquisition collapse into the `data` jsonb. |
-| tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives and needed keys are stored; maps are denormalized and most reward kinds are dropped. |
+| tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives, needed keys and the map name are stored; most reward kinds are dropped. |
 | buy routes | 2,658 `buy` + 3,202 `index_offers` | 3,248 `item_currencies` | one row per `(trader, currency, level)`, the two sources deduped; price, `price_rub` and buy limit stored. |
 | barter offers | 789 | 840 `item_barters` | one row per offer; inputs in `item_barter_requirements`, plus limit, restock and the task gate. |
 | crafts | 214 | 214 `item_hideouts` | one row per craft; inputs and tools in `item_hideout_requirements`, plus duration and yield. |
 | task rewards | 1,964 reward rows | 1,034 `rewards` (989 loose items, 288 offers, 98 barters, 71 crafts) | the kinds without a table ride along in `rewards.data`: 362 `trader_standing`, 136 `skill_level_reward`, 13 `customization`, 4 `achievement`, 2 `trader_unlock`, 1 `trader_dialogue_unlock`. |
 | task objectives | 1,457 | 1,457 `task_objectives` (+ 1,467 `task_objective_items`) | 1:1 per objective: type, description, count, optional, source order. Accepted items live in `task_objective_items`; catch-alls with 100+ ids ("sell any items") are skipped. |
 | traders | 16 | 16 `traders` / 42 `trader_levels` | loyalty thresholds (player level, reputation, pay rate) stored; offers still join on the trader's display name. |
-| maps | 17 | — | no table: a task's map is `tasks.map_name` (13 values). |
+| maps | 17 | 17 `maps` | raid duration, players, bosses (with spawn chance and escorts), extracts and transits; the lists are jsonb. `tasks.map_name` still names a quest's map. |
 | categories | 200 | — | no table: leaf slugs live in `items.categories`. |
 | hideout stations | 26 stations / 68 levels | 26 `hideout_stations` / 68 `hideout_levels` / 317 item requirements | build costs stored, including FIR flags and station/trader gates; `item_hideouts.station` stays a string join. |
 | reference | levels, skills, mastery, armor materials, achievements | — | no tables. |
@@ -52,7 +52,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | `tasks.finish_rewards` | `rewards` + `rewards.data` | 1:1, same split. |
 | `tasks.needed_keys` | `tasks.needed_keys` | jsonb: a flat array of `{map_name, item_id, item_name}`, grouped by map in the view. |
 | `hideout_stations` + levels | `hideout_stations` + `hideout_levels` + `hideout_item_requirements` | Stations, levels, construction time and build costs. Station and trader prerequisites are jsonb on the level. |
-| `maps` | `tasks.map_name` | Denormalized: only the task's map name, not extracts, bosses or transits. |
+| `maps` | `maps` (+ `tasks.map_name`) | Raid info and the extract/boss/transit lists as jsonb; tasks still carry just the map name. |
 | `reference` (levels, skills, mastery, armor materials, achievements) | — | **no tables.** |
 
 ---

@@ -1,0 +1,92 @@
+<% content_for :title, @map.name %>
+
+<div class="space-y-4 sm:space-y-6">
+  <nav class="crumbs no-print" aria-label="Breadcrumb">
+    <%= link_to "Maps", maps_path %>
+    <span aria-hidden="true">/</span>
+    <span class="text-[var(--text)]"><%= @map.name %></span>
+  </nav>
+
+  <section class="panel">
+    <div class="panel__body">
+      <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]"><%= @map.name %></h1>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
+        <span class="font-data"><%= @map.raid_duration %></span> minute raid ·
+        <%= @map.players %> players
+      </p>
+      <% if @map.description.present? %>
+        <p class="mt-3 max-w-3xl text-sm text-[var(--text)] whitespace-pre-line"><%= @map.description %></p>
+      <% end %>
+      <% if @map.wiki_link.present? %>
+        <p class="mt-3">
+          <a href="<%= @map.wiki_link %>" class="chip chip--link" target="_blank" rel="noopener">Wiki</a>
+        </p>
+      <% end %>
+    </div>
+  </section>
+
+  <% bosses = Array(@map.bosses) %>
+  <% if bosses.any? %>
+    <section class="panel" aria-labelledby="bosses-head">
+      <div class="panel__head">
+        <h2 id="bosses-head" class="panel__title">Bosses</h2>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <% bosses.each do |boss| %>
+          <div class="srcrow">
+            <span class="srcbadge" style="--tone: var(--badge-task)"><%= number_to_percentage(boss["spawn_chance"].to_f * 100, precision: 0) %></span>
+            <div class="srcrow__body">
+              <p class="srcrow__title"><%= boss["name"] %></p>
+              <% escorts = Array(boss["escorts"]) %>
+              <% if escorts.any? %>
+                <p class="srcrow__meta">
+                  with <%= escorts.map { |escort| "#{escort['name']} ×#{Array(escort['amount']).sum { |a| a['count'].to_i }}" }.to_sentence %>
+                </p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% extracts = Array(@map.extracts) %>
+  <% if extracts.any? %>
+    <section class="panel" aria-labelledby="extracts-head">
+      <div class="panel__head">
+        <h2 id="extracts-head" class="panel__title">Extracts</h2>
+        <span class="panel__note"><span class="font-data"><%= extracts.size %></span></span>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <% extracts.group_by { |extract| extract["faction"].presence || "any" }.each do |faction, rows| %>
+          <div class="srcrow">
+            <span class="srcbadge" style="--tone: var(--badge-currency)"><%= faction.to_s.upcase %></span>
+            <div class="srcrow__body">
+              <p class="srcrow__title"><%= rows.map { |extract| extract["name"] }.to_sentence %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% transits = Array(@map.transits) %>
+  <% if transits.any? %>
+    <section class="panel" aria-labelledby="transits-head">
+      <div class="panel__head">
+        <h2 id="transits-head" class="panel__title">Transits</h2>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <% transits.each do |transit| %>
+          <div class="srcrow">
+            <div class="srcrow__body">
+              <p class="srcrow__title">
+                <%= link_to transit["name"], map_path(transit["map_name"].to_s.parameterize) %>
+              </p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>

@@ -148,7 +148,25 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     write("tasks", task_rows)
     write("hideout_stations", hideout_rows)
     write("traders", trader_rows)
+    write("maps", map_rows)
     Importers::Datastore.import!(source: @source)
+  end
+
+  def map_rows
+    [
+      {
+        "id" => "map1", "slug" => "customs", "name" => "Customs",
+        "name_id" => "bigmap", "wiki_link" => "https://wiki/customs",
+        "description" => "A customs terminal.", "raid_duration" => 45, "players" => "7-12",
+        "enemies" => [ { "id" => "scavs", "name" => "Scavs" } ],
+        "bosses" => [ { "mob" => "bossBully", "name" => "Reshala", "spawn_chance" => 0.6,
+                        "escorts" => [ { "mob" => "followerBully", "name" => "Reshala Guard",
+                                         "amount" => [ { "chance" => 1, "count" => 4 } ] } ] } ],
+        "extracts" => [ { "id" => "e1", "name" => "ZB-1011", "faction" => "shared" } ],
+        "transits" => [ { "id" => "1", "name" => "Transit to Reserve", "map_id" => "m2",
+                          "map_name" => "Reserve" } ]
+      }
+    ]
   end
 
   def trader_rows
@@ -398,6 +416,16 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal Item.find_by!(bsg_id: "a1").id, slot.item_slot_allowed_items.sole.item_id
   end
 
+  test "imports maps with bosses, extracts and transits" do
+    import!
+
+    map = Map.find_by!(slug: "customs")
+    assert_equal [ "Customs", 45, "7-12" ], [ map.name, map.raid_duration, map.players ]
+    assert_equal [ "Reshala", 0.6 ], [ map.bosses.sole["name"], map.bosses.sole["spawn_chance"] ]
+    assert_equal "ZB-1011", map.extracts.sole["name"]
+    assert_equal "Transit to Reserve", map.transits.sole["name"]
+  end
+
   test "is idempotent — reseeding replaces rather than accumulates" do
     import!
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
@@ -406,7 +434,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
                ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
                HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count,
-               Trader.count, TraderLevel.count, ItemSlot.count, ItemSlotAllowedItem.count ]
+               Trader.count, TraderLevel.count, ItemSlot.count, ItemSlotAllowedItem.count,
+               Map.count ]
 
     Importers::Datastore.import!(source: @source)
 
@@ -416,6 +445,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                            BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
                            ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
                            HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count,
-                           Trader.count, TraderLevel.count, ItemSlot.count, ItemSlotAllowedItem.count ]
+                           Trader.count, TraderLevel.count, ItemSlot.count, ItemSlotAllowedItem.count,
+                           Map.count ]
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000011) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000012) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -302,6 +302,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000011) do
     t.datetime "updated_at", null: false
     t.index ["item_id"], name: "index_loose_items_on_item_id"
     t.index ["reward_id"], name: "index_loose_items_on_reward_id"
+  end
+
+  create_table "maps", force: :cascade do |t|
+    t.string "bsg_id"
+    t.string "slug"
+    t.string "name"
+    t.string "name_id"
+    t.string "wiki_link"
+    t.text "description"
+    t.integer "raid_duration"
+    t.string "players"
+    t.jsonb "enemies", default: [], null: false
+    t.jsonb "bosses", default: [], null: false
+    t.jsonb "extracts", default: [], null: false
+    t.jsonb "transits", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bsg_id"], name: "index_maps_on_bsg_id", unique: true
+    t.index ["slug"], name: "index_maps_on_slug", unique: true
   end
 
   create_table "offer_unlocks", force: :cascade do |t|

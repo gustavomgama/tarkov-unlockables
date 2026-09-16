@@ -23,6 +23,7 @@ module Importers
       craft_requirement_items craft_requirements craft_result_items
       craft_results craft_unlocks
       hideout_item_requirements hideout_levels hideout_stations
+      maps
       item_barter_requirements item_barters item_currencies
       item_hideout_requirements item_hideouts
       item_slot_allowed_items item_slots
@@ -55,6 +56,7 @@ module Importers
       @tasks = read("tasks")
       @hideout_stations = read("hideout_stations")
       @traders = read("traders")
+      @maps = read("maps")
       @item_id_by_bsg = {}
       @task_id_by_bsg = {}
       @task_id_by_slug = {}
@@ -71,6 +73,7 @@ module Importers
       import_item_acquisition
       import_hideout
       import_traders
+      import_maps
       self
     end
 
@@ -511,6 +514,23 @@ module Importers
               repair_cost_multiplier: level_raw["repair_cost_multiplier"]
             )
           end
+        end
+      end
+    end
+
+    # --- maps ------------------------------------------------------------
+
+    def import_maps
+      Map.transaction do
+        @maps.each do |raw|
+          Map.create!(
+            bsg_id: raw["id"], slug: raw["slug"], name: raw["name"],
+            name_id: raw["name_id"], wiki_link: raw["wiki_link"],
+            description: raw["description"], raid_duration: raw["raid_duration"],
+            players: raw["players"], enemies: Array(raw["enemies"]),
+            bosses: Array(raw["bosses"]), extracts: Array(raw["extracts"]),
+            transits: Array(raw["transits"])
+          )
         end
       end
     end
