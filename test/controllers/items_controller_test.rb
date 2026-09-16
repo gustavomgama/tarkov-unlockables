@@ -616,6 +616,24 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     key&.destroy
   end
 
+  test "show lists what the item contains" do
+    part = Item.create!(bsg_id: "ct-part-#{SecureRandom.hex(4)}", full_name: "Build Part", short_name: "BP")
+    preset = Item.create!(bsg_id: "ct-#{SecureRandom.hex(4)}", full_name: "Build Preset", short_name: "BPreset",
+                          data: { "containsItems" => [ { "item" => part.bsg_id, "count" => 2 } ] })
+
+    get item_url(preset)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=contains-head]" do
+      assert_select "h2", text: "Contains"
+      assert_select "a[href=?]", item_path(part), text: "Build Part"
+    end
+    assert_match "×2", response.body
+  ensure
+    preset&.destroy
+    part&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

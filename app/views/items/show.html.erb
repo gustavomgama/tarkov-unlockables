@@ -12,9 +12,10 @@
 <% used_in_crafts = @item.item_hideout_requirements.to_a %>
 <% used_in_objectives = @item.task_objective_items.to_a %>
 <% variants = Array(@item.data["weapon_variants"]).select { |v| v.is_a?(Hash) && v["name"].present? } %>
+<% contains = Array(@item.data["containsItems"]) %>
 <% has_main = siblings.size > 1 || accepted.any? || packs.any? || used_in_barters.any? ||
               used_in_crafts.any? || used_in_objectives.any? || variants.any? ||
-              @item_slots.any? || @item_fits.any? || @item_key_tasks.any? %>
+              @item_slots.any? || @item_fits.any? || @item_key_tasks.any? || contains.any? %>
 
 <div class="space-y-4 sm:space-y-6">
   <nav class="crumbs no-print" aria-label="Breadcrumb">
@@ -113,6 +114,17 @@
                 current: nil,
                 title: "Ammunition accepted",
                 note: "Every round this can chamber, hardest-hitting first." %>
+        <% end %>
+
+        <% if contains.any? %>
+          <section class="panel" aria-labelledby="contains-head">
+            <div class="panel__head">
+              <h2 id="contains-head" class="panel__title">Contains</h2>
+              <span class="panel__note"><%= contains.size %> <%= "entry".pluralize(contains.size) %></span>
+            </div>
+            <%= render "items/contains", contains: contains,
+                  contained: bsg_items(contains.map { |entry| entry["item"] }).index_by(&:bsg_id) %>
+          </section>
         <% end %>
 
         <% if variants.any? %>
