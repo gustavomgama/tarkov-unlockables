@@ -2,6 +2,44 @@ module ItemsHelper
   # Categories that carry no information for a reader (BSG-internal flags).
   NOISE_CATEGORIES = %w[not_functional].freeze
 
+  # Raw BSG category keys whose default Title Case is either wrong or
+  # meaningless to a player. Anything not listed falls back to #humanize.
+  CATEGORY_LABELS = {
+    "noFlea" => "Not on flea market",
+    "specialSlot" => "Special slot",
+    "not_functional" => "Not functional",
+    "armorplate" => "Armor plate (soft)",
+    "armor_plate" => "Armor plate (hard)",
+    "rig" => "Chest rig",
+    "chest_rig" => "Chest rig (armored)",
+    "meds" => "Medical supplies",
+    "pistolgrip" => "Pistol grip",
+    "flashhiders_brakes" => "Flash hiders & brakes",
+    "receivers_slides" => "Receivers & slides",
+    "stocks_chassis" => "Stocks & chassis",
+    "smg" => "SMG"
+  }.freeze
+
+  # Player-facing name for a raw category key.
+  def category_label(raw)
+    CATEGORY_LABELS.fetch(raw.to_s) { raw.to_s.humanize }
+  end
+
+  # How an applied filter reads back to the user. Without this the pills echo
+  # raw keys ("Caliber: Caliber556x45NATO", "Category: noFlea").
+  #
+  # A case rather than a hash of lambdas: a lambda in a module body captures
+  # the module as self, so calling a helper from inside it raises.
+  def filter_value_label(type, value)
+    case type.to_s
+    when "armor_class" then "Class #{value}"
+    when "category" then category_label(value)
+    when "caliber" then Item.caliber_display(value)
+    when "exclude_ref" then "Ref items"
+    else value.to_s.humanize
+    end
+  end
+
   # Links whose bare host is more useful read as a source name.
   LINK_LABELS = {
     "escapefromtarkov.fandom.com" => "Wiki",
@@ -68,7 +106,7 @@ module ItemsHelper
       NOISE_CATEGORIES.include?(c) || c.sub(/_(pack|box|bundle)\z/, "").match?(/\A\d|\A\./)
     end
     labels = labels.first(limit) if limit
-    labels.map(&:humanize)
+    labels.map { |c| category_label(c) }
   end
 
   # One query for every bsg_id lookup on the page, negative results cached so

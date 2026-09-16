@@ -1,5 +1,5 @@
 <% if FavoriteItem.exists?(item_id: item.id) %>
-  <%= button_to "★ Remove favorite", favorite_path(item_id: item.id), method: :delete, class: "btn btn--danger" %>
+  <%= button_to "★ Remove favorite", favorite_path(item_id: item.id), method: :delete, class: "btn btn--danger no-print" %>
 <% else %>
-  <%= button_to "☆ Add favorite", favorites_path(item_id: item.id), method: :post, class: "btn btn--accent" %>
+  <%= button_to "☆ Add favorite", favorites_path(item_id: item.id), method: :post, class: "btn btn--accent no-print" %>
 <% end %>

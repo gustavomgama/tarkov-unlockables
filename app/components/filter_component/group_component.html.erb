@@ -1,41 +1,36 @@
-<div class="relative inline-block" data-controller="filter-group">
-  <button
-    type="button"
-    data-action="filter-group#toggle"
-    class="flex items-center gap-2 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]"
-  >
+<%# A native <details> disclosure: the filter still opens and applies with
+    JavaScript disabled. The controller only adds Escape / click-outside. %>
+<details
+  class="filter-group"
+  data-controller="disclosure"
+  data-action="keydown.esc->disclosure#closeOnEscape click@document->disclosure#closeOnOutsideClick"
+>
+  <summary>
     <span><%= @title %></span>
     <% if @selected.any? %>
-      <span class="px-1.5 py-0.5 text-xs bg-[var(--accent)] text-[var(--bg-dark)]">
-        <%= @selected.count %>
-      </span>
+      <span class="filter-group__count"><%= @selected.count %></span>
     <% end %>
-    <svg class="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg class="filter-group__chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
     </svg>
-  </button>
+  </summary>
 
-  <div
-    data-filter-group-target="dropdown"
-    class="hidden"
-    style="position:fixed; z-index:9999; width:14rem; max-height:18rem; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border); padding:0.75rem;"
-  >
-    <div class="space-y-1">
-      <% @options.each do |option| %>
-        <label class="flex items-center gap-2 px-2 py-1.5 hover:bg-[var(--bg-elevated)] cursor-pointer">
-          <input
-            type="checkbox"
-            name="filters[<%= @name %>][]"
-            value="<%= option[:value] %>"
-            <%= 'checked' if checked?(option[:value]) %>
-            class="filter-checkbox border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
-          >
-          <span class="flex-1 text-sm text-[var(--text)]"><%= option[:label] %></span>
-          <% if option[:count] %>
-            <span class="text-xs text-[var(--text-muted)]">(<%= option[:count] %>)</span>
-          <% end %>
-        </label>
-      <% end %>
-    </div>
+  <div class="filter-group__menu">
+    <% @options.each do |option| %>
+      <label class="filter-group__option">
+        <input
+          type="checkbox"
+          name="filters[<%= @name %>][]"
+          value="<%= option[:value] %>"
+          <%= "checked" if checked?(option[:value]) %>
+          data-action="change->filter-form#submit"
+          class="border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
+        >
+        <span class="filter-group__label"><%= option[:label] %></span>
+        <% if option[:count] %>
+          <span class="filter-group__hint"><%= option[:count] %></span>
+        <% end %>
+      </label>
+    <% end %>
   </div>
-</div>
+</details>

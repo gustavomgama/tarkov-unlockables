@@ -43,6 +43,7 @@
     <span class="stat__key">Reliable penetration by armor class</span>
     <%= render "items/armor_scale", scale: penetration_scale(pen), tone: penetration_tone(pen),
           label: classes.zero? ? "Does not defeat any armor class" : "Reliably defeats armor classes 1 through #{classes}" %>
+    <%= render "items/armor_class_note", kind: :penetration %>
   </div>
 <% end %>
 

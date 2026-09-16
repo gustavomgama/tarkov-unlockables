@@ -5,7 +5,7 @@
 <% reward_count = @task.rewards.sum { |r| r.loose_items.size + r.offer_unlocks.size + r.barter_unlocks.size + r.craft_unlocks.size } %>
 
 <div class="space-y-4 sm:space-y-6">
-  <nav class="crumbs" aria-label="Breadcrumb">
+  <nav class="crumbs no-print" aria-label="Breadcrumb">
     <%= link_to "Tasks", tasks_path %>
     <span aria-hidden="true">/</span>
     <span class="text-[var(--text)]"><%= @task.given_by.presence&.titleize || "Unassigned" %></span>

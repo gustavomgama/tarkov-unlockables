@@ -1,6 +1,6 @@
 namespace :ci do
   desc "Run full CI pipeline locally (mirrors .github/workflows/ci.yml)"
-  task all: %i[security lint fasterer development test coverage system audit docker] do
+  task all: %i[security lint assets fasterer development test coverage system audit docker] do
     puts "\n✅ All CI checks passed."
   end
 
@@ -15,6 +15,18 @@ namespace :ci do
   task :lint do
     puts "── Lint ──"
     run "bundle exec rubocop"
+  end
+
+  desc "Verify the committed Tailwind bundle is current"
+  task :assets do
+    puts "── Assets ──"
+    # The built bundle is committed. A view that uses a utility which is not in
+    # it ships unstyled markup that no test would catch, so rebuild and fail if
+    # the committed file was stale.
+    bundle = Rails.root.join("app/assets/builds/tailwind.css")
+    before = bundle.read
+    run "bundle exec rails tailwindcss:build"
+    abort "❌ app/assets/builds/tailwind.css is stale — rebuild and commit it" if bundle.read != before
   end
 
   desc "Fasterer performance-idiom check"

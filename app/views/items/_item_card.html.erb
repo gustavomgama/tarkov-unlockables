@@ -1,16 +1,10 @@
+<%# The first card of a collection is the likely LCP element, so it loads
+    eagerly. `card_counter` only exists for a collection render; a single
+    render passes :priority instead. %>
+<% priority = local_assigns.fetch(:priority) { defined?(card_counter) && card_counter.zero? } %>
 <%= link_to item_path(card), class: "card" do %>
   <div class="card__media">
-    <% largest_img = card.images.find { |img| img.include?("512") } || card.images.find { |img| img.include?("8x") } || card.images.first %>
-    <% if largest_img.present? %>
-      <img
-        src="<%= largest_img %>"
-        alt=""
-        class="card__img"
-        loading="lazy"
-        width="200"
-        height="150"
-      >
-    <% end %>
+    <%= render "items/image", item: card, priority: priority %>
   </div>
   <div class="card__body">
     <h3 class="card__name"><%= card.full_name %></h3>

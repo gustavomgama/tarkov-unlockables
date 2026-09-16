@@ -1,13 +1,15 @@
 class ItemsController < ApplicationController
   PER_PAGE = 20
   MAX_PER_PAGE = 100
+  AUTOCOMPLETE_LIMIT = 8
+  AUTOCOMPLETE_MIN_QUERY = 2
 
   def index
     # Filter dropdowns only change on seed/import: cache the whole block so
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
     # once per hour instead of on every index request. Fetched first so
     # apply_filters can reuse its values instead of re-plucking the tables.
-    @filter_options = Rails.cache.fetch("items/filter_options", expires_in: 1.hour) do
+    @filter_options = Rails.cache.fetch("items/filter_options/v2", expires_in: 1.hour) do
       {
         currency: currency_options,
         category: category_options,
@@ -31,6 +33,22 @@ class ItemsController < ApplicationController
     @current_page = page
     @per_page = per_page
     @total_pages = (@item_count.to_f / per_page).ceil
+  end
+
+  # Typeahead for the search field. Renders the result rows as HTML so the
+  # row markup lives in one template instead of being rebuilt in JavaScript.
+  def search
+    query = params[:q].to_s.strip
+    return head :no_content if query.length < AUTOCOMPLETE_MIN_QUERY
+
+    @items = Item.all
+                 .loose_search(query, columns: %w[full_name short_name])
+                 .order(full_name: :asc)
+                 .limit(AUTOCOMPLETE_LIMIT)
+    return head :no_content if @items.empty?
+
+    expires_in 10.minutes, public: true
+    render partial: "items/autocomplete_results", locals: { items: @items }, layout: false
   end
 
   def show
@@ -173,7 +191,7 @@ class ItemsController < ApplicationController
       end
 
       grouped.sort_by { |base, _| base }.map do |base, variants|
-        { value: base, label: base.humanize, count: variants.sum { |v| variant_counts[v] } }
+        { value: base, label: helpers.category_label(base), count: variants.sum { |v| variant_counts[v] } }
       end
     end
   end

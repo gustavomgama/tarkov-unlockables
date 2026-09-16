@@ -14,6 +14,29 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "index filters work without JavaScript" do
+    get items_url
+
+    assert_response :success
+    # Native <details> opens without a script; the noscript submit is the
+    # only way to apply a selection before the change handler runs.
+    assert_select "details.filter-group", minimum: 1
+    assert_select "noscript button[type=submit]", text: "Apply filters"
+    # Dead JS-only affordances must not come back.
+    assert_select "button[data-action='filter-group#toggle']", count: 0
+    assert_select "div[data-mobile-nav-target='menu']", count: 0
+  end
+
+  test "site menu is a native disclosure" do
+    get items_url
+
+    assert_response :success
+    assert_select "details.site-menu summary[aria-label=Menu]"
+    assert_select "details.site-menu a[href=?]", items_path
+    assert_select "details.site-menu a[href=?]", tasks_path
+    assert_select "details.site-menu a[href=?]", favorites_path
+  end
+
   test "should get show" do
     get item_url(@item)
     assert_response :success
@@ -320,6 +343,46 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  # --- typeahead ---
+
+  test "search suggests matching items as rows" do
+    item = Item.create!(bsg_id: "ta-#{SecureRandom.hex(4)}", full_name: "Alpha Autocomplete", short_name: "AA")
+
+    get search_items_url(q: "alpha autocomplete")
+
+    assert_response :success
+    assert_select "a[href=?]", item_path(item)
+    assert_match "Alpha Autocomplete", response.body
+  ensure
+    item&.destroy
+  end
+
+  test "search ignores a query shorter than the minimum" do
+    get search_items_url(q: "a")
+    assert_response :no_content
+
+    get search_items_url
+    assert_response :no_content
+  end
+
+  test "search returns no content when nothing matches" do
+    get search_items_url(q: "zzzzzzzzzzzz")
+    assert_response :no_content
+  end
+
+  test "search caps how many suggestions it returns" do
+    created = Array.new(ItemsController::AUTOCOMPLETE_LIMIT + 4) do |i|
+      Item.create!(bsg_id: "cap-#{i}-#{SecureRandom.hex(4)}", full_name: "Cap Suggestion #{i}", short_name: "CS#{i}")
+    end
+
+    get search_items_url(q: "cap suggestion")
+
+    assert_response :success
+    assert_select "a", maximum: ItemsController::AUTOCOMPLETE_LIMIT
+  ensure
+    Item.where(id: created&.map(&:id)).delete_all
+  end
+
   # --- Ransack search ---
 
   test "index search by full_name returns matching items" do
@@ -377,6 +440,25 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     ItemCurrency.destroy_all
     [ rub_item, usd_item ].each { |i| i&.destroy }
+  end
+
+  test "active filter pills read in player language, not raw keys" do
+    item = Item.create!(bsg_id: "pill-#{SecureRandom.hex(4)}", full_name: "Pill Test Item", short_name: "PTI")
+    item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { caliber: [ "Caliber556x45NATO" ], armor_class: [ "6" ], category: [ "noFlea" ] })
+
+    assert_response :success
+    assert_select ".chip", text: /Caliber: 5\.56x45mm NATO/
+    assert_select ".chip", text: /Armor class: Class 6/
+    assert_select ".chip", text: /Category: Not on flea market/
+    # Raw keys stay in the form values (they are what the query needs) but
+    # must never be what the user reads.
+    assert_select ".chip", text: /Caliber556x45NATO/, count: 0
+    assert_select ".chip", text: /noFlea/, count: 0
+  ensure
+    ItemCurrency.destroy_all
+    item&.destroy
   end
 
   test "index exclude_ref filter hides items sold by Ref" do

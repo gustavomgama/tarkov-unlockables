@@ -1,15 +1,20 @@
-<%= link_to item_path(item), class: "flex items-center gap-3 px-4 py-2 hover:bg-[var(--bg-elevated)]" do %>
-  <% largest_img = item.images.find { |img| img.include?('512') } || item.images.find { |img| img.include?('8x') } || item.images.first %>
-  <img
-    src="<%= largest_img || "https://via.placeholder.com/32" %>"
-    alt=""
-    class="w-8 h-8 object-contain bg-[var(--bg-panel)]"
-  >
-  <div class="flex-1 min-w-0">
-    <p class="font-medium text-sm truncate text-[var(--text-bright)]"><%= item.full_name %></p>
-    <p class="text-xs text-[var(--text-muted)] truncate"><%= item.short_name %></p>
-  </div>
-  <% if item.categories.any? %>
-    <span class="text-xs text-[var(--text-muted)]"><%= item.categories.first.humanize %></span>
+<%# One row per match, rendered by ItemsController#search and injected into the
+    search panel by the search Stimulus controller. Links, not ARIA options:
+    a list of destinations needs no combobox plumbing to be usable.
+    Locals: items — the matched collection (already limited and ordered) %>
+<% items.each do |item| %>
+  <%= link_to item_path(item), class: "flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-elevated)] no-underline border-b border-[var(--border)] last:border-b-0" do %>
+    <span class="w-8 h-8 shrink-0 bg-[var(--bg-panel)] border border-[var(--border)]">
+      <%= render "items/image", item: item %>
+    </span>
+    <span class="flex-1 min-w-0">
+      <span class="block text-sm font-bold truncate text-[var(--text-bright)]"><%= item.full_name %></span>
+      <% if item.short_name.present? %>
+        <span class="block text-xs text-[var(--text-muted)] truncate"><%= item.short_name %></span>
+      <% end %>
+    </span>
+    <% if (label = category_labels(item, limit: 1).first) %>
+      <span class="chip shrink-0"><%= label %></span>
+    <% end %>
   <% end %>
 <% end %>

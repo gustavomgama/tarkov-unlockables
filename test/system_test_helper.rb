@@ -30,6 +30,20 @@ module SystemTestHelper
   # (via ActionDispatch.test_app); app system tests need them mixed in.
   include Rails.application.routes.url_helpers
 
+  # Resize the viewport through CDP. Window#resize_to fails when Chrome starts
+  # maximized ("failed to change window state to 'normal'"), and device
+  # metrics also give us real mobile emulation rather than a small window.
+  def use_viewport(width, height, mobile: width < 768)
+    page.driver.browser.execute_cdp(
+      "Emulation.setDeviceMetricsOverride",
+      width: width, height: height, deviceScaleFactor: 1, mobile: mobile
+    )
+  end
+
+  def clear_viewport
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
+  end
+
   def capture_console_messages
     @console_messages = []
     return [] unless page.driver.browser.manage.logs?

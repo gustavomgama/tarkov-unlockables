@@ -12,14 +12,15 @@
 
   <% if @favorite_items.any? %>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-3">
-      <%= render partial: "items/item_card", collection: @favorite_items, as: :card %>
+      <%= render partial: "favorites/card", collection: @favorite_items, as: :card %>
     </div>
   <% else %>
     <div class="panel">
       <div class="panel__body text-center py-10">
         <p class="text-sm text-[var(--text)]">Nothing saved yet.</p>
         <p class="mt-1 text-xs text-[var(--text-muted)]">
-          Open any item and press Add favorite to keep it here.
+          Open any item and press Add favorite to keep it here. There are no
+          accounts on this site yet.
         </p>
         <%= link_to "Browse items", items_path, class: "btn mt-4" %>
       </div>

@@ -45,6 +45,7 @@
     <span class="stat__key">Protection by armor class</span>
     <%= render "items/armor_scale", scale: armor_scale(armor_class), tone: armor_class_tone(armor_class),
             label: "Protects against armor classes 1 through #{armor_class.to_i.clamp(1, 6)}" %>
+    <%= render "items/armor_class_note", kind: :protection %>
   </div>
 <% end %>
 

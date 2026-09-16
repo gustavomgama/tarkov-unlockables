@@ -1,32 +1,25 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Grid/table switch for the items index, remembered across visits.
 export default class extends Controller {
-  static targets = ["grid", "table"]
+  static targets = ["grid", "table", "button"]
 
-  initialize() {
-    const saved = localStorage.getItem("items_view")
-    if (saved === "table") {
-      this.showTable()
-    }
+  connect() {
+    this.show(localStorage.getItem("items_view") === "table" ? "table" : "grid")
   }
 
   toggle(event) {
-    const view = event.currentTarget.dataset.view
+    this.show(event.currentTarget.dataset.view)
+  }
+
+  show(view) {
+    const table = view === "table"
+    this.gridTarget.classList.toggle("hidden", table)
+    this.tableTarget.classList.toggle("hidden", !table)
     localStorage.setItem("items_view", view)
-    if (view === "table") {
-      this.showTable()
-    } else {
-      this.showGrid()
-    }
-  }
 
-  showGrid() {
-    this.gridTarget.classList.remove("hidden")
-    this.tableTarget.classList.add("hidden")
-  }
-
-  showTable() {
-    this.gridTarget.classList.add("hidden")
-    this.tableTarget.classList.remove("hidden")
+    this.buttonTargets.forEach((button) => {
+      button.setAttribute("aria-pressed", String((button.dataset.view === "table") === table))
+    })
   }
 }

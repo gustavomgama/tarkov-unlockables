@@ -15,6 +15,19 @@
     <link rel="preload" href="https://tarkov.dev/fonts/bender.woff2" as="font" type="font/woff2" crossorigin="">
     <link rel="preload" href="https://tarkov.dev/fonts/bender-bold.woff2" as="font" type="font/woff2" crossorigin="">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%# Installable: start_url, theme colour and icons live in the manifest. %>
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tarkov DB">
+    <meta property="og:type" content="<%= content_for?(:og_type) ? yield(:og_type) : "website" %>">
+    <meta property="og:site_name" content="Tarkov DB">
+    <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) : "Tarkov Unlock Navigator" %>">
+    <meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : "Escape from Tarkov item, task and trader unlock reference." %>">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="<%= request.base_url + request.path %>">
     <style>
       @font-face {
         font-family: 'bender';
@@ -314,7 +327,8 @@
         .input[type="search"]::-webkit-search-cancel-button { filter: invert(0.7); }
 
         /* Buttons: square corners, no glow. */
-        .btn {          display: inline-flex;
+        .btn {
+          display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 0.375rem;
@@ -368,6 +382,27 @@
           overflow-wrap: anywhere;
         }
 
+        /* Remove control overlaid on a favourite card. Its own class rather
+           than utilities: the .btn base sets a 2.75rem tap target that is too
+           big for a card corner. */
+        .card-remove {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.25rem;
+          height: 2.25rem;
+          font-size: 0.875rem;
+          line-height: 1;
+          cursor: pointer;
+          color: var(--text-muted);
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+        }
+        .card-remove:hover {
+          color: var(--danger);
+          border-color: var(--danger);
+        }
+
         /* Trader dot shared by lists and timelines. */
         .trader-dot {
           width: 0.5rem;
@@ -381,8 +416,9 @@
         .timeline-node { position: relative; padding-left: 1.5rem; padding-bottom: 0.875rem; }
         .timeline-node:last-child { padding-bottom: 0; }
 
-        /* Disclosure: collapsed by default so long reference pages end at the
-           data. Marker is drawn by CSS in both engines. */
+        /* Disclosure: collapsed by default. <details> works without
+           JavaScript and reports its own expanded state; the controller only
+           adds Escape and click-outside to close. */
         .disclosure > summary {
           cursor: pointer;
           list-style: none;
@@ -394,6 +430,145 @@
           color: var(--text-muted);
         }
         .disclosure[open] > summary::after { content: "−"; }
+
+        /* Site menu (small screens). The panel hangs off the sticky header so
+           it spans the viewport without any measuring. */
+        .site-menu > summary {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.75rem;
+          height: 2.75rem;
+          cursor: pointer;
+          list-style: none;
+          color: var(--text);
+        }
+        .site-menu > summary::-webkit-details-marker { display: none; }
+        .site-menu[open] .site-menu__icon--menu { display: none; }
+        .site-menu:not([open]) .site-menu__icon--close { display: none; }
+        .site-menu__panel {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 100%;
+          padding: 0.5rem 1rem;
+          background: var(--bg-panel);
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
+        }
+        .site-menu__link {
+          display: flex;
+          align-items: center;
+          min-height: 2.75rem;
+          padding: 0 0.75rem;
+          font-size: 0.875rem;
+          color: var(--text);
+        }
+        .site-menu__link:hover {
+          background: var(--bg-elevated);
+          color: var(--accent);
+          text-decoration: none;
+        }
+        .site-menu__link[aria-current="page"] { color: var(--accent); font-weight: 700; }
+
+        /* Filter group: a <details> so it opens without JavaScript. The menu
+           sits in flow on phones (it can never overflow the viewport) and
+           floats under the button from sm up. */
+        .filter-group { position: relative; }
+        .filter-group > summary {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          min-height: 2.5rem;
+          padding: 0.5rem 0.75rem;
+          font-size: 0.875rem;
+          cursor: pointer;
+          list-style: none;
+          color: var(--text);
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+        }
+        .filter-group > summary::-webkit-details-marker { display: none; }
+        .filter-group > summary:hover { border-color: var(--accent); }
+        .filter-group[open] > summary { border-color: var(--accent); }
+        .filter-group__chevron {
+          color: var(--text-muted);
+          transition: transform 120ms ease;
+        }
+        .filter-group[open] .filter-group__chevron { transform: rotate(180deg); }
+        .filter-group__count {
+          padding: 0 0.3rem;
+          font-size: 0.75rem;
+          font-weight: 700;
+          background: var(--accent);
+          color: var(--bg-dark);
+        }
+        .filter-group__menu {
+          margin-top: 0.25rem;
+          padding: 0.75rem;
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+        }
+        @media (min-width: 640px) {
+          .filter-group__menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 40;
+            margin-top: 0;
+            width: 14rem;
+            max-height: 18rem;
+            overflow-y: auto;
+          }
+        }
+        .filter-group__option {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.375rem 0.5rem;
+          cursor: pointer;
+        }
+        .filter-group__option:hover { background: var(--bg-elevated); }
+        .filter-group__label { flex: 1; font-size: 0.875rem; color: var(--text); }
+        .filter-group__hint {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          font-variant-numeric: tabular-nums;
+        }
+
+        /* Print: a reference page is worth printing (a quest chain, a
+           weapon's ammo table), so drop the chrome and flip the palette. */
+        @media print {
+          :root {
+            --bg-dark: #ffffff;
+            --bg-panel: #ffffff;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f1efe9;
+            --text: #1a1a1a;
+            --text-bright: #000000;
+            --text-muted: #55514a;
+            --border: #b9b4a8;
+            --accent: #6b5312;
+          }
+          .no-print { display: none !important; }
+          body { background: #fff; color: #1a1a1a; }
+          main { max-width: none; padding: 0; }
+          .panel { break-inside: avoid; }
+          a { color: inherit; text-decoration: underline; }
+          /* Nothing is clickable on paper: show where a link goes. */
+          .crumbs a[href^="http"]::after,
+          .chip--link[href^="http"]::after {
+            content: " (" attr(href) ")";
+            font-size: 0.75em;
+            word-break: break-all;
+          }
+          .stat--tone .stat__val,
+          .ammo-table td[style],
+          .ac-cell--on {
+            color: #1a1a1a !important;
+            background: #d9d4c6 !important;
+          }
+        }
 
         /* Breadcrumbs */
         .crumbs {
@@ -441,53 +616,55 @@
           color: var(--text-muted);
         }
 
-        /* Comparison table: one row per round, aligned numbers. */
-        .ammo-table { background: var(--bg-surface); }
-        .ammo-table__head,
-        .ammo-row {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 2.75rem 2.75rem 2.75rem;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
+        /* Comparison table: one row per round, numbers right-aligned. */
+        .ammo-table {
+          width: 100%;
+          border-collapse: collapse;
         }
-        .ammo-table__head {
-          border-bottom: 1px solid var(--border);
+        .ammo-table th,
+        .ammo-table td {
+          padding: 0.5rem 1rem;
+          text-align: left;
+          font-weight: 400;
+          vertical-align: middle;
+        }
+        .ammo-table thead th {
           font-size: 0.625rem;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           color: var(--text-muted);
+          border-bottom: 1px solid var(--border);
         }
-        .ammo-table__head span:not(:first-child) { text-align: right; }
-        .ammo-row + .ammo-row { border-top: 1px solid var(--border); }
-        .ammo-row:hover { background: var(--bg-elevated); text-decoration: none; }
-        .ammo-row--current {
-          background: var(--bg-elevated);
-          box-shadow: inset 2px 0 0 var(--accent);
-        }
-        .ammo-row__name {
-          min-width: 0;
+        .ammo-table tbody th {
+          font-size: 0.8125rem;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          font-size: 0.8125rem;
-          color: var(--text);
         }
-        .ammo-row--current .ammo-row__name { color: var(--accent); font-weight: 700; }
-        .ammo-row__num {
-          text-align: right;
+        .ammo-table tbody tr + tr th,
+        .ammo-table tbody tr + tr td { border-top: 1px solid var(--border); }
+        .ammo-table tbody tr:hover { background: var(--bg-elevated); }
+        .ammo-table tbody td {
+          width: 3.5rem;
           font-size: 0.8125rem;
+          text-align: right;
           font-variant-numeric: tabular-nums;
           color: var(--text-bright);
         }
-        .ammo-row__num--muted { color: var(--text-muted); }
+        .ammo-table td.muted { color: var(--text-muted); }
+        .ammo-table tr.current {
+          background: var(--bg-elevated);
+          box-shadow: inset 2px 0 0 var(--accent);
+        }
+        .ammo-table tr.current th a { color: var(--accent); font-weight: 700; }
+
       }
     </style>
   </head>
   <body class="min-h-screen flex flex-col">
     <a href="#main" class="skip-link">Skip to content</a>
 
-    <header class="border-b border-[var(--border)] bg-[var(--bg-panel)] sticky top-0 z-50" data-controller="mobile-nav">
+    <header class="no-print border-b border-[var(--border)] bg-[var(--bg-panel)] sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-14 sm:h-16">
           <div class="flex items-center gap-5 sm:gap-7">
@@ -501,34 +678,36 @@
               <%= link_to "Favorites", favorites_path, class: "nav-link", "aria-current": ("page" if controller_name == "favorites") %>
             </nav>
           </div>
-          <button
-            type="button"
-            class="md:hidden p-2 -mr-2 text-[var(--text)] w-11 h-11 flex items-center justify-center"
-            data-action="mobile-nav#toggle"
-            aria-expanded="false"
-            aria-controls="mobile-menu"
-            aria-label="Menu"
+
+          <%# <details> so navigation still works with JavaScript disabled. %>
+          <details
+            class="site-menu md:hidden"
+            data-controller="disclosure"
+            data-action="keydown.esc->disclosure#closeOnEscape click@document->disclosure#closeOnOutsideClick"
           >
-            <svg data-mobile-nav-target="icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            <summary aria-label="Menu">
+              <svg class="site-menu__icon--menu w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg class="site-menu__icon--close w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </summary>
+            <nav class="site-menu__panel" aria-label="Primary">
+              <%= link_to "Items", items_path, class: "site-menu__link", "aria-current": ("page" if controller_name == "items") %>
+              <%= link_to "Tasks", tasks_path, class: "site-menu__link", "aria-current": ("page" if controller_name == "tasks") %>
+              <%= link_to "Favorites", favorites_path, class: "site-menu__link", "aria-current": ("page" if controller_name == "favorites") %>
+            </nav>
+          </details>
         </div>
       </div>
-      <nav id="mobile-menu" data-mobile-nav-target="menu" class="hidden md:hidden border-t border-[var(--border)]" aria-label="Primary">
-        <div class="px-4 py-2 space-y-0.5">
-          <%= link_to "Items", items_path, class: "block px-3 py-2 text-sm text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center #{controller_name == 'items' ? 'text-[var(--accent)] font-bold' : ''}" %>
-          <%= link_to "Tasks", tasks_path, class: "block px-3 py-2 text-sm text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center #{controller_name == 'tasks' ? 'text-[var(--accent)] font-bold' : ''}" %>
-          <%= link_to "Favorites", favorites_path, class: "block px-3 py-2 text-sm text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center #{controller_name == 'favorites' ? 'text-[var(--accent)] font-bold' : ''}" %>
-        </div>
-      </nav>
     </header>
 
-    <main id="main" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+    <main id="main" tabindex="-1" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 outline-none">
       <%= yield %>
     </main>
 
-    <footer class="border-t border-[var(--border)] mt-8">
+    <footer class="no-print border-t border-[var(--border)] mt-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <%= render "shared/feedback" %>
 
