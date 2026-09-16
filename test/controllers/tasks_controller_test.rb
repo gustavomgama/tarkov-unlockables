@@ -1,6 +1,8 @@
 require "test_helper"
 
 class TasksControllerTest < ActionDispatch::IntegrationTest
+  fixtures :all
+
   test "should get index" do
     get tasks_url
     assert_response :success
@@ -18,5 +20,82 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   ensure
     task1&.destroy
     task2&.destroy
+  end
+
+  test "index filters by trader" do
+    get tasks_url(trader: "Prapor")
+    assert_response :success
+    assert_select "h3", text: "Task One"
+    assert_no_match(/Task Two/, response.body)
+  end
+
+  test "show renders task header and unlock path from the prerequisite graph" do
+    get task_url(tasks(:one))
+
+    assert_response :success
+    assert_select "h1", text: "Task One"
+    assert_select "p", text: /Prapor/
+
+    # requirement + previous-task link (Task One requires Task Two)
+    assert_select "dt", text: "Player level"
+    assert_select "dd", text: "10"
+    assert_select "dt", text: "Previous tasks"
+    assert_select "a[href=?]", task_path(tasks(:two)), text: "Task Two"
+
+    # unlock timeline renders each node in the chain
+    assert_select "h2", text: "Unlock Path"
+    assert_select ".timeline-node", text: /Task Two/
+    assert_select ".timeline-node", text: /Task One/
+  end
+
+  test "show renders every reward type and leads-to" do
+    get task_url(tasks(:one))
+
+    assert_response :success
+    assert_select "h2", text: "Rewards"
+    # loose item, offer, barter and craft all point at the same fixture item
+    assert_select "a[href=?]", item_path(items(:one)), minimum: 1, text: "Test Item One"
+    assert_select "span", text: /Prapor LL2/        # offer unlock
+    assert_select "span", text: /Workbench Lv\.1/   # craft unlock
+
+    assert_select "h2", text: "Leads To"
+    assert_select "a[href=?]", task_path(tasks(:two)), text: "Task Two"
+  end
+
+  test "show renders gracefully when a task has no requirements or rewards" do
+    bare = Task.create!(bsg_id: "bare_#{SecureRandom.hex(4)}", full_name: "Bare Task", name: "bare-task", given_by: "Jaeger")
+
+    get task_url(bare)
+    assert_response :success
+    assert_select "h1", text: "Bare Task"
+    assert_select "p", text: "No rewards listed."
+    assert_select "h2", text: "Unlock Path", count: 0
+  ensure
+    bare&.destroy
+  end
+
+  test "show returns 404 for a missing task" do
+    get task_url(id: 999_999_999)
+    assert_response :not_found
+    assert_select "h1", text: "404"
+  end
+
+  test "chains groups each trader's deepest prerequisite chain" do
+    get chains_tasks_url
+
+    assert_response :success
+    assert_select "h1", text: "Task Chains"
+    # fixture graph: Task One (Prapor) <-> Task Two (Therapist), both 2-deep
+    assert_select "h2", text: "Prapor"
+    assert_select "h2", text: "Therapist"
+    assert_select ".timeline-node", text: /Task Two/
+  end
+
+  test "chains page renders no trader sections for a shapeless graph" do
+    Task.all.find_each { |t| t.update_columns(given_by: nil) }
+
+    get chains_tasks_url
+    assert_response :success
+    assert_select ".timeline-node", count: 0
   end
 end

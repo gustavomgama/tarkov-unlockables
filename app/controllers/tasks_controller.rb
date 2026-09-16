@@ -35,6 +35,7 @@ class TasksController < ApplicationController
   def build_trader_chains(tasks)
     map = tasks.index_by(&:name)
     tasks.group_by(&:given_by).sort_by { |trader, _| trader.to_s }.filter_map do |trader, trader_tasks|
+      next if trader.blank?
       deepest, chain = trader_tasks.to_h { |t| [ t, t.prerequisite_chain([], map) ] }
                                    .max_by { |_, c| c.length }
       next if deepest.nil? || chain.length < 2
