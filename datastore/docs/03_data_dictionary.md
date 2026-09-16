@@ -68,6 +68,22 @@ task_objectives{task_id, task_name, type}
 
 ---
 
+## `weapon_variants.ndjson` — 102 rows
+
+Named weapon builds from the wiki's `weapon_variants` sections, keyed by the
+base weapon.
+
+| field | type | notes |
+| --- | --- | --- |
+| `base_bsg_id`, `base_name` | string | the weapon the build starts from (51 distinct) |
+| `name` | string | the build's name, e.g. `AS VAL Kobra` |
+| `attachments` | object[] | `{bsg_id, name}` — the exact parts in the build (1,043 total) |
+| `preset_bsg_id`, `preset_slug` | string? | the tarkovdev preset this names, when one exists (101 of 102, 1:1) |
+
+`v_weapon_variant_attachments` resolves each part; `v_item_armor` joins
+armored items to the 8 armor materials so `destructibility` /
+repair-degradation bounds sit next to `class` and `durability`.
+
 ## `tasks.ndjson` — 517 rows
 
 | field | type | notes |

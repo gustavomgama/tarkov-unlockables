@@ -93,6 +93,13 @@ for the full chain and `categories.leaves` for the direct tags.
 | `ItemPropertiesHeadphone` | 25 | ambient/compressor audio model |
 | `ItemPropertiesGrenade` | 13 | `fuse`, `fragments`, `min/maxExplosionDistance`, `contusionRadius` |
 
+Armor is the clearest example of why the type-specific block matters: two
+class-6 vests with the same nominal protection behave completely differently
+because of their material. 326 items carry `properties.material`, which joins
+to one of 8 `armorMaterials` rows (Aramid `destructibility` 0.1875 vs
+ArmoredSteel 0.525) — exposed as `v_item_armor` alongside `class`, `durability`,
+`bluntThroughput` and `zones`.
+
 `properties` is stored **verbatim** in both `items.ndjson` and the SQLite
 `items.properties` column. Convenience projections (`armor_class`, `damage`,
 `penetration_power`, `caliber`, `ergonomics`, `max_durability`, `uses`) are
@@ -110,6 +117,12 @@ allowed item per required slot. Compats come with `conflictingItems` /
 `preset` items are pre-built weapons: `properties.baseItem` is the receiver
 they are built on, `properties.default` marks the factory preset, and the
 preset appears in the base weapon's `properties.presets`. 484 presets.
+
+The community wiki names its own builds per weapon (`weapon_variants`), and
+those are exposed as a separate entity: 102 named builds over 51 base weapons
+with their exact attachment lists (1,043 parts), 101 of which map 1:1 onto a
+tarkovdev preset. That gives each build both a human name and a resolvable
+parts list.
 
 The graph is complete enough to be assembled: all **624 required slots across
 162 weapons have at least one item that exists in the dataset**, and the number

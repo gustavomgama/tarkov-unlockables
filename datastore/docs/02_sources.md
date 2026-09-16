@@ -95,6 +95,10 @@ Fandom wiki (`escapefromtarkov.fandom.com`).
 | `wiki_items_not_in_items_index.wiki` | 21 KB | 152 items with trader data but missing from the unlockables index — a documented gap |
 | `itembatches/` | 11 MB | 85 MediaWiki API batches, 3,936 pages — the raw crawl behind `parsed_items.json` |
 
+The wiki also names weapon builds per base weapon (`sections.weapon_variants`,
+102 builds over 51 weapons with their full attachment lists); each maps 1:1 to
+a tarkovdev preset except `Glock 17 HC`, which has no preset.
+
 The wiki infobox also supplies an internal game id (`ID`, 2,784 items),
 loot/examine XP (674), a handbook price (651) and a hand-maintained trader
 loyalty list (`trader`, 2,371 items → 2,536 parsed offers), all of which are

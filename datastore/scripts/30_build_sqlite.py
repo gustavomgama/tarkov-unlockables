@@ -138,6 +138,14 @@ CREATE TABLE hideout_level_items (
 CREATE TABLE hideout_level_station_reqs (station_id TEXT, level INTEGER, req_station_id TEXT, req_level INTEGER);
 CREATE TABLE hideout_level_trader_reqs (station_id TEXT, level INTEGER, trader_slug TEXT, req_level INTEGER);
 
+CREATE TABLE weapon_variants (
+  base_bsg_id TEXT, name TEXT, preset_bsg_id TEXT, preset_slug TEXT, attachment_count INTEGER,
+  PRIMARY KEY (base_bsg_id, name)
+);
+CREATE TABLE weapon_variant_attachments (
+  base_bsg_id TEXT, variant_name TEXT, bsg_id TEXT
+);
+
 CREATE TABLE maps (
   id TEXT PRIMARY KEY, slug TEXT, name TEXT, name_id TEXT, wiki_link TEXT,
   raid_duration INTEGER, players TEXT, enemies TEXT, bosses TEXT, extracts TEXT, transits TEXT
@@ -191,6 +199,9 @@ CREATE INDEX idx_task_trader ON tasks(trader_slug);
 CREATE INDEX idx_task_map ON tasks(map_id);
 CREATE INDEX idx_task_obj ON task_objectives(task_id);
 CREATE INDEX idx_task_graph ON task_graph(depth);
+CREATE INDEX idx_wv_base ON weapon_variants(base_bsg_id);
+CREATE INDEX idx_wv_preset ON weapon_variants(preset_bsg_id);
+CREATE INDEX idx_wva_variant ON weapon_variant_attachments(base_bsg_id, variant_name);
 CREATE INDEX idx_obj_items ON task_objective_items(bsg_id);
 CREATE INDEX idx_rewards_item ON task_rewards(bsg_id);
 CREATE INDEX idx_rewards_task ON task_rewards(task_id, phase);
@@ -207,6 +218,25 @@ FROM items i;
 CREATE VIEW v_item_acquisition AS
 SELECT a.bsg_id, i.name, a.route, a.ref_id, a.trader_slug, a.station, a.level, a.count
 FROM item_acquisition a JOIN items i ON i.bsg_id = a.bsg_id;
+
+CREATE VIEW v_weapon_variant_attachments AS
+SELECT a.base_bsg_id, v.name AS variant_name, a.bsg_id, i.name AS attachment_name
+FROM weapon_variant_attachments a
+JOIN weapon_variants v ON v.base_bsg_id = a.base_bsg_id AND v.name = a.variant_name
+LEFT JOIN items i ON i.bsg_id = a.bsg_id;
+
+CREATE VIEW v_item_armor AS
+SELECT i.bsg_id, i.name,
+       json_extract(i.properties, '$.class') AS armor_class,
+       json_extract(i.properties, '$.material') AS material_id,
+       am.name AS material_name, am.destructibility, am.max_repair_degradation,
+       am.min_repair_degradation,
+       json_extract(i.properties, '$.durability') AS durability,
+       json_extract(i.properties, '$.bluntThroughput') AS blunt_throughput,
+       json_extract(i.properties, '$.zones') AS zones
+FROM items i
+LEFT JOIN armor_materials am ON am.id = json_extract(i.properties, '$.material')
+WHERE json_extract(i.properties, '$.material') IS NOT NULL;
 
 CREATE VIEW v_task_chain AS
 SELECT l.task_id, t.name AS task_name, l.follow_up_task_id, l.follow_up_task_name
@@ -481,6 +511,16 @@ def main():
     stats["items"] = n_items
     stats["item_slots"] = n_slots
     stats["slot_allowed"] = n_allowed
+
+    # ---- weapon variants -------------------------------------------------
+    rows = list(C.load_jsonl(os.path.join(C.CANON, "weapon_variants.ndjson")))
+    cur.executemany("INSERT OR REPLACE INTO weapon_variants VALUES (?,?,?,?,?)",
+                    [(r["base_bsg_id"], r["name"], r["preset_bsg_id"], r["preset_slug"],
+                      len(r["attachments"])) for r in rows])
+    for r in rows:
+        cur.executemany("INSERT INTO weapon_variant_attachments VALUES (?,?,?)",
+                        [(r["base_bsg_id"], r["name"], a["bsg_id"]) for a in r["attachments"] if a.get("bsg_id")])
+    stats["weapon_variants"] = len(rows)
 
     # ---- reference -------------------------------------------------------
     ref = json.load(open(os.path.join(C.CANON, "reference.json"), encoding="utf-8"))

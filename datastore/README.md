@@ -35,6 +35,7 @@ datastore/
 | `canonical/hideout_stations.ndjson` | 26 | stations + 68 levels + build requirements (incl. found-in-raid) |
 | `canonical/maps.ndjson` | 17 | maps with raid duration, extracts, transits, bosses |
 | `canonical/categories.ndjson` | 200 | internal + handbook category trees with paths |
+| `canonical/weapon_variants.ndjson` | 102 | wiki-named weapon builds with their exact attachment lists, mapped 1:1 to tarkovdev presets |
 | `canonical/reference.json` | — | levels, skills, mastery, armor materials, achievements, prestige |
 
 Price it: `item_acquisition_cost` (SQLite) costs every barter and craft by
@@ -62,6 +63,8 @@ cd datastore/scripts
 ~/.pyvenv-tarkov/bin/python 30_build_sqlite.py    # canonical/ -> tarkov.sqlite3
 ~/.pyvenv-tarkov/bin/python 99_verify.py          # 40 assertions, exits non-zero on failure
 ```
+
+Or run the whole thing: `datastore/scripts/run.sh` (steps in order, exits on first failure).
 
 Reconnaissance and coverage reports:
 

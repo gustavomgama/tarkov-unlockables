@@ -1232,6 +1232,77 @@ def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
 # --------------------------------------------------------------------------- #
 # reference + report
 # --------------------------------------------------------------------------- #
+def build_weapon_variants(ctx):
+    """The wiki's named weapon builds.
+
+    Items with a `weapon_variants` wiki section are keyed by the base weapon's
+    bsg id; each variant names a build and lists its attachment ids. These are
+    community-named builds on top of tarkovdev's 484 presets, so each variant is
+    matched back to the preset it names (they are usually the same build).
+    """
+    def norm(text):
+        return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
+
+    def descriptor(base_name, variant_name):
+        """The part of a variant name that is not the base weapon's own words,
+        e.g. ('AS VAL 9x39 special assault rifle', 'AS VAL Kobra') -> 'kobra'."""
+        base_words = set(re.findall(r"[a-z0-9]+", (base_name or "").lower()))
+        rest = [w for w in re.findall(r"[a-z0-9]+", (variant_name or "").lower())
+                if w not in base_words]
+        return "".join(rest)
+
+    presets_by_base = defaultdict(list)
+    for bsg_id, raw in ctx["raw"]["items"].items():
+        props = raw.get("properties") or {}
+        if props.get("propertiesType") == "ItemPropertiesPreset" and props.get("baseItem"):
+            presets_by_base[props["baseItem"]].append((bsg_id, raw.get("normalizedName") or ""))
+
+    rows = []
+    for bsg_id, parsed in ctx["wiki_items"].items():
+        variants = ((parsed.get("sections") or {}).get("weapon_variants") or [])
+        base_name = ctx["names"].get(bsg_id)
+        for v in variants:
+            name = v.get("name")
+            # The wiki abbreviates base names ("M700 ARCH" for "Remington
+            # Model 700 ... ARCH"), so try the full descriptor first and then
+            # progressively shorter trailing token groups. Matching is already
+            # restricted to presets of the same base weapon.
+            words = [w for w in re.findall(r"[a-z0-9]+", (name or "").lower())
+                     if w not in set(re.findall(r"[a-z0-9]+", (base_name or "").lower()))]
+            needles = []
+            full = descriptor(base_name, name) or norm(name)
+            if full:
+                needles.append(full)
+            for n in (3, 2, 1):
+                if len(words) >= n:
+                    tok = "".join(words[-n:])
+                    if tok not in needles:
+                        needles.append(tok)
+            # Suffix match only: a substring test would make "SOPMOD I" match
+            # "sopmod-ii" (both contain "sopmodi").
+            preset = None
+            for needle in needles:
+                for pid, slug in presets_by_base.get(bsg_id, []):
+                    if norm(slug).endswith(needle):
+                        preset = (pid, slug)
+                        break
+                if preset:
+                    break
+            attachments = []
+            for a in v.get("attachments") or []:
+                if a:
+                    attachments.append({"bsg_id": a, "name": ctx["names"].get(a)})
+            rows.append({
+                "base_bsg_id": bsg_id,
+                "base_name": base_name,
+                "name": name,
+                "attachments": attachments,
+                "preset_bsg_id": preset[0] if preset else None,
+                "preset_slug": preset[1] if preset else None,
+            })
+    return rows
+
+
 def build_reference(ctx):
     return {
         "generated_from": {
@@ -1276,6 +1347,7 @@ def main():
     stats["maps"] = C.write_jsonl(os.path.join(C.CANON, "maps.ndjson"), build_maps(ctx))
     stats["hideout_stations"] = C.write_jsonl(os.path.join(C.CANON, "hideout_stations.ndjson"), build_hideout(ctx))
     stats["items"] = C.write_jsonl(os.path.join(C.CANON, "items.ndjson"), build_items(ctx))
+    stats["weapon_variants"] = C.write_jsonl(os.path.join(C.CANON, "weapon_variants.ndjson"), build_weapon_variants(ctx))
 
     with open(os.path.join(C.CANON, "reference.json"), "w", encoding="utf-8") as fh:
         json.dump(build_reference(ctx), fh, ensure_ascii=False, indent=1)

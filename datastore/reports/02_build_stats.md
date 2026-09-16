@@ -10,6 +10,7 @@
 | maps | 17 |
 | hideout_stations | 26 |
 | items | 5480 |
+| weapon_variants | 102 |
 
 ## Item display-name provenance
 
@@ -30,3 +31,4 @@
 - `reference.json` — 0.2 MB
 - `tasks.ndjson` — 3.8 MB
 - `traders.ndjson` — 0.1 MB
+- `weapon_variants.ndjson` — 0.1 MB

@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 51.0 MB
+- `tarkov.sqlite3` — 51.2 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -53,3 +53,5 @@
 | trader_buy_rules | 1116 |
 | trader_levels | 42 |
 | traders | 16 |
+| weapon_variant_attachments | 1043 |
+| weapon_variants | 102 |

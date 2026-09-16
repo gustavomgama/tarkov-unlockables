@@ -118,6 +118,7 @@ def main():
     check("wiki compatibility relations resolve", lambda: _compat(items))
     check("wiki trader offers parse and corroborate", lambda: _wiki_offers(items, trader_slugs))
     check("task graph is a well-formed DAG", lambda: _task_graph(tasks))
+    check("wiki weapon variants map 1:1 to presets", lambda: _weapon_variants())
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -145,6 +146,8 @@ def main():
     check("category paths backfilled", lambda: _cat_paths(con))
     check("route costs are complete or null, never faked", lambda: _route_costs(con))
     check("weapon build stats present", lambda: _build_stats(con))
+    check("all analysis steps have run", lambda: _analysis_tables(con))
+    check("armor materials join to items", lambda: _armor_view(con))
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -424,6 +427,27 @@ def _route_costs(con):
             f"{zeros} legitimately zero-cost (no inputs), {cheaper} cheaper than flea")
 
 
+def _weapon_variants():
+    rows = list(C.load_jsonl(os.path.join(C.CANON, "weapon_variants.ndjson")))
+    assert len(rows) >= 100, f"only {len(rows)} wiki weapon variants"
+    matched = [r for r in rows if r["preset_bsg_id"]]
+    assert len(matched) >= 100, f"only {len(matched)} variants matched a preset"
+    presets = [r["preset_bsg_id"] for r in matched]
+    assert len(set(presets)) == len(presets), "a preset was matched by more than one variant"
+    unresolved = [a for r in rows for a in r["attachments"] if not a.get("name")]
+    assert not unresolved, f"{len(unresolved)} variant attachments without a name"
+    n_att = sum(len(r["attachments"]) for r in rows)
+    return f"{len(rows)} variants over {len({r['base_bsg_id'] for r in rows})} base weapons, {len(matched)} matched 1:1, {n_att} attachments"
+
+
+def _armor_view(con):
+    rows = con.execute("SELECT COUNT(*), SUM(material_name IS NULL) FROM v_item_armor").fetchone()
+    total, missing = rows
+    assert total >= 300, f"only {total} armored items in the view"
+    assert not missing, f"{missing} armored items have no matching material"
+    return f"{total} armored items joined to {con.execute('SELECT COUNT(DISTINCT material_id) FROM v_item_armor').fetchone()[0]} materials"
+
+
 def _slots_fillable(items):
     """A required slot that no existing item can fill would make the weapon
     unbuildable from this dataset."""
@@ -436,6 +460,21 @@ def _slots_fillable(items):
     assert not bad, f"{len(bad)} unfillable required slots, e.g. {bad[:3]}"
     n = sum(1 for i in items for s in i.get("slots") or [] if s.get("required"))
     return f"{n} required slots, all fillable"
+
+
+ANALYSIS_TABLES = {
+    "item_acquisition_cost": "50_economics.py",
+    "weapon_build_stats": "60_builds.py",
+}
+
+
+def _analysis_tables(con):
+    """These are written by the analysis steps, which run after the SQLite
+    build; a missing one means the pipeline was not run end to end."""
+    have = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    missing = {t: s for t, s in ANALYSIS_TABLES.items() if t not in have}
+    assert not missing, "missing tables, run: " + ", ".join(sorted(set(missing.values())))
+    return ", ".join(sorted(ANALYSIS_TABLES))
 
 
 def _build_stats(con):
