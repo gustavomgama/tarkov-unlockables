@@ -305,7 +305,7 @@ item = Item.find_by("full_name ILIKE ?", "%M80A1%")
 item.how_to_unlock.each do |path|
   puts "Task: #{path.task.name}"
   puts "  Reward type: #{path.reward_type}"       # start_rewards or finish_rewards
-  puts "  Unlock method: #{path.unlock_method}"   # task_reward, offer_unlock, barter_unlock, craft_unlock, loose_item
+  puts "  Unlock method: #{path.unlock_method}"   # offer_unlock, barter_unlock, craft_unlock
 end
 
 # WHERE TO GET - shows direct obtain methods (not task chain)
