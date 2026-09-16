@@ -94,6 +94,10 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         "min_player_level" => 5,
         "trader_requirements" => [ { "trader_slug" => "prapor", "value" => 2 } ],
         "task_requirements" => [], "previous_tasks" => [],
+        "needed_keys" => [
+          { "map_id" => "map-shoreline", "map_name" => "Shoreline",
+            "keys" => [ { "bsg_id" => "a1", "name" => "Dorm room 306 key" } ] }
+        ],
         "objectives" => [
           { "id" => "o1", "type" => "giveItem", "description" => "Hand over 3 Salewa kits",
             "count" => 3, "optional" => false, "raw" => { "items" => [ "a1" ] } },
@@ -256,6 +260,11 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal "Customs", first.map_name
     assert_equal 12_345, first.experience
     assert_equal "BEAR", first.faction
+
+    key = first.needed_keys.sole
+    assert_equal "Shoreline", key["map_name"]
+    assert_equal "Dorm room 306 key", key["item_name"]
+    assert_equal Item.find_by!(bsg_id: "a1").id, key["item_id"]
     assert first.kappa_required
     refute first.lightkeeper_required
     assert_equal "https://wiki/first-task", first.wiki_link

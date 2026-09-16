@@ -154,6 +154,7 @@ module Importers
             map_name:             raw["map_name"],
             experience:           raw["experience"],
             faction:              raw["faction"],
+            needed_keys:          task_needed_keys(raw),
             kappa_required:       raw["kappa_required"],
             lightkeeper_required: raw["lightkeeper_required"]
           )
@@ -434,6 +435,20 @@ module Importers
 
     def task_slug(task_id, fallback)
       @task_slug_by_id[task_id].presence || fallback
+    end
+
+    # Canonical groups keys by map; flatten so the view can group again for
+    # display and link each key to its item.
+    def task_needed_keys(raw)
+      Array(raw["needed_keys"]).flat_map do |group|
+        Array(group["keys"]).map do |key|
+          {
+            "map_name"  => group["map_name"],
+            "item_id"   => @item_id_by_bsg[key["bsg_id"]],
+            "item_name" => key["name"]
+          }
+        end
+      end
     end
     def currency_key(trader_slug, currency, level)
       [ trader_slug.to_s.titleize, currency, level.to_i ]

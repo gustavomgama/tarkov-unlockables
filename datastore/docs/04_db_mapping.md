@@ -11,7 +11,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | | canonical | Postgres | why they differ |
 | --- | ---: | ---: | --- |
 | items | 5,481 | 5,481 | 1:1 on `bsg_id`. Slots, grids, `properties` and acquisition collapse into the `data` jsonb. |
-| tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives are stored; maps, needed keys and most reward kinds are dropped. |
+| tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives and needed keys are stored; maps are denormalized and most reward kinds are dropped. |
 | buy routes | 2,658 `buy` + 3,202 `index_offers` | 3,248 `item_currencies` | one row per `(trader, currency, level)`, the two sources deduped; price, `price_rub` and buy limit stored. |
 | barter offers | 789 | 840 `item_barters` | one row per offer; inputs in `item_barter_requirements`, plus limit, restock and the task gate. |
 | crafts | 214 | 214 `item_hideouts` | one row per craft; inputs and tools in `item_hideout_requirements`, plus duration and yield. |
@@ -50,7 +50,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | `tasks.objectives` | `task_objectives` + `task_objective_items` | 1:1 per objective (type, description, count, optional, position) and its accepted items; catch-alls (100+ ids) are skipped. |
 | `tasks.start_rewards` | `rewards` (`reward_type='start_rewards'`) | 1:1, plus the kinds the DB drops (trader unlocks, skills, achievements, dialogue, customization). |
 | `tasks.finish_rewards` | `rewards` | 1:1. |
-| `tasks.needed_keys` | — | **no table.** |
+| `tasks.needed_keys` | `tasks.needed_keys` | jsonb: a flat array of `{map_name, item_id, item_name}`, grouped by map in the view. |
 | `hideout_stations` + levels | `hideout_stations` + `hideout_levels` + `hideout_item_requirements` | Stations, levels, construction time and build costs. Station and trader prerequisites are jsonb on the level. |
 | `maps` | `tasks.map_name` | Denormalized: only the task's map name, not extracts, bosses or transits. |
 | `reference` (levels, skills, mastery, armor materials, achievements) | — | **no tables.** |
@@ -65,11 +65,9 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
    unlocks are stored.
 3. **"What does this item's flea price say?"** — no economy or sell-to fields
    are stored; prices are out of scope for the app.
-4. **"Which items are needed keys for a quest?"** — `tasks.needed_keys` is not
-   stored.
-5. **"What is this category, in the handbook?"** — no `categories` table; leaf
+4. **"What is this category, in the handbook?"** — no `categories` table; leaf
    slugs live on `items.categories`.
-6. **"What are the flea level, skills, mastery or achievements?"** — the
+5. **"What are the flea level, skills, mastery or achievements?"** — the
    `reference` tables are not imported.
 
 ---

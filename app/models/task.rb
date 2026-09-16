@@ -18,6 +18,7 @@
 #  map_name             :string
 #  experience           :integer
 #  faction              :string
+#  needed_keys          :jsonb            not null
 #
 # Indexes
 #

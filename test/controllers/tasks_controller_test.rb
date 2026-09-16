@@ -178,6 +178,24 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     task&.destroy
   end
 
+  test "show lists the keys a quest needs, grouped by map" do
+    task = Task.create!(bsg_id: "key-#{SecureRandom.hex(4)}", full_name: "Key Quest", name: "key-quest",
+                        given_by: "Prapor",
+                        needed_keys: [ { "map_name" => "Shoreline", "item_id" => nil,
+                                         "item_name" => "Dorm room 306 key" } ])
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=keys-head]" do
+      assert_select "h2", text: "Keys needed"
+      assert_select "dt", text: "Shoreline"
+      assert_select ".chip", text: "Dorm room 306 key"
+    end
+  ensure
+    task&.destroy
+  end
+
   test "show renders gracefully when a task has no requirements or rewards" do
     bare = Task.create!(bsg_id: "bare_#{SecureRandom.hex(4)}", full_name: "Bare Task", name: "bare-task", given_by: "Jaeger")
 

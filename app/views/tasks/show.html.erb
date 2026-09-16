@@ -137,6 +137,31 @@
       </section>
     <% end %>
 
+    <% if @task.needed_keys.any? %>
+      <section class="panel lg:col-span-2" aria-labelledby="keys-head">
+        <div class="panel__head">
+          <h2 id="keys-head" class="panel__title">Keys needed</h2>
+          <span class="panel__note">to reach the objective</span>
+        </div>
+        <dl class="specs">
+          <% @task.needed_keys.group_by { |key| key["map_name"] }.each do |map_name, keys| %>
+            <div class="spec">
+              <dt class="spec__key"><%= map_name.presence || "Any map" %></dt>
+              <dd class="spec__val flex flex-wrap justify-end gap-1">
+                <% keys.each do |key| %>
+                  <% if key["item_id"] %>
+                    <%= link_to key["item_name"], item_path(key["item_id"]), class: "chip chip--link" %>
+                  <% else %>
+                    <span class="chip"><%= key["item_name"] %></span>
+                  <% end %>
+                <% end %>
+              </dd>
+            </div>
+          <% end %>
+        </dl>
+      </section>
+    <% end %>
+
     <% objectives = @task.task_objectives %>
     <% if objectives.any? %>
       <section class="panel lg:col-span-2" aria-labelledby="objectives-head">
