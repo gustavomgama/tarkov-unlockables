@@ -28,7 +28,7 @@ datastore/
 | file | rows | what it is |
 | --- | ---: | --- |
 | `canonical/items.ndjson` | 5,480 | every item with resolved name, verbatim `properties`, mod slots, grids, flea economy, trader trade, **acquisition routes** and **reverse usage** |
-| `canonical/tasks.ndjson` | 517 | full quest graph: gates, typed objectives, rewards, unlocks, maps |
+| `canonical/tasks.ndjson` | 517 | full quest graph: gates, typed objectives, rewards, unlocks (incl. task-gated barters the API omits), maps |
 | `canonical/barters.ndjson` | 789 | trader barter offers with full recipes, limits, task gates |
 | `canonical/crafts.ndjson` | 214 | hideout recipes with station/level/duration and tool flags |
 | `canonical/traders.ndjson` | 16 | trader roster with loyalty levels, currencies, buy rules |
@@ -126,8 +126,10 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
 
 ## Known limits
 
-1. **Quest-item names are derived, not official** (121 rows): `items_en` has no
-   entries for them. Flagged `name_source: derived:slug`.
+1. **Quest-item names come from `tasks_en`, not `items_en`.** The 135 quest
+   items are absent from `/items` and from `items_en`; they are localized in
+   `tasks_en`, which the build reads as a second name source. Every item in the
+   dataset now has an official name — no slug-derived fallbacks remain.
 2. **No bulk flea prices from tarkov-market** — the offlinedata bulk file has
    no price fields, so prices are tarkovdev's.
 3. **Generation is snapshot-bound.** Items live as of the 2026-09-03 snapshot;

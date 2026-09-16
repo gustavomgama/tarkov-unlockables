@@ -307,6 +307,11 @@ def main():
                 cur.execute("INSERT INTO task_rewards VALUES (?,?,?,?,?,?,?,?,?,?)",
                             (tid, phase, "offer_unlock", ou.get("bsg_id"), ou.get("name"), ou.get("count"),
                              ou["trader_slug"], None, ou.get("level"), None))
+            for bu in r[phase]["barter_unlock"]:
+                cur.execute("INSERT INTO task_rewards VALUES (?,?,?,?,?,?,?,?,?,?)",
+                            (tid, phase, "barter_unlock", (bu.get("offered") or {}).get("bsg_id"),
+                             (bu.get("offered") or {}).get("name"), (bu.get("offered") or {}).get("count"),
+                             bu.get("trader_slug"), None, bu.get("min_trader_level"), json.dumps(bu)))
             for cu in r[phase]["craft_unlock"]:
                 cur.execute("INSERT INTO task_rewards VALUES (?,?,?,?,?,?,?,?,?,?)",
                             (tid, phase, "craft_unlock", cu.get("bsg_id"), cu.get("name"), cu.get("count"),

@@ -16,9 +16,8 @@
 | source | items |
 | --- | ---: |
 | tarkovdev:items_en | 5312 |
-| derived:slug | 121 |
-| tarkovmarket | 43 |
-| officialwiki | 4 |
+| tarkovdev:tasks_en | 135 |
+| tarkovmarket | 33 |
 
 ## File sizes
 
@@ -26,8 +25,8 @@
 - `categories.ndjson` — 0.1 MB
 - `crafts.ndjson` — 0.2 MB
 - `hideout_stations.ndjson` — 0.1 MB
-- `items.ndjson` — 32.8 MB
+- `items.ndjson` — 33.0 MB
 - `maps.ndjson` — 0.1 MB
 - `reference.json` — 0.2 MB
-- `tasks.ndjson` — 3.6 MB
+- `tasks.ndjson` — 3.7 MB
 - `traders.ndjson` — 0.1 MB

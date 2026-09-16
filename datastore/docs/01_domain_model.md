@@ -166,7 +166,13 @@ Three distinct production routes, all present as separate entities:
 ### 4.1 Barter (789 rows, `barters.ndjson`)
 
 Barter **out** a set of items for one offered item, at one trader, gated by
-`min_trader_level` and optionally a `task_unlock` (66 of 789 are task-gated).
+`min_trader_level` and optionally a `task_unlock` (66 of 789 are task-gated in
+tarkovdev). A further **45 items are unlocked by barter through a task** and
+appear in *no* tarkovdev barter at all — 13 of them exist only as a recipe in
+the derived index, because the JSON API exposes no `barterUnlock` reward. Those
+recipes are merged into `acquisition.barter` and into the task's
+`finish_rewards.barter_unlock`, tagged `source: tarkovunlockables`
+(51 such routes).
 
 ```
 required_items[] (item + count)  ──trader──►  offered_item (item + count)
@@ -213,7 +219,7 @@ used_in:     { crafts, barters, hideout_build, task_objectives }
 
 `acquisition` answers *how do I get this?*; `used_in` answers *what is this
 for?* — which is the question that actually determines an item's value.
-1,962 items have no acquisition route (pure loot/quest items) and 1,602 have
+1,955 items have no acquisition route (pure loot/quest items) and 1,602 have
 no recorded use; both counts are expected and are the interesting ones.
 
 ---
@@ -290,6 +296,7 @@ and **unlocks**. Unlocks are how the progression actually opens up:
 
 | unlock | meaning |
 | --- | --- |
+| `barter_unlock` | the trader starts offering a specific barter (recipe + loyalty gate) |
 | `offer_unlock` | the trader starts selling/bartering a specific item at a level |
 | `craft_unlock` | a hideout recipe becomes available (station + level) |
 | `trader_unlock` | the trader becomes available at all (e.g. Jaeger) |
@@ -384,7 +391,9 @@ Consequences that shape the pipeline:
 
 1. **Names must be fetched separately.** The saved dumps are
    localization-parameterised; without `items_en`/`tasks_en`/`traders_en` our
-   export would be full of `<id> Name`. See `docs/02_sources.md`.
+   export would be full of `<id> Name`. Two different endpoints are needed:
+   `items_en` for the 5,312 main items, `tasks_en` for the 135 quest items,
+   which `/items` does not return at all. See `docs/02_sources.md`.
 2. **Only 3,399 of 5,480 items have the unlockables `obtain_from` summary**,
    so the acquisition graph is rebuilt from the raw sources (barters, crafts,
    task rewards, hideout) rather than trusted from that index — and the index
@@ -402,8 +411,9 @@ Consequences that shape the pipeline:
    title for the same id).
 4. **Quest items live in a side dict** and are absent from `/items`, wiki and
    market for the most part (only 10/135 have a market name, 4/135 a wiki
-   name). Their names are derived from their `normalizedName` and flagged
-   `name_source: derived:slug` (121 of 5,480 rows).
+   name). All 135 are localized by `tasks_en` instead, so they carry
+   `name_source: tarkovdev:tasks_en` — no name in the dataset is derived from
+   a slug.
 
 ---
 

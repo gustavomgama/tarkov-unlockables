@@ -87,8 +87,15 @@ def load_all():
 
 
 def resolve_names(ctx):
-    """Fill ctx with id -> display string maps, plus name sources."""
+    """Fill ctx with id -> display string maps, plus name sources.
+
+    Two localization sources matter for items: `items_en` covers the 5,312
+    main items, but quest items are absent from `/items` and are localized in
+    `tasks_en` instead (all 135 carry `<id> Name` / `ShortName` / `Description`
+    there).
+    """
     en = ctx["en_items"]
+    en_tasks = ctx["en_tasks"]
     wiki = ctx["wiki_items"]
     market = {}
     for m in ctx["market"]:
@@ -106,6 +113,12 @@ def resolve_names(ctx):
             names[i], srcs[i] = n, "tarkovdev:items_en"
             shorts[i] = en.get(f"{i} ShortName")
             descs[i] = en.get(f"{i} Description")
+            continue
+        n = en_tasks.get(f"{i} Name")
+        if n:
+            names[i], srcs[i] = n, "tarkovdev:tasks_en"
+            shorts[i] = en_tasks.get(f"{i} ShortName")
+            descs[i] = en_tasks.get(f"{i} Description")
             continue
         w = wiki.get(i)
         if w and w.get("full_name"):
@@ -432,9 +445,9 @@ def build_tasks(ctx):
                 }
                 for nk in (t.get("neededKeys") or [])
             ],
-            "start_rewards": reward_block(ctx, t.get("startRewards")),
-            "finish_rewards": reward_block(ctx, t.get("finishRewards")),
-            "failure_outcome": reward_block(ctx, t.get("failureOutcome")),
+            "start_rewards": reward_block(ctx, t.get("startRewards"), tid, "start"),
+            "finish_rewards": reward_block(ctx, t.get("finishRewards"), tid, "finish"),
+            "failure_outcome": reward_block(ctx, t.get("failureOutcome"), tid, "failure"),
             "leads_to": [
                 {
                     "task_id": lt.get("task_id"),
@@ -461,14 +474,54 @@ def unique(seq):
     return out
 
 
-def reward_block(ctx, block):
+def _merge_unlocks(entries, key):
+    """Dedupe unlock entries across sources; tarkovdev entries win."""
+    out, seen = [], set()
+    for e in entries:
+        k = key(e)
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(e)
+    return out
+
+
+def reward_block(ctx, block, task_id=None, phase=None):
+    """A task's reward block, with unlocks merged from both sources.
+
+    `/regular/tasks` supplies offer/craft/trader unlocks but has no barter
+    unlock at all; the derived index supplies barter unlocks and the
+    trader/loyalty link for the others. Each entry is tagged `source`.
+    """
     block = block or {}
+    # The index records each unlock against the phase that grants it; keep only
+    # this block's phase. tarkovdev has no barterUnlock at all, so barter gates
+    # derived from `barter.taskUnlock` are attributed to the finish phase.
+    _idx = index_unlocks(ctx).get(task_id, {"barter": [], "craft": [], "offer": []})
+    idx = {k: [x for x in v if x.get("phase") == phase] for k, v in _idx.items()}
     items = [
         {**item_ref(ctx, i.get("item"), i.get("count")), "attributes": i.get("attributes") or {}}
         for i in (block.get("items") or [])
     ]
     return {
         "items": items,
+        "barter_unlock": _merge_unlocks(
+            ([
+                {
+                    "barter_id": b.get("id"), "trader_slug": (ctx["trader_by_id"].get(b.get("trader")) or {}).get("slug"),
+                    "min_trader_level": b.get("minTraderLevel"), "buy_limit": b.get("buyLimit"),
+                    "restock_amount": b.get("restockAmount"), "task_unlock_id": task_id,
+                    "offered": {"bsg_id": (b.get("offeredItem") or {}).get("item"),
+                                "name": ctx["names"].get((b.get("offeredItem") or {}).get("item")),
+                                "count": (b.get("offeredItem") or {}).get("count")},
+                    "required": [{"bsg_id": ri.get("item"), "name": ctx["names"].get(ri.get("item")), "count": ri.get("count")}
+                                 for ri in (b.get("requiredItems") or [])],
+                    "source": "tarkovdev", "phase": phase,
+                }
+                for b in ctx["barters"] if b.get("taskUnlock") == task_id
+            ] if phase == "finish" else []) + idx["barter"],
+            lambda x: ((x.get("offered") or {}).get("bsg_id"), x.get("trader_slug"), x.get("min_trader_level")),
+        ),
         "trader_standing": [
             {
                 "trader_id": s.get("trader"),
@@ -477,25 +530,33 @@ def reward_block(ctx, block):
             }
             for s in (block.get("traderStanding") or [])
         ],
-        "offer_unlock": [
-            {
-                **item_ref(ctx, o.get("item"), o.get("count")),
-                "unlock_id": o.get("id"),
-                "trader_id": o.get("trader"),
-                "trader_slug": (ctx["trader_by_id"].get(o.get("trader")) or {}).get("slug"),
-                "level": o.get("level"),
-            }
-            for o in (block.get("offerUnlock") or [])
-        ],
-        "craft_unlock": [
-            {
-                **item_ref(ctx, c.get("item"), c.get("count")),
-                "station_id": c.get("station"),
-                "station_name": (station_names(ctx).get(c.get("station")) or {}).get("name"),
-                "level": c.get("level"),
-            }
-            for c in (block.get("craftUnlock") or [])
-        ],
+        "offer_unlock": _merge_unlocks(
+            [
+                {
+                    **item_ref(ctx, o.get("item"), o.get("count")),
+                    "unlock_id": o.get("id"),
+                    "trader_id": o.get("trader"),
+                    "trader_slug": (ctx["trader_by_id"].get(o.get("trader")) or {}).get("slug"),
+                    "level": o.get("level"),
+                    "source": "tarkovdev",
+                }
+                for o in (block.get("offerUnlock") or [])
+            ] + idx["offer"],
+            lambda x: (x.get("bsg_id"), x.get("trader_slug"), x.get("level")),
+        ),
+        "craft_unlock": _merge_unlocks(
+            [
+                {
+                    **item_ref(ctx, c.get("item"), c.get("count")),
+                    "station_id": c.get("station"),
+                    "station_name": (station_names(ctx).get(c.get("station")) or {}).get("name"),
+                    "level": c.get("level"),
+                    "source": "tarkovdev",
+                }
+                for c in (block.get("craftUnlock") or [])
+            ] + idx["craft"],
+            lambda x: (x.get("bsg_id"), x.get("station_name"), x.get("level")),
+        ),
         "trader_unlock": [
             {
                 "trader_id": tid,
@@ -673,6 +734,121 @@ def index_offers(ctx, ob):
     return rows
 
 
+def _ll(value):
+    """'LL1' / '3' / '' -> int | None."""
+    digits = re.sub(r"[^0-9]", "", str(value or ""))
+    return int(digits) if digits else None
+
+
+def _idx_item(blk):
+    return {"bsg_id": blk.get("item_id"), "name": blk.get("item_name"), "count": blk.get("count")}
+
+
+def barter_ref(ctx, b):
+    """Normalize a tarkovdev barter into the canonical barter route shape."""
+    off = (b.get("offeredItem") or {}).get("item")
+    return {
+        "barter_id": b.get("id"),
+        "trader_slug": (ctx["trader_by_id"].get(b.get("trader")) or {}).get("slug"),
+        "min_trader_level": b.get("minTraderLevel"),
+        "buy_limit": b.get("buyLimit"),
+        "restock_amount": b.get("restockAmount"),
+        "task_unlock_id": b.get("taskUnlock"),
+        "task_name": (ctx["task_by_id"].get(b.get("taskUnlock")) or {}).get("name"),
+        "offered": {"bsg_id": off, "name": ctx["names"].get(off),
+                    "count": (b.get("offeredItem") or {}).get("count")},
+        "required": [
+            {"bsg_id": ri.get("item"), "name": ctx["names"].get(ri.get("item")), "count": ri.get("count")}
+            for ri in (b.get("requiredItems") or [])
+        ],
+        "source": "tarkovdev",
+    }
+
+
+def craft_ref(ctx, c):
+    """Normalize a tarkovdev craft into the canonical craft route shape."""
+    prod = c.get("productItem") or {}
+    return {
+        "craft_id": c.get("id"),
+        "station_id": c.get("station"),
+        "station_name": (station_names(ctx).get(c.get("station")) or {}).get("name"),
+        "level": c.get("level"),
+        "duration": c.get("duration"),
+        "task_unlock_id": c.get("taskUnlock"),
+        "task_name": (ctx["task_by_id"].get(c.get("taskUnlock")) or {}).get("name"),
+        "product": {"bsg_id": prod.get("item"), "name": ctx["names"].get(prod.get("item")), "count": prod.get("count")},
+        "required": [
+            {"bsg_id": ri.get("item"), "name": ctx["names"].get(ri.get("item")),
+             "count": ri.get("count"), "is_tool": bool((ri.get("attributes") or {}).get("tool"))}
+            for ri in (c.get("requiredItems") or [])
+        ],
+        "source": "tarkovdev",
+    }
+
+
+def index_unlocks(ctx):
+    """Unlocks the derived unlockables index carries that `/regular/tasks` does not.
+
+    The JSON API exposes no `barterUnlock` reward at all, so task-gated barters
+    exist *only* here — 45 items, 13 of which appear in no tarkovdev barter.
+    Craft and offer unlock links are included too, as cross-checks, tagged
+    `source: tarkovunlockables`. Cached on ctx.
+    """
+    if "_index_unlocks" in ctx:
+        return ctx["_index_unlocks"]
+    out = {}
+    for t in ctx["tasks_index"]:
+        tid = t.get("bsg_id")
+        if not tid:
+            continue
+        entry = {"barter": [], "craft": [], "offer": []}
+        for phase, key in (("start", "start_rewards"), ("finish", "finish_rewards")):
+            for r in (t.get(key) or []):
+                for bu in (r.get("barter_unlocks") or []):
+                    offered, required, slug, lvl = None, [], None, None
+                    for res in (bu.get("result") or []):
+                        for it in (res.get("items") or []):
+                            offered = offered or _idx_item(it)
+                    for req in (bu.get("requirements") or []):
+                        if slug is None:
+                            slug = (req.get("trader_name") or "").strip().lower().replace("_", "-") or None
+                            lvl = _ll(req.get("trader_level"))
+                        required += [_idx_item(i) for i in (req.get("items") or [])]
+                    entry["barter"].append({
+                        "barter_id": None, "trader_slug": slug, "min_trader_level": lvl,
+                        "buy_limit": None, "restock_amount": None, "task_unlock_id": tid,
+                        "task_name": ctx["task_by_id"].get(tid, {}).get("name"),
+                        "offered": offered, "required": required,
+                        "source": "tarkovunlockables", "phase": phase,
+                    })
+                for cu in (r.get("craft_unlocks") or []):
+                    entry["craft"].append({
+                        "bsg_id": cu.get("item_id"), "name": cu.get("item_name"),
+                        "station_name": cu.get("hideout_station"), "level": _ll(cu.get("station_level")),
+                        "source": "tarkovunlockables", "phase": phase,
+                    })
+                for ou in (r.get("offer_unlocks") or []):
+                    entry["offer"].append({
+                        "bsg_id": ou.get("item_id"), "name": ou.get("item_name"),
+                        "trader_slug": (ou.get("trader_name") or "").strip().lower().replace("_", "-") or None,
+                        "level": _ll(ou.get("trader_level")),
+                        "source": "tarkovunlockables", "phase": phase,
+                    })
+        if entry["barter"] or entry["craft"] or entry["offer"]:
+            out[tid] = entry
+    ctx["_index_unlocks"] = out
+    return out
+
+
+def index_barter_routes(ctx):
+    """All index barter-unlock recipes, flattened, with a dedupe key."""
+    routes = []
+    for tid, blk in index_unlocks(ctx).items():
+        for be in blk["barter"]:
+            routes.append(be)
+    return routes
+
+
 def build_items(ctx):
     raw_items = ctx["raw"]["items"]
     quest_items = ctx["quest_items"]
@@ -683,25 +859,42 @@ def build_items(ctx):
     hcats = ctx["raw"]["handbook_categories"]
 
     # --- forward/reverse acquisition prepasses ---------------------------
+    # Entries are stored already normalized so tarkovdev and the derived index
+    # can be merged into one list without the consumer caring where each came from.
     barter_by_offered = defaultdict(list)
     barter_uses = defaultdict(list)
+    seen_barter = defaultdict(set)          # offered_id -> dedupe keys already present
     for b in ctx["barters"]:
-        off = (b.get("offeredItem") or {}).get("item")
+        ref = barter_ref(ctx, b)
+        off = ref["offered"]["bsg_id"]
         if off:
-            barter_by_offered[off].append(b)
-        for ri in b.get("requiredItems") or []:
-            if ri.get("item"):
-                barter_uses[ri["item"]].append(b)
+            barter_by_offered[off].append(ref)
+        for ri in ref["required"]:
+            if ri.get("bsg_id"):
+                barter_uses[ri["bsg_id"]].append(ref)
+    for ref in index_barter_routes(ctx):
+        off = (ref["offered"] or {}).get("bsg_id")
+        if not off:
+            continue
+        key = (ref["trader_slug"], ref["min_trader_level"], ref["task_unlock_id"])
+        if key in seen_barter[off]:
+            continue
+        seen_barter[off].add(key)
+        barter_by_offered[off].append(ref)
+        for ri in ref["required"]:
+            if ri.get("bsg_id"):
+                barter_uses[ri["bsg_id"]].append(ref)
 
     craft_by_product = defaultdict(list)
     craft_uses = defaultdict(list)
     for c in ctx["crafts"]:
-        prod = (c.get("productItem") or {}).get("item")
+        ref = craft_ref(ctx, c)
+        prod = ref["product"]["bsg_id"]
         if prod:
-            craft_by_product[prod].append(c)
-        for ri in c.get("requiredItems") or []:
-            if ri.get("item"):
-                craft_uses[ri["item"]].append(c)
+            craft_by_product[prod].append(ref)
+        for ri in ref["required"]:
+            if ri.get("bsg_id"):
+                craft_uses[ri["bsg_id"]].append(ref)
 
     reward_items = defaultdict(list)
     for tid, t in ctx["tasks"].items():
@@ -767,35 +960,6 @@ def build_items(ctx):
 def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
               barter_by_offered, barter_uses, craft_by_product, craft_uses,
               reward_items, objective_uses, hideout_uses, sources):
-    def bref(b):
-        off = b.get("offeredItem") or {}
-        return {
-            "barter_id": b.get("id"),
-            "trader_slug": (ctx["trader_by_id"].get(b.get("trader")) or {}).get("slug"),
-            "min_trader_level": b.get("minTraderLevel"),
-            "buy_limit": b.get("buyLimit"),
-            "restock_amount": b.get("restockAmount"),
-            "task_unlock_id": b.get("taskUnlock"),
-            "offered": {"bsg_id": off.get("item"), "name": ctx["names"].get(off.get("item")), "count": off.get("count")},
-            "required": [{"bsg_id": ri.get("item"), "name": ctx["names"].get(ri.get("item")), "count": ri.get("count")} for ri in (b.get("requiredItems") or [])],
-        }
-
-    def cref(c):
-        prod = c.get("productItem") or {}
-        return {
-            "craft_id": c.get("id"),
-            "station_id": c.get("station"),
-            "station_name": (station.get(c.get("station")) or {}).get("name"),
-            "level": c.get("level"),
-            "duration": c.get("duration"),
-            "task_unlock_id": c.get("taskUnlock"),
-            "product": {"bsg_id": prod.get("item"), "name": ctx["names"].get(prod.get("item")), "count": prod.get("count")},
-            "required": [
-                {"bsg_id": ri.get("item"), "name": ctx["names"].get(ri.get("item")), "count": ri.get("count"), "is_tool": bool((ri.get("attributes") or {}).get("tool"))}
-                for ri in (c.get("requiredItems") or [])
-            ],
-        }
-
     category_ids = it.get("categories") or []
     handbook_ids = it.get("handbookCategories") or []
     return {
@@ -927,13 +1091,13 @@ def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
         "acquisition": {
             "buy": buy_routes(ctx, it),
             "index_offers": index_offers(ctx, ob),
-            "barter": [bref(b) for b in barter_by_offered.get(i, [])],
-            "craft": [cref(c) for c in craft_by_product.get(i, [])],
+            "barter": barter_by_offered.get(i, []),
+            "craft": craft_by_product.get(i, []),
             "task_rewards": reward_items.get(i, []),
         },
         "used_in": {
-            "crafts": [cref(c) for c in craft_uses.get(i, [])],
-            "barters": [bref(b) for b in barter_uses.get(i, [])],
+            "crafts": craft_uses.get(i, []),
+            "barters": barter_uses.get(i, []),
             "hideout_build": hideout_uses.get(i, []),
             "task_objectives": objective_uses.get(i, []),
         },

@@ -16,7 +16,7 @@ denormalized convenience — the `bsg_id` is the join key.
 | `name` | string | resolved display name (see `name_source`) |
 | `short_name` | string? | inventory label |
 | `description` | string? | official flavour text (4,835 available) |
-| `name_source` | string | `tarkovdev:items_en` \| `officialwiki` \| `tarkovmarket` \| `tarkovunlockables` \| `derived:slug` |
+| `name_source` | string | `tarkovdev:items_en` (5,312) \| `tarkovdev:tasks_en` (135 quest items) \| `tarkovmarket` (33). No name is derived from a slug. |
 | `quest_item` | bool | only exists as a quest hand-in/plant item |
 | `types` | string[] | game-facing tags/flags (`mods`, `noFlea`, `preset`, `ammoBox`, …) |
 | `categories` | object | `{ids, leaves, paths}` from the internal category tree |
@@ -49,9 +49,13 @@ index_offers[] the derived index's currency claims, kept separate because they
                describe preset *variants* and are broader but unpriced:
                {trader_slug, currency, level, variant, source: "tarkovunlockables"}
 barter[]       {barter_id, trader_slug, min_trader_level, buy_limit, restock_amount,
-                task_unlock_id, offered:{bsg_id,name,count}, required:[{bsg_id,name,count}]}
+                task_unlock_id, task_name, offered:{bsg_id,name,count},
+                required:[{bsg_id,name,count}], source}
+                source = tarkovdev (789) | tarkovunlockables (51 task-gated recipes
+                that /regular/tasks does not expose at all)
 craft[]        {craft_id, station_id, station_name, level, duration, task_unlock_id,
-                product:{bsg_id,name,count}, required:[{bsg_id,name,count,is_tool}]}
+                task_name, product:{bsg_id,name,count},
+                required:[{bsg_id,name,count,is_tool}], source: "tarkovdev"}
 task_rewards[] {task_id, task_name, phase, count}          phase = start | finish
 hideout_build  {station_id, station_name, level, count, found_in_raid}
 task_objectives{task_id, task_name, type}
@@ -101,9 +105,15 @@ comes from `tasks_en[objective_id]`.
 
 ```
 items[]                 {bsg_id, name, count, attributes}
+barter_unlock[]         {barter_id, trader_slug, min_trader_level, buy_limit,
+                        restock_amount, task_unlock_id, offered:{bsg_id,name,count},
+                        required:[{bsg_id,name,count}], source, phase}
+                        tarkovdev has no barterUnlock reward, so most entries here
+                        come from the derived index; a tarkovdev barter that names
+                        this task in `taskUnlock` contributes its recipe.
 trader_standing[]       {trader_id, trader_slug, standing}
-offer_unlock[]          {bsg_id, name, count, unlock_id, trader_id, trader_slug, level}
-craft_unlock[]          {bsg_id, name, count, station_id, station_name, level}
+offer_unlock[]          {bsg_id, name, count, unlock_id, trader_id, trader_slug, level, source}
+craft_unlock[]          {bsg_id, name, count, station_id, station_name, level, source}
 trader_unlock[]         {trader_id, trader_slug, trader_name}
 skill_level_reward[]    {skill, level}
 achievement[]           {id, name}
@@ -176,7 +186,8 @@ Useful views:
 - `v_task_chain` — forward task edges with both names.
 
 `item_acquisition.route` holds `buy` (tarkovdev), `buy_index` (the derived
-index's unpriced offers), `barter`, `craft` and `task_reward`; `item_used_in.route`
+index's unpriced offers), `barter`, `craft` and `task_reward` (`task_reward`
+rows include the `barter_unlock` kind); `item_used_in.route`
 holds `craft`, `barter`, `hideout_build` and `task_objective`.
 
 `conflicts` on an item is always empty in this snapshot (the upstream

@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 43.9 MB
+- `tarkov.sqlite3` — 44.3 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -18,7 +18,7 @@
 | hideout_level_trader_reqs | 5 |
 | hideout_levels | 68 |
 | hideout_stations | 26 |
-| item_acquisition | 7852 |
+| item_acquisition | 7903 |
 | item_categories | 35643 |
 | item_contained | 5995 |
 | item_grids | 903 |
@@ -27,7 +27,7 @@
 | item_sources | 17148 |
 | item_trade | 28146 |
 | item_types | 7019 |
-| item_used_in | 17511 |
+| item_used_in | 17597 |
 | items | 5480 |
 | maps | 17 |
 | mastery | 82 |
@@ -40,7 +40,7 @@
 | task_objective_refs | 18112 |
 | task_objectives | 1457 |
 | task_previous_tasks | 46 |
-| task_rewards | 1732 |
+| task_rewards | 1951 |
 | task_task_requirements | 241 |
 | task_trader_requirements | 124 |
 | tasks | 517 |

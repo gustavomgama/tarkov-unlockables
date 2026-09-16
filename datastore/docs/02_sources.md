@@ -59,6 +59,12 @@ as a ready-made summary and as a **cross-check**, but it only covers 3,399
 items (62% of the universe) and its `hideout` entries are crafts, so the
 canonical build recomputes acquisition from raw sources instead.
 
+One thing it carries that the raw API does **not** is `barter_unlocks` in
+`tasks_index.json` — `/regular/tasks` exposes no `barterUnlock` reward, so
+task-gated barter recipes (45 items, 13 of them in no tarkovdev barter) exist
+only here. Those are merged into `tasks.ndjson` reward blocks and into
+`items.ndjson` acquisition routes, tagged `source: tarkovunlockables`.
+
 ### tarkovmarket — names, tags, market links
 
 `https://api.tarkov-market.app/api/v1` (API key in `x-api-key`).
@@ -101,8 +107,8 @@ typed, wiki-markup links). Kept verbatim as `wiki.infobox`.
 
 | endpoint | bytes | why |
 | --- | ---: | --- |
-| `items_en` | 1.65 MB | 16,460 keys: `<id> Name` (5,821), `<id> ShortName` (5,344), `<id> Description` (4,835), plus slot/zone names (`MOD_PISTOL_GRIP` → "Pistol Grip"). **This is the display-name layer.** |
-| `tasks_en` | 249 KB | 3,645 keys: `"<id> name"` → quest name, objective ids → description |
+| `items_en` | 1.65 MB | 16,460 keys: `<id> Name` (5,821), `<id> ShortName` (5,344), `<id> Description` (4,835), plus slot/zone names (`MOD_PISTOL_GRIP` → "Pistol Grip"). **The main display-name layer.** Does *not* cover quest items. |
+| `tasks_en` | 249 KB | 3,645 keys: `"<id> name"` → quest name, objective ids → description, **and `"<id> Name"/"<id> ShortName"/"<id> Description"` for all 135 quest items**, which `/items` omits. |
 | `traders_en` | 3.5 KB | 32 keys: `"<id> Nickname"` / `"<id> Description"` |
 | `maps_en` | 23 KB | 424 keys: `"<id> Name"` → map name |
 | `maps` | 8.6 MB | 17 map entities: `raidDuration`, `players`, `enemies`, `bosses`, `extracts`, `transits` |
@@ -121,12 +127,11 @@ the task scopes the universe to `offlinedata`).
 
 Ranked by how likely it is to matter:
 
-1. **No localization for quest items.** `items_en` has no entry for the 135
-   quest items and `/items` does not include them. 121 of them end up with
-   `name_source: derived:slug` (a humanized `normalizedName`). Effect: names
-   are right in practice but not offically sourced. Fix: pull the names from
-   `all_wiki_content.wiki` item pages or from tarkov.dev's task objective
-   descriptions.
+1. ~~No localization for quest items.~~ **Resolved.** `items_en` has no entry
+   for the 135 quest items and `/items` does not include them, but `tasks_en`
+   localizes every one of them (`<id> Name` / `ShortName` / `Description`), so
+   the build reads it as a second name source. No item in the dataset falls
+   back to a slug-derived name.
 2. **No bulk flea prices from tarkov-market.** `items_all.json` has no price
    fields; only the single-item example does. Prices in the dataset are
    tarkovdev's (`avg24h_price` etc.), which are current-ish but a few fields

@@ -108,6 +108,10 @@ def main():
     check("M4A1 resolves with mod slots", lambda: _m4(items))
     check("'First in Line' task named", lambda: _task(tasks, "first-in-line"))
     check("every achievement has a name", lambda: _all_have(ref["achievements"], "name"))
+    check("no item name is derived", lambda: _no_derived_names(items))
+    check("index barter unlocks are routable", lambda: _index_barter_routes(items))
+    check("barter unlocks present, none in failure", lambda: _unlock_phases(tasks))
+    check("unlock sources are tagged", lambda: _unlock_sources(tasks))
     check("objective descriptions localised", lambda: _descriptions(tasks))
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
@@ -187,6 +191,59 @@ def _expect(actual, expected, label):
 def _min(value, minimum, label):
     assert value >= minimum, f"{label}: {value} < {minimum}"
     return f"{label} = {value}"
+
+
+def _no_derived_names(items):
+    derived = [i["bsg_id"] for i in items if (i["name_source"] or "").startswith("derived")]
+    assert not derived, f"{len(derived)} derived names, e.g. {derived[:3]}"
+    srcs = {i["name_source"] for i in items}
+    assert srcs <= {"tarkovdev:items_en", "tarkovdev:tasks_en", "officialwiki",
+                    "tarkovmarket", "tarkovunlockables"}, f"unexpected sources {srcs}"
+    return f"all official; sources={sorted(srcs)}"
+
+
+def _index_barter_routes(items):
+    """Every item the derived index says a task unlocks via barter must have a
+    canonical barter route carrying that task gate."""
+    import json as _json  # noqa: PLC0415
+    idx = _json.load(open(os.path.join(C.OFF, "tarkovunlockables/tasks_index.json"), encoding="utf-8"))
+    unlocked = set()
+    for t in idx:
+        for ph in ("start_rewards", "finish_rewards"):
+            for r in (t.get(ph) or []):
+                for bu in (r.get("barter_unlocks") or []):
+                    for res in (bu.get("result") or []):
+                        for it in (res.get("items") or []):
+                            if it.get("item_id"):
+                                unlocked.add(it["item_id"])
+    by = {i["bsg_id"]: i for i in items}
+    absent = [i for i in unlocked if i not in by]
+    ungated = [i for i in unlocked if i in by and not any(
+        b.get("task_unlock_id") for b in by[i]["acquisition"]["barter"])]
+    assert not absent, f"{len(absent)} unlocked items missing from dataset"
+    assert not ungated, f"{len(ungated)} unlocked items have no task-gated barter route"
+    return f"{len(unlocked)} unlocked items all gated"
+
+
+def _unlock_phases(tasks):
+    kinds = ("barter_unlock", "offer_unlock", "craft_unlock")
+    n = sum(len(t[p][k]) for t in tasks for p in ("start_rewards", "finish_rewards") for k in kinds)
+    bad = sum(len(t["failure_outcome"][k]) for t in tasks for k in kinds)
+    assert n > 0, "no unlocks at all"
+    assert bad == 0, f"{bad} unlock entries in failure_outcome"
+    bars = sum(len(t[p]["barter_unlock"]) for t in tasks for p in ("start_rewards", "finish_rewards"))
+    assert bars >= 60, f"only {bars} barter unlocks"
+    return f"{n} unlocks ({bars} barter), 0 in failure"
+
+
+def _unlock_sources(tasks):
+    srcs = {x.get("source") for t in tasks
+            for p in ("start_rewards", "finish_rewards", "failure_outcome")
+            for k in ("barter_unlock", "offer_unlock", "craft_unlock")
+            for x in t[p][k]}
+    assert srcs <= {"tarkovdev", "tarkovunlockables"}, f"untagged unlocks {srcs}"
+    assert {"tarkovdev", "tarkovunlockables"} <= srcs, f"a source vanished: {srcs}"
+    return f"sources={sorted(srcs)}"
 
 
 def _descriptions(tasks):

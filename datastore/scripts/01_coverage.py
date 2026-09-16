@@ -226,6 +226,23 @@ def cross_source(index_items, wiki_items, market_items, barters, crafts, wiki_ba
     p(f"- tarkovdev crafts produce {len(craft_products - idx_craft)} items the index does not mark as craftable")
     p()
 
+    # 1b. barter unlocks: the API has no barterUnlock reward at all
+    tasks_index = load("tarkovunlockables/tasks_index.json")
+    unlocked, recipes = set(), 0
+    for t in tasks_index:
+        for ph in ("start_rewards", "finish_rewards"):
+            for r in (t.get(ph) or []):
+                for bu in (r.get("barter_unlocks") or []):
+                    recipes += 1
+                    for res in (bu.get("result") or []):
+                        for it in (res.get("items") or []):
+                            if it.get("item_id"):
+                                unlocked.add(it["item_id"])
+    p(f"- index `barter_unlocks` recipes: {recipes}, distinct unlocked items: {len(unlocked)}; "
+      f"{len(unlocked - barter_offered)} of them are offered by **no** tarkovdev barter "
+      f"(the API exposes no `barterUnlock` reward) -> merged from the index")
+    p()
+
     # 2. wiki barter_list (names, no ids) vs tarkovdev barter count
     p(f"- wiki barter_list rows (names only): {len(wiki_barters)} vs tarkovdev barters: {len(barters)} "
       f"— the wiki lags the live API")
