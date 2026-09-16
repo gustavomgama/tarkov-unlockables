@@ -574,24 +574,29 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "show renders slots and where a mod fits" do
     weapon = Item.create!(bsg_id: "sl-#{SecureRandom.hex(4)}", full_name: "Slot Weapon", short_name: "SW")
-    mod = Item.create!(bsg_id: "sl-m-#{SecureRandom.hex(4)}", full_name: "Slot Mod", short_name: "SM")
+    mods = Array.new(8) do |i|
+      Item.create!(bsg_id: "sl-m#{i}-#{SecureRandom.hex(4)}", full_name: "Slot Mod #{i}", short_name: "SM#{i}")
+    end
     slot = weapon.item_slots.create!(slot_id: "s1", name: "Magazine", required: true, position: 0)
-    slot.item_slot_allowed_items.create!(item: mod)
+    mods.each { |mod| slot.item_slot_allowed_items.create!(item: mod) }
 
     get item_url(weapon)
 
     assert_response :success
     assert_select "h2", text: "Slots"
-    assert_select "a[href=?]", item_path(mod), text: "Slot Mod"
+    assert_select "a[href=?]", item_path(mods.first), text: "Slot Mod 0"
+    # The rest collapse behind a disclosure instead of being dropped.
+    assert_select "details.disclosure summary", text: /and 2 more/
+    assert_select "a[href=?]", item_path(mods[6]), text: "Slot Mod 6"
 
-    get item_url(mod)
+    get item_url(mods.first)
 
     assert_response :success
     assert_select "a[href=?]", item_path(weapon), text: "Slot Weapon"
     assert_match "Magazine", response.body
   ensure
     weapon&.destroy
-    mod&.destroy
+    mods&.each(&:destroy)
   end
 
   # --- typeahead ---

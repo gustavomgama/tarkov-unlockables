@@ -140,10 +140,15 @@
                   <div class="srcrow__body">
                     <p class="srcrow__title">
                       <%= safe_join(slot[:allowed].first(6).map { |id, name| link_to name, item_path(id) }, ", ") %>
-                      <% if slot[:allowed].size > 6 %>
-                        <span class="text-[var(--text-muted)]">(+<%= slot[:allowed].size - 6 %> more)</span>
-                      <% end %>
                     </p>
+                    <% if slot[:allowed].size > 6 %>
+                      <details class="disclosure">
+                        <summary class="srcrow__meta">and <%= slot[:allowed].size - 6 %> more</summary>
+                        <p class="srcrow__title mt-1">
+                          <%= safe_join(slot[:allowed].drop(6).map { |id, name| link_to name, item_path(id) }, ", ") %>
+                        </p>
+                      </details>
+                    <% end %>
                   </div>
                 </div>
               <% end %>
