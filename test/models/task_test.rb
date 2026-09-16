@@ -16,11 +16,14 @@ require "test_helper"
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  search_text          :string           default(""), not null
+#  map_id               :string
+#  map_name             :string
 #
 # Indexes
 #
 #  index_tasks_on_full_name         (full_name)
 #  index_tasks_on_given_by          (given_by)
+#  index_tasks_on_map_name          (map_name)
 #  index_tasks_on_name              (name)
 #  index_tasks_on_search_text_trgm  (search_text) USING gin
 #

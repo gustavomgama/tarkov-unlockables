@@ -144,6 +144,8 @@ module Importers
             name:                 raw["slug"],
             wiki_link:            raw["wiki_link"],
             given_by:             raw["trader_slug"],
+            map_id:               raw["map_id"],
+            map_name:             raw["map_name"],
             kappa_required:       raw["kappa_required"],
             lightkeeper_required: raw["lightkeeper_required"]
           )

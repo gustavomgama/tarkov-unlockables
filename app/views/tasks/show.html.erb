@@ -36,6 +36,9 @@
             <% if @task.given_by.present? %>
               <%= link_to "#{@task.given_by.titleize} quests", tasks_path(trader: @task.given_by), class: "chip chip--link" %>
             <% end %>
+            <% if @task.map_name.present? %>
+              <%= link_to "#{@task.map_name} quests", tasks_path(map: @task.map_name), class: "chip chip--link" %>
+            <% end %>
             <% if @task.wiki_link.present? %>
               <a href="<%= @task.wiki_link %>" target="_blank" rel="noopener" class="chip chip--link">Wiki walkthrough</a>
             <% end %>

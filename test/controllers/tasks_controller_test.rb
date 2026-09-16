@@ -44,6 +44,27 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     Task.where(id: [ kappa&.id, other&.id ]).delete_all
   end
 
+  test "index filters by map and the task page links back to the map" do
+    task = Task.create!(bsg_id: "mp-#{SecureRandom.hex(4)}", full_name: "Customs Job", name: "customs-job",
+                        given_by: "Prapor", map_name: "Customs")
+    other = Task.create!(bsg_id: "mp2-#{SecureRandom.hex(4)}", full_name: "Woods Job", name: "woods-job",
+                         given_by: "Prapor", map_name: "Woods")
+
+    get tasks_url(map: "Customs")
+
+    assert_response :success
+    assert_match "Customs Job", response.body
+    assert_no_match(/Woods Job/, response.body)
+    assert_select "nav[aria-label='Filter by map'] a[aria-current='true']", text: "Customs"
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "a[href=?]", tasks_path(map: "Customs"), text: "Customs quests"
+  ensure
+    Task.where(id: [ task&.id, other&.id ]).delete_all
+  end
+
   test "show renders task header and unlock path from the prerequisite graph" do
     get task_url(tasks(:one))
 
