@@ -95,6 +95,11 @@ Fandom wiki (`escapefromtarkov.fandom.com`).
 | `wiki_items_not_in_items_index.wiki` | 21 KB | 152 items with trader data but missing from the unlockables index — a documented gap |
 | `itembatches/` | 11 MB | 85 MediaWiki API batches, 3,936 pages — the raw crawl behind `parsed_items.json` |
 
+The wiki infobox also supplies an internal game id (`ID`, 2,784 items),
+loot/examine XP (674), a handbook price (651) and a hand-maintained trader
+loyalty list (`trader`, 2,371 items → 2,536 parsed offers), all of which are
+exposed on the canonical item record.
+
 The wiki infobox is the raw in-game stat sheet (`trader`, `ergonomics`,
 `recoil`, `MOA`, `caliber`, `damage`, `penetration`, `armor`, `durability`,
 `loot_xp`, `exam_xp`, …). It is 1:1 complementary to `properties`: richer in

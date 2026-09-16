@@ -25,7 +25,7 @@
 - `categories.ndjson` — 0.1 MB
 - `crafts.ndjson` — 0.2 MB
 - `hideout_stations.ndjson` — 0.1 MB
-- `items.ndjson` — 35.3 MB
+- `items.ndjson` — 36.0 MB
 - `maps.ndjson` — 0.1 MB
 - `reference.json` — 0.2 MB
 - `tasks.ndjson` — 3.7 MB

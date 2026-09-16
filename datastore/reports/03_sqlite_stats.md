@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 50.3 MB
+- `tarkov.sqlite3` — 50.9 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -30,7 +30,9 @@
 | item_trade | 28146 |
 | item_types | 7019 |
 | item_used_in | 17597 |
+| item_wiki_meta | 3899 |
 | item_wiki_slots | 25108 |
+| item_wiki_trader_offers | 2536 |
 | items | 5480 |
 | maps | 17 |
 | mastery | 82 |

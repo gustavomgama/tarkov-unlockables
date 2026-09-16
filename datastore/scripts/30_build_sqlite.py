@@ -48,6 +48,10 @@ CREATE TABLE item_grids (bsg_id TEXT, width INTEGER, height INTEGER, allowed_cat
 CREATE TABLE item_conflicts (bsg_id TEXT, other_bsg_id TEXT, source TEXT);
 CREATE TABLE item_compatibility (bsg_id TEXT, other_bsg_id TEXT);
 CREATE TABLE item_wiki_slots (bsg_id TEXT, slot TEXT, allowed_bsg_id TEXT);
+CREATE TABLE item_wiki_meta (bsg_id TEXT PRIMARY KEY, internal_id TEXT, price INTEGER, loot_xp INTEGER, exam_xp INTEGER);
+CREATE TABLE item_wiki_trader_offers (
+  bsg_id TEXT, trader_slug TEXT, trader_name TEXT, level INTEGER, variant TEXT, faction TEXT
+);
 
 CREATE TABLE item_slots (
   id TEXT PRIMARY KEY, bsg_id TEXT, name_id TEXT, name TEXT, required INTEGER, allowed_count INTEGER
@@ -164,6 +168,8 @@ CREATE INDEX idx_item_conflict_other ON item_conflicts(other_bsg_id);
 CREATE INDEX idx_item_compat ON item_compatibility(bsg_id);
 CREATE INDEX idx_item_compat_other ON item_compatibility(other_bsg_id);
 CREATE INDEX idx_item_wiki_slots ON item_wiki_slots(bsg_id);
+CREATE INDEX idx_item_wiki_offers ON item_wiki_trader_offers(bsg_id);
+CREATE INDEX idx_item_wiki_offers_trader ON item_wiki_trader_offers(trader_slug);
 CREATE INDEX idx_item_cat ON item_categories(kind, category_id);
 CREATE INDEX idx_item_slot ON item_slots(bsg_id);
 CREATE INDEX idx_slot_allowed ON item_slot_allowed(allowed_bsg_id);
@@ -406,6 +412,15 @@ def main():
                         + [(r["bsg_id"], x["bsg_id"], "officialwiki") for x in r["conflicts"]["wiki_items"] if x.get("bsg_id")])
         cur.executemany("INSERT INTO item_compatibility VALUES (?,?)",
                         [(r["bsg_id"], x["bsg_id"]) for x in r.get("compatibility") or [] if x.get("bsg_id")])
+        wk = r.get("wiki") or {}
+        if wk:
+            cur.execute("INSERT OR REPLACE INTO item_wiki_meta VALUES (?,?,?,?,?)",
+                        (r["bsg_id"], wk.get("internal_id"), wk.get("price"),
+                         (wk.get("xp") or {}).get("loot_xp"), (wk.get("xp") or {}).get("exam_xp")))
+            cur.executemany("INSERT INTO item_wiki_trader_offers VALUES (?,?,?,?,?,?)",
+                            [(r["bsg_id"], o["trader_slug"], o["trader_name"], o.get("level_number"),
+                              o.get("variant"), o.get("faction"))
+                             for o in wk.get("trader_offers") or []])
         for wm in ((r.get("wiki") or {}).get("mod_slots") or []):
             cur.executemany("INSERT INTO item_wiki_slots VALUES (?,?,?)",
                             [(r["bsg_id"], wm.get("slot"), x["bsg_id"]) for x in (wm.get("items") or []) if x.get("bsg_id")])

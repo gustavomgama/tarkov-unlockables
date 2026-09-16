@@ -115,14 +115,14 @@ Universe of distinct BSG ids across all item sources: **5489**
 - craft requiredItems ids not in tarkovdev items: 0
 - craft productItem ids not in tarkovdev items: 0
 - distinct craft.station ids: 8
-    - `5d484fdf654e7600691aadf8` in tarkovdev items? False  name=None
-    - `5d484fd1654e76006732bf2e` in tarkovdev items? False  name=None
-    - `5d484fda654e7600681d9315` in tarkovdev items? False  name=None
-    - `5d494a3f5b56502f18c98a0e` in tarkovdev items? False  name=None
     - `5d494a445b56502f18c98a10` in tarkovdev items? False  name=None
-    - `5d484fcd654e7668ec2ec322` in tarkovdev items? False  name=None
-    - `5d484fc8654e760065037abf` in tarkovdev items? False  name=None
     - `5d484fba654e7600691aadf7` in tarkovdev items? False  name=None
+    - `5d484fda654e7600681d9315` in tarkovdev items? False  name=None
+    - `5d484fdf654e7600691aadf8` in tarkovdev items? False  name=None
+    - `5d484fc8654e760065037abf` in tarkovdev items? False  name=None
+    - `5d484fcd654e7668ec2ec322` in tarkovdev items? False  name=None
+    - `5d494a3f5b56502f18c98a0e` in tarkovdev items? False  name=None
+    - `5d484fd1654e76006732bf2e` in tarkovdev items? False  name=None
 - distinct task.map ids: 13
     - `55f2d3fd4bdc2d5f408b4567` in tarkovdev items? False  normalizedName=None
     - `56f40101d2720b2a4d8b45d6` in tarkovdev items? False  normalizedName=None
@@ -182,6 +182,8 @@ Universe of distinct BSG ids across all item sources: **5489**
 - tarkovdev crafts produce 19 items the index does not mark as craftable
 
 - index `barter_unlocks` recipes: 52, distinct unlocked items: 45; 13 of them are offered by **no** tarkovdev barter (the API exposes no `barterUnlock` reward) -> merged from the index
+
+- wiki infobox `trader` field parses to 2536 trader/loyalty offers across 2371 items; cross-checked against canonical buy/index_offers in `99_verify.py`
 
 - wiki barter_list rows (names only): 443 vs tarkovdev barters: 789 — the wiki lags the live API
 

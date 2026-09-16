@@ -34,7 +34,11 @@ denormalized convenience — the `bsg_id` is the join key.
 | `compatibility` | object[] | `{bsg_id, name}` — the wiki's "Compatibility" field: the base weapon(s) this mod is made for (9,131 relations over 1,645 items), an independent view of the mod graph |
 | `images` | object | `{icon, grid, base, inspect, image512, image8x, market, market_big}` |
 | `links` | object | `{tarkovdev, wiki, market}` |
-| `wiki` | object? | `{title, infobox, mod_slots, weapon_variants}`; `infobox` is the raw wiki stat sheet |
+| `wiki` | object? | `{title, internal_id, xp, price, trader_offers, infobox, mod_slots, weapon_variants}` |
+| `wiki.internal_id` | string? | the game's own internal id (2,784 items, e.g. `weapon_colt_m4a1_556x45`) |
+| `wiki.xp` | object | `{loot_xp, exam_xp}` — XP for looting / examining (674 items) |
+| `wiki.price` | int? | handbook price as printed by the wiki (651 items) |
+| `wiki.trader_offers` | object[] | the wiki's independent seller list: `{trader_name, trader_slug, level, level_number, variant, faction}` (2,536 offers over 2,371 items; 206 name a preset variant) |
 | `market` | object? | `{uid, tags[], name, short_name}` from tarkov-market |
 | `acquisition` | object | `{buy[], index_offers[], barter[], craft[], task_rewards[]}` |
 | `used_in` | object | `{crafts[], barters[], hideout_build[], task_objectives[]}` |
@@ -185,6 +189,9 @@ Useful views:
 - `v_item_price` — item + flea price + best trader sell / buy in one row.
 - `v_item_acquisition` — flattened acquisition routes joined to item names.
 - `v_task_chain` — forward task edges with both names.
+
+`item_wiki_meta` carries `internal_id`/`price`/`loot_xp`/`exam_xp`;
+`item_wiki_trader_offers` carries the parsed wiki seller list.
 
 `item_acquisition.route` holds `buy` (tarkovdev), `buy_index` (the derived
 index's unpriced offers), `barter`, `craft` and `task_reward` (`task_reward`

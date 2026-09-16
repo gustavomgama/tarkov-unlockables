@@ -958,6 +958,44 @@ def build_items(ctx):
 
 
 WIKI_PSEUDO_SLOTS = frozenset({"Compatibility", "Conflicting items"})
+WIKI_TRADER_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]\s*(LL\d)?")
+WIKI_FACTION_RE = re.compile(r"^\s*\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]\s*:\s*(.+)$")
+WIKI_FACTIONS = frozenset({"bear", "usec"})
+
+
+def parse_wiki_trader(text):
+    """Parse the wiki infobox `trader` field into structured offers.
+
+    Shape: `[[Peacekeeper]] LL3: Standard<br/>[[Mechanic]] LL3<br/>...` where
+    the part after ':' names the weapon variant the trader sells. This is an
+    independent, human-maintained view of the buy routes.
+    """
+    if not text:
+        return []
+    out = []
+    for chunk in str(text).split("<br/>"):
+        faction = None
+        fm = WIKI_FACTION_RE.match(chunk)
+        if fm and C.slugify(fm.group(1)) in WIKI_FACTIONS:
+            faction = C.slugify(fm.group(1))
+            chunk = fm.group(2)
+        m = WIKI_TRADER_RE.search(chunk)
+        if not m:
+            continue
+        page = m.group(1).strip()
+        level = m.group(2)
+        variant = chunk.split(":", 1)[1].strip() if ":" in chunk.split("]]", 1)[-1] else None
+        if variant:
+            variant = re.sub(r"\[\[([^\]|]+)(?:\|[^\]]*)?\]\]", r"\1", variant).strip() or None
+        out.append({
+            "trader_name": page,
+            "trader_slug": C.slugify(page) or page.lower().replace(" ", "-"),
+            "level": level,
+            "level_number": _ll(level),
+            "variant": variant,
+            "faction": faction,
+        })
+    return out
 
 
 def wiki_section(wiki_item, label):
@@ -1101,6 +1139,11 @@ def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
         },
         "wiki": ({
             "title": w.get("full_name"),
+            "internal_id": (w.get("infobox") or {}).get("ID"),
+            "xp": {k: (w.get("infobox") or {}).get(k) for k in ("loot_xp", "exam_xp")
+                   if (w.get("infobox") or {}).get(k) is not None},
+            "price": (w.get("infobox") or {}).get("price"),
+            "trader_offers": parse_wiki_trader((w.get("infobox") or {}).get("trader")),
             "infobox": w.get("infobox") or {},
             "mod_slots": [
                 {"slot": m.get("slot"), "items": [item_ref(ctx, x) for x in (m.get("items") or [])]}

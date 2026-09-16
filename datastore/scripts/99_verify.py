@@ -115,6 +115,7 @@ def main():
     check("objective descriptions localised", lambda: _descriptions(tasks))
     check("wiki conflict relations resolve", lambda: _wiki_conflicts(items))
     check("wiki compatibility relations resolve", lambda: _compat(items))
+    check("wiki trader offers parse and corroborate", lambda: _wiki_offers(items, trader_slugs))
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -273,6 +274,29 @@ def _wiki_conflicts(items):
     return f"api={len(api)}, wiki={len(wiki_ids)} ({agreed} corroborated, {added} wiki-only)"
 
 
+def _wiki_offers(items, trader_slugs):
+    """The wiki infobox carries an independent, human-maintained list of who
+    sells what at which loyalty level; assert it parses and corroborates."""
+    rows = [(i["bsg_id"], o) for i in items for o in (i.get("wiki") or {}).get("trader_offers") or []]
+    assert len(rows) >= 2_500, f"only {len(rows)} wiki trader offers"
+    unknown = {o["trader_slug"] for _, o in rows} - trader_slugs
+    assert not unknown, f"unknown traders in wiki offers: {sorted(unknown)}"
+    factions = {o.get("faction") for _, o in rows} - {None}
+    assert factions <= {"bear", "usec"}, f"unexpected edition factions {factions}"
+    matched = 0
+    for i in items:
+        wiki = {o["trader_slug"] for o in (i.get("wiki") or {}).get("trader_offers") or []}
+        if not wiki:
+            continue
+        api = {b["trader_slug"] for b in i["acquisition"]["buy"]} | {o["trader_slug"] for o in i["acquisition"]["index_offers"]}
+        matched += len(wiki & api)
+    total = len(rows)
+    assert matched / total >= 0.90, f"only {matched}/{total} wiki offers corroborated"
+    internal = sum(1 for i in items if (i.get("wiki") or {}).get("internal_id"))
+    assert internal >= 2_700, f"only {internal} wiki internal ids"
+    return f"{total} offers over {sum(1 for i in items if (i.get('wiki') or {}).get('trader_offers'))} items, {matched} ({matched * 100 // total}%) corroborated, {internal} internal ids"
+
+
 def _compat(items):
     edges = [(i["bsg_id"], x) for i in items for x in i.get("compatibility") or []]
     assert len(edges) >= 8000, f"only {len(edges)} compatibility edges"
@@ -283,7 +307,8 @@ def _compat(items):
 
 def _wiki_tables(con):
     out = {}
-    for t in ("item_wiki_slots", "item_conflicts", "item_compatibility", "item_grids"):
+    for t in ("item_wiki_slots", "item_wiki_meta", "item_wiki_trader_offers",
+              "item_conflicts", "item_compatibility", "item_grids"):
         out[t] = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
         assert out[t] > 0, f"{t} is empty"
     wiki_conf = con.execute("SELECT COUNT(*) FROM item_conflicts WHERE source='officialwiki'").fetchone()[0]

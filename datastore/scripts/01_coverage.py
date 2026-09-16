@@ -243,6 +243,19 @@ def cross_source(index_items, wiki_items, market_items, barters, crafts, wiki_ba
       f"(the API exposes no `barterUnlock` reward) -> merged from the index")
     p()
 
+    # 1c. wiki infobox trader list vs the API's buy routes
+    pi = load("officialwiki/parsed_items.json")
+    tot_off = matched = 0
+    for bsg, parsed in pi.items():
+        for chunk in str((parsed.get("infobox") or {}).get("trader") or "").split("<br/>"):
+            m = re.search(r"\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]\s*(LL\d)?", chunk)
+            if m:
+                tot_off += 1
+    p(f"- wiki infobox `trader` field parses to {tot_off} trader/loyalty offers across "
+      f"{sum(1 for v in pi.values() if (v.get('infobox') or {}).get('trader'))} items; "
+      "cross-checked against canonical buy/index_offers in `99_verify.py`")
+    p()
+
     # 2. wiki barter_list (names, no ids) vs tarkovdev barter count
     p(f"- wiki barter_list rows (names only): {len(wiki_barters)} vs tarkovdev barters: {len(barters)} "
       f"— the wiki lags the live API")

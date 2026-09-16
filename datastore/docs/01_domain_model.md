@@ -31,6 +31,11 @@ table. Where tarkov.dev returned a raw id where a slug would be friendlier
 (e.g. `buyFromTrader[].trader`) the canonical build resolved it to
 `trader_slug`, keeping the raw id alongside.
 
+A third namespace appears in the wiki infobox: the game's own `internal_id`
+(`weapon_colt_m4a1_556x45`), available for 2,784 items and stored as
+`wiki.internal_id`. It is not used as a key — the BSG id remains the join key —
+but it is the string the game files use.
+
 The BSG id is the only identifier present in **every** source, which is why
 the canonical dataset is keyed by it.
 
@@ -165,6 +170,14 @@ Shop mechanics:
 A currency purchase is `item_trade(direction='buy_from')` with
 `min_trader_level` and `buy_limit`. A **barter** is a different row type
 entirely (§4).
+
+The wiki's item pages carry an independent, hand-maintained seller list in
+their infobox (`[[Peacekeeper]] LL3: Standard<br/>…`), parsed into
+`wiki.trader_offers` — 2,536 offers over 2,371 items, 206 naming a preset
+variant. 98% of them name a trader that the API's buy routes also mention, and
+78% match on (trader, loyalty) exactly; the 2 items the wiki credits to a
+trader with no API buy route are event/quest items. Where the wiki is the only
+source of a variant name it is kept verbatim rather than guessed.
 
 ---
 
