@@ -32,6 +32,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
           "propertiesType" => "ItemPropertiesWeapon",
           "caliber" => "Caliber545x39", "allowedAmmo" => %w[a1], "stackMaxSize" => 60
         },
+        "physical" => { "weight" => 3.5, "width" => 2, "height" => 1, "stack_max_size" => 1 },
         "contains_items" => [ { "bsg_id" => "a1", "name" => "5.45x39mm PS", "count" => 1 } ],
         "images" => { "icon" => "icon.png", "grid" => "grid.png", "base" => "base.png" },
         "links" => { "wiki" => "https://wiki/ak-74", "tarkovdev" => "https://tarkov.dev/ak-74",
@@ -192,6 +193,10 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal [ { "slot" => "Stock", "items" => [] } ], data["mods"]
     assert_equal [ { "name" => "AK-74N" } ], data["weapon_variants"]
     assert_equal [ { "item" => "a1", "count" => 1 } ], data["containsItems"]
+
+    # Physical facts ride along so the page can show weight and grid size.
+    assert_equal 3.5, data["weight"]
+    assert_equal [ 2, 1 ], [ data["width"], data["height"] ]
 
     ammo = Item.find_by!(bsg_id: "a1").data
     assert_equal 54, ammo["damage"]

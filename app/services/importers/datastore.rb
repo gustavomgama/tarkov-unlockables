@@ -119,7 +119,10 @@ module Importers
     def item_data(raw, infobox)
       props = raw["properties"].is_a?(Hash) ? raw["properties"] : {}
       snake = props.to_h { |key, value| [ key.to_s.underscore, value ] }
-      infobox.slice(*INFOBOX_KEYS).merge(props).merge(snake).merge(
+      # `physical` is the only home for weight, grid size and stack size; the
+      # item page reads them straight off `data`.
+      physical = raw["physical"].is_a?(Hash) ? raw["physical"] : {}
+      infobox.slice(*INFOBOX_KEYS).merge(props).merge(snake).merge(physical).merge(
         "types"         => raw["types"],
         "containsItems" => Array(raw["contains_items"]).map { |c| { "item" => c["bsg_id"], "count" => c["count"] } },
         "mods"          => raw.dig("wiki", "mod_slots"),

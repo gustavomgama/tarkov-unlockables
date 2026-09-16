@@ -64,6 +64,34 @@
           <div class="readout"><%= stats %></div>
         </div>
       <% end %>
+
+      <%# Physical facts every item has: weight, grid size, stack. %>
+      <% weight = @item.data["weight"] %>
+      <% width = @item.data["width"] %>
+      <% height = @item.data["height"] %>
+      <% stack = @item.data["stack_max_size"] %>
+      <% if weight.present? || (width.present? && height.present?) || stack.to_i > 1 %>
+        <dl class="specs mt-4 sm:mt-5">
+          <% if weight.present? %>
+            <div class="spec">
+              <dt class="spec__key">Weight</dt>
+              <dd class="spec__val"><%= weight %> kg</dd>
+            </div>
+          <% end %>
+          <% if width.present? && height.present? %>
+            <div class="spec">
+              <dt class="spec__key">Size</dt>
+              <dd class="spec__val"><%= width %> × <%= height %> slots</dd>
+            </div>
+          <% end %>
+          <% if stack.to_i > 1 %>
+            <div class="spec">
+              <dt class="spec__key">Stack</dt>
+              <dd class="spec__val"><%= stack %></dd>
+            </div>
+          <% end %>
+        </dl>
+      <% end %>
     </div>
   </section>
 

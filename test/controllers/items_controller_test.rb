@@ -557,6 +557,19 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     input&.destroy
   end
 
+  test "show renders item weight and grid size" do
+    item = Item.create!(bsg_id: "ph-#{SecureRandom.hex(4)}", full_name: "Heavy Item", short_name: "HI",
+                        data: { "weight" => 3.5, "width" => 2, "height" => 1, "stack_max_size" => 1 })
+
+    get item_url(item)
+
+    assert_response :success
+    assert_match "3.5 kg", response.body
+    assert_match "2 × 1 slots", response.body
+  ensure
+    item&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

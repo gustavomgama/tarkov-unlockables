@@ -10,7 +10,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 
 | | canonical | Postgres | why they differ |
 | --- | ---: | ---: | --- |
-| items | 5,481 | 5,481 | 1:1 on `bsg_id`. Slots, grids, `properties` and acquisition collapse into the `data` jsonb. |
+| items | 5,481 | 5,481 | 1:1 on `bsg_id`. Slots, grids, `properties`, `physical` and acquisition collapse into the `data` jsonb. |
 | tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives and needed keys are stored; maps are denormalized and most reward kinds are dropped. |
 | buy routes | 2,658 `buy` + 3,202 `index_offers` | 3,248 `item_currencies` | one row per `(trader, currency, level)`, the two sources deduped; price, `price_rub` and buy limit stored. |
 | barter offers | 789 | 840 `item_barters` | one row per offer; inputs in `item_barter_requirements`, plus limit, restock and the task gate. |
