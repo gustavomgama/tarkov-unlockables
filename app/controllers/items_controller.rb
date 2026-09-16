@@ -67,6 +67,21 @@ class ItemsController < ApplicationController
       { item_hideout_requirements: { item_hideout: [ :item, :task ] } },
       { task_objective_items: { task_objective: :task } }
     ).find(params[:id])
+
+    # Mod graph: plain queries turned into hashes, so nothing is eager-loaded
+    # for the items that have no slots (Bullet reads that as a wasted query).
+    slot_rows = @item.item_slots.order(:position).pluck(:id, :name, :required)
+    allowed = ItemSlotAllowedItem.where(item_slot_id: slot_rows.map(&:first))
+                                 .joins(:item)
+                                 .pluck(:item_slot_id, "items.id", "items.full_name")
+    @item_slots = slot_rows.map do |slot_id, name, required|
+      matches = allowed.select { |row| row[0] == slot_id }
+      { name: name, required: required, allowed: matches.map { |row| row.drop(1) } }
+    end
+    @item_fits = ItemSlotAllowedItem.where(item_id: @item.id)
+                                    .joins(item_slot: :item)
+                                    .pluck("item_slots.name", "items.id", "items.full_name")
+
     fresh_when(@item, public: true)
   end
 

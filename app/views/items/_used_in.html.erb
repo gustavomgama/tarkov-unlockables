@@ -1,8 +1,9 @@
-<%# What this item is worth: the barters and crafts it feeds and the quests
-    that accept it. The other half of "should I keep this". Locals: item,
-    barters, crafts, objectives (requirement/item rows). Capped because one
-    item (GP coin) feeds hundreds of barters. %>
+<%# What this item is worth: the barters and crafts it feeds, the quests that
+    accept it and the slots it fits. Locals: item, barters, crafts,
+    objectives (requirement/item rows) and fits ([slot, parent id, parent]).
+    Capped because one item (GP coin) feeds hundreds of barters. %>
 <% limit = 12 %>
+<% fits = Array(fits) %>
 
 <div class="panel__body panel__body--flush">
   <% barters.first(limit).each do |entry| %>
@@ -87,5 +88,21 @@
   <% end %>
   <% if handins.size > limit %>
     <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= handins.size - limit %> more quests.</p>
+  <% end %>
+
+  <%# Slots this item fits, as [slot name, parent id, parent name]. %>
+  <% fits.first(limit).each do |slot_name, parent_id, parent_name| %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-currency)">Fits</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title">
+          <%= link_to parent_name, item_path(parent_id) %>
+          <span class="text-[var(--text-muted)]">(<%= slot_name %></span>)
+        </p>
+      </div>
+    </div>
+  <% end %>
+  <% if fits.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= fits.size - limit %> more slots.</p>
   <% end %>
 </div>

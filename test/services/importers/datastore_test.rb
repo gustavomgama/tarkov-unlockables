@@ -33,6 +33,10 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
           "caliber" => "Caliber545x39", "allowedAmmo" => %w[a1], "stackMaxSize" => 60
         },
         "physical" => { "weight" => 3.5, "width" => 2, "height" => 1, "stack_max_size" => 1 },
+        "slots" => [
+          { "id" => "slot1", "name_id" => "mod_magazine", "name" => "Magazine",
+            "required" => true, "filters" => { "allowed_items" => %w[a1] } }
+        ],
         "contains_items" => [ { "bsg_id" => "a1", "name" => "5.45x39mm PS", "count" => 1 } ],
         "images" => { "icon" => "icon.png", "grid" => "grid.png", "base" => "base.png" },
         "links" => { "wiki" => "https://wiki/ak-74", "tarkovdev" => "https://tarkov.dev/ak-74",
@@ -386,6 +390,14 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal [ 6, 0.7, 0.4 ], [ ll2.required_player_level, ll2.required_reputation, ll2.pay_rate ]
   end
 
+  test "imports the mod slot graph" do
+    import!
+
+    slot = Item.find_by!(bsg_id: "w1").item_slots.sole
+    assert_equal [ "Magazine", "mod_magazine", true ], [ slot.name, slot.name_id, slot.required ]
+    assert_equal Item.find_by!(bsg_id: "a1").id, slot.item_slot_allowed_items.sole.item_id
+  end
+
   test "is idempotent — reseeding replaces rather than accumulates" do
     import!
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
@@ -394,7 +406,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
                ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
                HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count,
-               Trader.count, TraderLevel.count ]
+               Trader.count, TraderLevel.count, ItemSlot.count, ItemSlotAllowedItem.count ]
 
     Importers::Datastore.import!(source: @source)
 
@@ -404,6 +416,6 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                            BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
                            ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
                            HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count,
-                           Trader.count, TraderLevel.count ]
+                           Trader.count, TraderLevel.count, ItemSlot.count, ItemSlotAllowedItem.count ]
   end
 end

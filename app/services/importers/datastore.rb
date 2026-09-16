@@ -25,6 +25,7 @@ module Importers
       hideout_item_requirements hideout_levels hideout_stations
       item_barter_requirements item_barters item_currencies
       item_hideout_requirements item_hideouts
+      item_slot_allowed_items item_slots
       leads_tos loose_items offer_unlocks previous_tasks requirements rewards
       task_objective_items task_objectives item_task_rewards
       trader_levels traders
@@ -64,6 +65,7 @@ module Importers
     def import!
       truncate!
       import_items
+      import_slots
       import_tasks
       import_task_graph
       import_item_acquisition
@@ -143,6 +145,45 @@ module Importers
       caliber = raw.dig("properties", "caliber")
       categories << Item.caliber_display(caliber).downcase.tr(" ", "_") if caliber.present?
       categories.uniq
+    end
+
+    # --- mod graph -------------------------------------------------------
+
+    # 3,564 slots and 39,910 allowed-item edges in one pass. insert_all keeps
+    # it seconds instead of a minute of individual inserts, so the slot ids
+    # are re-read once to map (item, slot bsg id) -> row id.
+    def import_slots
+      now = Time.current
+      slot_rows = []
+      allowed = []
+
+      @items.each do |raw|
+        parent_id = @item_id_by_bsg[raw["bsg_id"]]
+        next unless parent_id
+
+        Array(raw["slots"]).each_with_index do |slot, index|
+          slot_rows << {
+            item_id: parent_id, slot_id: slot["id"], name_id: slot["name_id"],
+            name: slot["name"], required: slot["required"] || false,
+            position: index, created_at: now, updated_at: now
+          }
+          Array(slot.dig("filters", "allowed_items")).each do |allowed_bsg|
+            allowed << [ [ parent_id, slot["id"] ], allowed_bsg ]
+          end
+        end
+      end
+
+      ItemSlot.insert_all(slot_rows) if slot_rows.any?
+      slot_ids = ItemSlot.pluck(:item_id, :slot_id, :id)
+                         .to_h { |item_id, slot_id, id| [ [ item_id, slot_id ], id ] }
+
+      edge_rows = allowed.filter_map do |key, allowed_bsg|
+        slot_id = slot_ids[key]
+        next unless slot_id
+        { item_slot_id: slot_id, item_id: @item_id_by_bsg[allowed_bsg],
+          created_at: now, updated_at: now }
+      end
+      edge_rows.each_slice(5_000) { |batch| ItemSlotAllowedItem.insert_all(batch) }
     end
 
     # --- tasks -----------------------------------------------------------

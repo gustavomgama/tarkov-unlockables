@@ -30,7 +30,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | canonical | Postgres | note |
 | --- | --- | --- |
 | `items` | `items` | 1:1 on `bsg_id`. Canonical `name`→`full_name`, `short_name`→`short_name`, `slug`→`slug`, `links`/`images`→arrays, `properties`+`stats`→`data` jsonb. |
-| `items.slots` | — | **no table.** The DB has no mod-slot graph; the wiki `mods` block is dumped raw into `data.mods`. |
+| `items.slots` | `item_slots` + `item_slot_allowed_items` | 3,564 slots and 39,910 "this fits here" edges. The wiki `mods` block is still dumped raw into `data.mods`. |
 | `items.grids` | — | **no table.** Only `data` jsonb. |
 | `items.contains_items` | — | **no table.** Only `data.containsItems`. |
 | `items.trade.buy_from` | `item_currencies` | canonical adds `price`, `price_rub`, `buy_limit`; `task_unlock` is a bool in the DB but a task id here. |
@@ -59,7 +59,9 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 
 ## What the DB still cannot answer
 
-1. **"Can this weapon build work?"** — no slot graph, no allowed-items edges.
+1. **"Can this weapon build work?"** — the slot graph is stored, but the app
+   does not sum a build's stats or validate required slots; it lists what
+   fits each slot.
 2. **"Which tasks unlock the Jaeger trader, or a location?"** — the 2
    `trader_unlock` and the location unlocks are dropped; offer and craft
    unlocks are stored.
@@ -78,11 +80,11 @@ Ordered by value per unit of work; nothing above is required for the dataset to
 be useful on its own. The item universe is already done — `db:seed` loads all
 5,481 canonical items, not the 3,399 the old index knew.
 
-1. **Add the item mod graph** (`item_slots`, `item_slot_allowed`) — the last
-   big canonical entity not surfaced; needed for any gun-builder feature.
-2. **Add `categories`** (with `kind`) so the taxonomy is not item-local.
-3. **Relationalize trader names** (`item_currencies.trader` → `trader_id`),
+1. **Add `categories`** (with `kind`) so the taxonomy is not item-local.
+2. **Relationalize trader names** (`item_currencies.trader` → `trader_id`),
    now that a `traders` table exists.
+3. **Build a gun-builder on the slot graph**: sum the selected mods' stats and
+   validate required slots, which the app does not do yet.
 
 The canonical NDJSON maps to those tables one-to-one, and
 `datastore/tarkov.sqlite3` already *is* that shape in a queryable form — it is

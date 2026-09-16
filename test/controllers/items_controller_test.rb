@@ -572,6 +572,28 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show renders slots and where a mod fits" do
+    weapon = Item.create!(bsg_id: "sl-#{SecureRandom.hex(4)}", full_name: "Slot Weapon", short_name: "SW")
+    mod = Item.create!(bsg_id: "sl-m-#{SecureRandom.hex(4)}", full_name: "Slot Mod", short_name: "SM")
+    slot = weapon.item_slots.create!(slot_id: "s1", name: "Magazine", required: true, position: 0)
+    slot.item_slot_allowed_items.create!(item: mod)
+
+    get item_url(weapon)
+
+    assert_response :success
+    assert_select "h2", text: "Slots"
+    assert_select "a[href=?]", item_path(mod), text: "Slot Mod"
+
+    get item_url(mod)
+
+    assert_response :success
+    assert_select "a[href=?]", item_path(weapon), text: "Slot Weapon"
+    assert_match "Magazine", response.body
+  ensure
+    weapon&.destroy
+    mod&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

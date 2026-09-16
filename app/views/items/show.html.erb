@@ -13,7 +13,8 @@
 <% used_in_objectives = @item.task_objective_items.to_a %>
 <% variants = Array(@item.data["weapon_variants"]).select { |v| v.is_a?(Hash) && v["name"].present? } %>
 <% has_main = siblings.size > 1 || accepted.any? || packs.any? || used_in_barters.any? ||
-              used_in_crafts.any? || used_in_objectives.any? || variants.any? %>
+              used_in_crafts.any? || used_in_objectives.any? || variants.any? ||
+              @item_slots.any? || @item_fits.any? %>
 
 <div class="space-y-4 sm:space-y-6">
   <nav class="crumbs no-print" aria-label="Breadcrumb">
@@ -124,13 +125,40 @@
           </section>
         <% end %>
 
-        <% if used_in_barters.any? || used_in_crafts.any? || used_in_objectives.any? %>
+        <% if @item_slots.any? %>
+          <section class="panel" aria-labelledby="slots-head">
+            <div class="panel__head">
+              <h2 id="slots-head" class="panel__title">Slots</h2>
+              <span class="panel__note">what fits</span>
+            </div>
+            <div class="panel__body panel__body--flush">
+              <% @item_slots.each do |slot| %>
+                <div class="srcrow">
+                  <span class="srcbadge" style="--tone: var(--badge-currency)">
+                    <%= slot[:name].presence || "Slot" %><%= " *" if slot[:required] %>
+                  </span>
+                  <div class="srcrow__body">
+                    <p class="srcrow__title">
+                      <%= safe_join(slot[:allowed].first(6).map { |id, name| link_to name, item_path(id) }, ", ") %>
+                      <% if slot[:allowed].size > 6 %>
+                        <span class="text-[var(--text-muted)]">(+<%= slot[:allowed].size - 6 %> more)</span>
+                      <% end %>
+                    </p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+
+        <% if used_in_barters.any? || used_in_crafts.any? || used_in_objectives.any? || @item_fits.any? %>
           <section class="panel" aria-labelledby="used-in-head">
             <div class="panel__head">
               <h2 id="used-in-head" class="panel__title">Used in</h2>
               <span class="panel__note">what this item is worth</span>
             </div>
-            <%= render "items/used_in", item: @item, barters: used_in_barters, crafts: used_in_crafts, objectives: used_in_objectives %>
+            <%= render "items/used_in", item: @item, barters: used_in_barters,
+                  crafts: used_in_crafts, objectives: used_in_objectives, fits: @item_fits %>
           </section>
         <% end %>
 

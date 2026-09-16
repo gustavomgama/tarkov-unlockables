@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000010) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -229,6 +229,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000010) do
     t.index ["task_id"], name: "index_item_hideouts_on_task_id"
   end
 
+  create_table "item_slot_allowed_items", force: :cascade do |t|
+    t.bigint "item_slot_id", null: false
+    t.bigint "item_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_id"], name: "index_item_slot_allowed_items_on_item_id"
+    t.index ["item_slot_id"], name: "index_item_slot_allowed_items_on_item_slot_id"
+  end
+
+  create_table "item_slots", force: :cascade do |t|
+    t.bigint "item_id", null: false
+    t.string "slot_id"
+    t.string "name_id"
+    t.string "name"
+    t.boolean "required", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_id"], name: "index_item_slots_on_item_id"
+  end
+
   create_table "item_task_rewards", force: :cascade do |t|
     t.bigint "item_id", null: false
     t.bigint "task_id"
@@ -429,6 +450,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000010) do
   add_foreign_key "item_hideout_requirements", "items"
   add_foreign_key "item_hideouts", "items"
   add_foreign_key "item_hideouts", "tasks"
+  add_foreign_key "item_slot_allowed_items", "item_slots", on_delete: :cascade
+  add_foreign_key "item_slot_allowed_items", "items"
+  add_foreign_key "item_slots", "items"
   add_foreign_key "item_task_rewards", "items"
   add_foreign_key "item_task_rewards", "tasks"
   add_foreign_key "leads_tos", "tasks"
