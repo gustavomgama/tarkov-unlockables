@@ -8,9 +8,12 @@
         Every trader contract with its unlock path, requirements and rewards — press <kbd>/</kbd> to search.
       </p>
     </div>
-    <p class="font-data text-sm text-[var(--text-muted)]">
-      <span class="text-[var(--text)]"><%= number_with_delimiter(@task_count) %></span> quests
-    </p>
+    <div class="flex items-center gap-3">
+      <p class="font-data text-sm text-[var(--text-muted)]">
+        <span class="text-[var(--text)]"><%= number_with_delimiter(@task_count) %></span> quests
+      </p>
+      <%= link_to "Task chains", chains_tasks_path, class: "chip chip--link" %>
+    </div>
   </div>
 
   <%# Filter state carried through every chip and the search form, so

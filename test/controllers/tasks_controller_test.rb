@@ -6,6 +6,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get tasks_url
     assert_response :success
+    assert_select "a[href=?]", chains_tasks_path, text: "Task chains"
   end
 
   test "index search by full_name returns matching tasks" do
