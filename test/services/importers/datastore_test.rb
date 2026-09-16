@@ -68,10 +68,15 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                     "mod_slots" => [], "weapon_variants" => [] },
         "acquisition" => {
           "buy" => [], "index_offers" => [],
-          "barter" => [ { "trader_slug" => "prapor", "min_trader_level" => 2,
+          "barter" => [ { "barter_id" => "b1", "trader_slug" => "prapor", "min_trader_level" => 2,
+                          "buy_limit" => 3, "restock_amount" => 100, "task_unlock_id" => "t1",
                           "offered" => { "bsg_id" => "a1", "name" => "5.45x39mm PS", "count" => 1 },
                           "required" => [ { "bsg_id" => "w1", "name" => "AK-74", "count" => 2 } ] } ],
-          "craft" => [ { "station_name" => "Workbench", "level" => 2 } ],
+          "craft" => [ { "craft_id" => "c1", "station_name" => "Workbench", "level" => 2,
+                         "duration" => 8200, "task_unlock_id" => nil,
+                         "product" => { "bsg_id" => "a1", "name" => "5.45x39mm PS", "count" => 6 },
+                         "required" => [ { "bsg_id" => "w1", "name" => "AK-74", "count" => 1,
+                                           "is_tool" => true } ] } ],
           "task_rewards" => [ { "task_id" => "t1", "task_name" => "first-task" } ]
         }
       }
@@ -188,6 +193,21 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal [ [ "Workbench", 2 ] ], ammo.item_hideouts.map { |h| [ h.station, h.level ] }
     assert_equal [ "first-task" ], ammo.item_task_rewards.map(&:task_name)
     assert_equal Task.find_by!(bsg_id: "t1").id, ammo.item_task_rewards.first.task_id
+
+    barter = ammo.item_barters.first
+    assert_equal "b1", barter.barter_id
+    assert_equal [ 3, 100 ], [ barter.buy_limit, barter.restock_amount ]
+    assert_equal Task.find_by!(bsg_id: "t1").id, barter.task_id
+    assert_equal [ [ "AK-74", 2 ] ],
+                 barter.item_barter_requirements.map { |r| [ r.item_name, r.count ] }
+    assert_equal Item.find_by!(bsg_id: "w1").id, barter.item_barter_requirements.first.item_id
+
+    craft = ammo.item_hideouts.first
+    assert_equal "c1", craft.craft_id
+    assert_equal [ 6, 8200 ], [ craft.count, craft.duration ]
+    assert_nil craft.task_id
+    assert_equal [ [ "AK-74", 1, true ] ],
+                 craft.item_hideout_requirements.map { |r| [ r.item_name, r.count, r.is_tool ] }
   end
 
   test "imports tasks and resolves the prerequisite graph by slug" do
@@ -252,13 +272,15 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
                ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
-               BarterUnlock.count, CraftUnlock.count ]
+               BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
+               ItemHideoutRequirement.count ]
 
     Importers::Datastore.import!(source: @source)
 
     assert_equal counts, [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
                            ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                            PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
-                           BarterUnlock.count, CraftUnlock.count ]
+                           BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
+                           ItemHideoutRequirement.count ]
   end
 end

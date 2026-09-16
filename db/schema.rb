@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -118,6 +118,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
     t.index ["item_id"], name: "index_favorite_items_on_item_id"
   end
 
+  create_table "item_barter_requirements", force: :cascade do |t|
+    t.bigint "item_barter_id", null: false
+    t.bigint "item_id"
+    t.string "item_name"
+    t.integer "count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_barter_id"], name: "index_item_barter_requirements_on_item_barter_id"
+    t.index ["item_id"], name: "index_item_barter_requirements_on_item_id"
+  end
+
   create_table "item_barters", force: :cascade do |t|
     t.bigint "item_id", null: false
     t.string "trader"
@@ -127,7 +138,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
     t.string "item_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "barter_id"
+    t.integer "count", default: 1, null: false
+    t.integer "buy_limit"
+    t.bigint "restock_amount"
+    t.bigint "task_id"
+    t.index ["barter_id"], name: "index_item_barters_on_barter_id"
     t.index ["item_id"], name: "index_item_barters_on_item_id"
+    t.index ["task_id"], name: "index_item_barters_on_task_id"
   end
 
   create_table "item_currencies", force: :cascade do |t|
@@ -148,13 +166,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
     t.index ["trader"], name: "index_item_currencies_on_trader"
   end
 
+  create_table "item_hideout_requirements", force: :cascade do |t|
+    t.bigint "item_hideout_id", null: false
+    t.bigint "item_id"
+    t.string "item_name"
+    t.integer "count"
+    t.boolean "is_tool", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_hideout_id"], name: "index_item_hideout_requirements_on_item_hideout_id"
+    t.index ["item_id"], name: "index_item_hideout_requirements_on_item_id"
+  end
+
   create_table "item_hideouts", force: :cascade do |t|
     t.bigint "item_id", null: false
     t.string "station"
     t.integer "level"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "craft_id"
+    t.integer "count", default: 1, null: false
+    t.integer "duration"
+    t.bigint "task_id"
+    t.index ["craft_id"], name: "index_item_hideouts_on_craft_id"
     t.index ["item_id"], name: "index_item_hideouts_on_item_id"
+    t.index ["task_id"], name: "index_item_hideouts_on_task_id"
   end
 
   create_table "item_task_rewards", force: :cascade do |t|
@@ -289,10 +325,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
   add_foreign_key "craft_unlocks", "items"
   add_foreign_key "craft_unlocks", "rewards"
   add_foreign_key "favorite_items", "items", on_delete: :restrict
+  add_foreign_key "item_barter_requirements", "item_barters", on_delete: :cascade
+  add_foreign_key "item_barter_requirements", "items"
   add_foreign_key "item_barters", "items"
+  add_foreign_key "item_barters", "tasks"
   add_foreign_key "item_currencies", "items"
   add_foreign_key "item_currencies", "tasks"
+  add_foreign_key "item_hideout_requirements", "item_hideouts", on_delete: :cascade
+  add_foreign_key "item_hideout_requirements", "items"
   add_foreign_key "item_hideouts", "items"
+  add_foreign_key "item_hideouts", "tasks"
   add_foreign_key "item_task_rewards", "items"
   add_foreign_key "item_task_rewards", "tasks"
   add_foreign_key "leads_tos", "tasks"

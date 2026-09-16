@@ -3,8 +3,8 @@
   obtain_associations = [
     { name: :item_currencies,    label: "Currencies",     fields: [:trader, :currency, :min_trader_level, :price, :price_rub, :buy_limit, :task_unlock] },
     { name: :item_task_rewards,  label: "Task Rewards",   fields: [:task_name] },
-    { name: :item_hideouts,      label: "Hideouts",       fields: [:station, :level] },
-    { name: :item_barters,       label: "Barters",        fields: [:trader, :trader_level, :currency, :cost, :item_name] }
+    { name: :item_hideouts,      label: "Hideouts",       fields: [:craft_id, :station, :level, :count, :duration] },
+    { name: :item_barters,       label: "Barters",        fields: [:barter_id, :trader, :trader_level, :currency, :cost, :item_name, :count, :buy_limit, :restock_amount] }
   ]
 %>
 

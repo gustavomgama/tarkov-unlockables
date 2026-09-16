@@ -56,8 +56,8 @@ class ItemsController < ApplicationController
     # "How to Unlock" section and raid timelines with zero extra queries.
     @item = Item.includes(
       { item_task_rewards: :task },
-      :item_hideouts,
-      :item_barters,
+      { item_hideouts: [ :item_hideout_requirements, :task ] },
+      { item_barters: [ :item_barter_requirements, :task ] },
       :item_currencies,
       { offer_unlocks: { reward: :task } },
       { barter_unlocks: { reward: :task } },

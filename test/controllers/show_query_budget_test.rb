@@ -41,10 +41,13 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
   #            with three costs 17, because the preloads batch.
   #   28 → 30  two MAX() scans for the layout's data-freshness line, cached
   #            hourly (see ApplicationHelper#data_freshness).
+  #   30 → 32  barter and craft recipes (inputs, tools, duration) preload two
+  #            more nested graphs. Also flat: one query per graph regardless
+  #            of how many requirement rows an offer has.
   test "items#show query budget" do
     url = item_url(items(:one))
     queries = count_queries { get url }
     assert_response :success
-    assert_operator queries, :<=, 30, "items#show fired #{queries} queries"
+    assert_operator queries, :<=, 32, "items#show fired #{queries} queries"
   end
 end

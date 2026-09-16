@@ -530,6 +530,27 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show renders barter and craft recipes" do
+    item = Item.create!(bsg_id: "br-#{SecureRandom.hex(4)}", full_name: "Recipe Item", short_name: "RI")
+    input = Item.create!(bsg_id: "br-in-#{SecureRandom.hex(4)}", full_name: "Input Widget", short_name: "IW")
+    barter = item.item_barters.create!(trader: "Prapor", trader_level: "2", item_name: item.full_name,
+                                       count: 2, buy_limit: 3)
+    barter.item_barter_requirements.create!(item: input, item_name: input.full_name, count: 4)
+    craft = item.item_hideouts.create!(station: "Workbench", level: 2, count: 6, duration: 8200)
+    craft.item_hideout_requirements.create!(item: input, item_name: input.full_name, count: 1, is_tool: true)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_match "for Input Widget ×4", response.body
+    assert_match "Buy limit 3 per reset", response.body
+    assert_match "tools needed: Input Widget", response.body
+    assert_match "about 2 hours", response.body
+  ensure
+    item&.destroy
+    input&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

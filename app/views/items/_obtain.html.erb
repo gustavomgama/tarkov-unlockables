@@ -5,8 +5,7 @@
 <%# The import can repeat a row; the same offer twice is noise, not data. %>
 <% traders  = item.item_currencies.uniq { |c| [ c.trader, c.currency, c.min_trader_level ] } %>
 <% barters  = item.item_barters %>
-<% hideouts = item.item_hideouts.uniq { |h| [ h.station, h.level ] } %>
-<% barter_groups = barters.group_by { |b| [ b.trader, b.trader_level ] } %>
+<% hideouts = item.item_hideouts %>
 
 <% if rewards.any? || traders.any? || barters.any? || hideouts.any? %>
   <div class="panel__body panel__body--flush">
@@ -40,20 +39,27 @@
       </div>
     <% end %>
 
-    <% barter_groups.each do |(trader, level), group| %>
-      <% gives = group.filter_map(&:item_name).uniq %>
+    <% barters.each do |barter| %>
       <div class="srcrow">
         <span class="srcbadge" style="--tone: var(--badge-barter)">Barter</span>
         <div class="srcrow__body">
           <p class="srcrow__title">
-            <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= trader.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-            <%= trader.presence&.titleize || "Unknown trader" %>
-            <span class="font-data text-[var(--text-muted)]">LL<%= level %></span>
+            <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= barter.trader.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+            <%= barter.trader.presence&.titleize || "Unknown trader" %>
+            <span class="font-data text-[var(--text-muted)]">LL<%= barter.trader_level %></span>
+            <% if barter.count.to_i > 1 %>
+              <span class="font-data text-[var(--text-bright)]">×<%= barter.count %></span>
+            <% end %>
           </p>
-          <%# Barter contents are often absent from the import; say nothing
-              rather than repeat "not recorded" on every row. %>
-          <% if gives.any? %>
-            <p class="srcrow__meta">for <%= gives.to_sentence %></p>
+          <% required = barter.item_barter_requirements %>
+          <% if required.any? %>
+            <p class="srcrow__meta">for <%= required.map { |r| "#{r.item_name} ×#{r.count}" }.to_sentence %></p>
+          <% end %>
+          <% if barter.buy_limit.present? %>
+            <p class="srcrow__meta"><span class="font-data">Buy limit <%= barter.buy_limit %> per reset</span></p>
+          <% end %>
+          <% if barter.task %>
+            <p class="srcrow__meta">unlocked by <%= link_to barter.task.full_name, task_path(barter.task) %></p>
           <% end %>
         </div>
       </div>
@@ -63,8 +69,28 @@
       <div class="srcrow">
         <span class="srcbadge" style="--tone: var(--badge-hideout)">Hideout</span>
         <div class="srcrow__body">
-          <p class="srcrow__title"><%= hideout.station %> <span class="font-data text-[var(--text-muted)]">Level <%= hideout.level %></span></p>
-          <p class="srcrow__meta">crafted at the hideout</p>
+          <p class="srcrow__title">
+            <%= hideout.station %>
+            <span class="font-data text-[var(--text-muted)]">Level <%= hideout.level %></span>
+            <% if hideout.count.to_i > 1 %>
+              <span class="font-data text-[var(--text-bright)]">×<%= hideout.count %></span>
+            <% end %>
+          </p>
+          <% required = hideout.item_hideout_requirements %>
+          <% needs = required.reject(&:is_tool) %>
+          <% tools = required.select(&:is_tool) %>
+          <% if needs.any? %>
+            <p class="srcrow__meta">needs <%= needs.map { |r| "#{r.item_name} ×#{r.count}" }.to_sentence %></p>
+          <% end %>
+          <% if tools.any? %>
+            <p class="srcrow__meta">tools needed: <%= tools.map(&:item_name).to_sentence %></p>
+          <% end %>
+          <% if hideout.duration.present? %>
+            <p class="srcrow__meta"><span class="font-data"><%= distance_of_time_in_words(hideout.duration) %></span></p>
+          <% end %>
+          <% if hideout.task %>
+            <p class="srcrow__meta">unlocked by <%= link_to hideout.task.full_name, task_path(hideout.task) %></p>
+          <% end %>
         </div>
       </div>
     <% end %>

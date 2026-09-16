@@ -22,7 +22,8 @@ module Importers
       barter_results barter_unlocks
       craft_requirement_items craft_requirements craft_result_items
       craft_results craft_unlocks
-      item_barters item_currencies item_hideouts item_task_rewards
+      item_barter_requirements item_barters item_currencies
+      item_hideout_requirements item_hideouts item_task_rewards
       leads_tos loose_items offer_unlocks previous_tasks requirements rewards
       items tasks
     ].freeze
@@ -311,18 +312,42 @@ module Importers
           end
 
           Array(acquisition["barter"]).each do |entry|
-            item.item_barters.create!(
-              trader:       entry["trader_slug"].to_s.titleize,
-              trader_level: entry["min_trader_level"].to_s,
-              item_name:    entry.dig("offered", "name")
+            barter = item.item_barters.create!(
+              barter_id:      entry["barter_id"],
+              trader:         entry["trader_slug"].to_s.titleize,
+              trader_level:   entry["min_trader_level"].to_s,
+              item_name:      entry.dig("offered", "name"),
+              count:          (entry.dig("offered", "count") || 1).to_i,
+              buy_limit:      entry["buy_limit"],
+              restock_amount: entry["restock_amount"],
+              task_id:        @task_id_by_bsg[entry["task_unlock_id"]]
             )
+            Array(entry["required"]).each do |req|
+              barter.item_barter_requirements.create!(
+                item_id:   @item_id_by_bsg[req["bsg_id"]],
+                item_name: req["name"],
+                count:     req["count"].to_i
+              )
+            end
           end
 
           Array(acquisition["craft"]).each do |entry|
-            item.item_hideouts.create!(
-              station: entry["station_name"],
-              level:   entry["level"].to_i
+            craft = item.item_hideouts.create!(
+              craft_id: entry["craft_id"],
+              station:  entry["station_name"],
+              level:    entry["level"].to_i,
+              count:    (entry.dig("product", "count") || 1).to_i,
+              duration: entry["duration"],
+              task_id:  @task_id_by_bsg[entry["task_unlock_id"]]
             )
+            Array(entry["required"]).each do |req|
+              craft.item_hideout_requirements.create!(
+                item_id:   @item_id_by_bsg[req["bsg_id"]],
+                item_name: req["name"],
+                count:     req["count"].to_i,
+                is_tool:   req["is_tool"] || false
+              )
+            end
           end
 
           Array(acquisition["task_rewards"]).each do |entry|
