@@ -71,6 +71,15 @@ durability/heat as `1+factor`) and the wiki's 1-decimal rounding, **1,510 of
 30% vs 25%) plus a cluster on 20/70 shells where the wiki's heat and damage are
 systematically higher.
 
+The join between the wiki and the API items is the infobox **`node` id**, not
+the page title. The title can disagree with the API's item name — 22 of the
+4,115 covered items (0.5%) do, e.g. the page "AWC PSR .338 LM muzzle brake"
+whose single `node` is the item the API calls "SilencerCo AC-858 ASR .338 LM
+muzzle brake". A handful of pages also group two ids (the "Locked case" page
+lists both the locked and the opened case); those items share one infobox in
+the wiki itself, so the shared page is faithful rather than a misattachment.
+`99_verify` bounds the disagreement so it cannot grow into real misattachment.
+
 `obtain_from` per item is `{task_rewards, hideout, barter, currency}`. Useful
 as a ready-made summary and as a **cross-check**, but it only covers 3,399
 items (62% of the universe) and its `hideout` entries are crafts, so the

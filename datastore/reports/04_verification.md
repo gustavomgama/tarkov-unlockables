@@ -69,7 +69,7 @@
 | 65 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
 | 66 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
 | 67 | PASS | special-slot ids resolve to items or categories — 37 ids = 28 items + 9 categories; 44 items carry the specialSlot type |
-| 68 | PASS | every wiki infobox id is attached to its item — 4115/5481 items carry a wiki block; 216 ids filled from 156 multi-id pages; 1 wiki-only item(s) |
+| 68 | PASS | every wiki infobox id is attached to its item — 4115/5481 items carry a wiki block; 216 ids filled from 156 multi-id pages; 1 wiki-only item(s); 22 title/name differences |
 | 69 | PASS | no table is entirely empty — 52 tables all non-empty |
 | 70 | PASS | wiki-derived relations loaded — item_wiki_slots=26786, item_wiki_meta=4115, item_wiki_trader_offers=2760, item_conflicts=13588, item_compatibility=10775, item_grids=903 |
 

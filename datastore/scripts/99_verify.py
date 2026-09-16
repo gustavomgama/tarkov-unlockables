@@ -499,9 +499,24 @@ def _wiki_page_coverage():
     assert covered >= 4100, f"only {covered} items carry a wiki block"
     wiki_only = [i for i in items if i["sources"] == ["officialwiki"]]
     assert len(wiki_only) <= 5, f"{len(wiki_only)} items come from the wiki alone"
+    # the join key is the infobox node id, so the wiki page title may differ from
+    # the API's item name; bounded so it cannot drift into real misattachment
+    mismatch = 0
+    for i in items:
+        w = i.get("wiki")
+        if not w:
+            continue
+        title, name = _norm_name(w.get("title")), _norm_name(i["name"])
+        if title and name and title != name and title not in name and name not in title:
+            mismatch += 1
+    assert mismatch <= 80, f"{mismatch} wiki titles disagree with the item name"
     return (f"{covered}/{len(items)} items carry a wiki block; "
             f"{exp['ids']} ids filled from {exp['pages']} multi-id pages; "
-            f"{len(wiki_only)} wiki-only item(s)")
+            f"{len(wiki_only)} wiki-only item(s); {mismatch} title/name differences")
+
+
+def _norm_name(text):
+    return re.sub(r"[^a-z0-9]", "", (text or "").lower())
 
 
 def _build_parts_agree():
