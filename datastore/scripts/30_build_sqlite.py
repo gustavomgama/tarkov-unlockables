@@ -45,6 +45,9 @@ CREATE TABLE item_categories (bsg_id TEXT, kind TEXT, category_id TEXT, path TEX
 CREATE TABLE item_sources (bsg_id TEXT, source TEXT, PRIMARY KEY (bsg_id, source));
 CREATE TABLE item_contained (bsg_id TEXT, contained_bsg_id TEXT, count INTEGER);
 CREATE TABLE item_grids (bsg_id TEXT, width INTEGER, height INTEGER, allowed_categories TEXT, allowed_items TEXT);
+CREATE TABLE item_conflicts (bsg_id TEXT, other_bsg_id TEXT, source TEXT);
+CREATE TABLE item_compatibility (bsg_id TEXT, other_bsg_id TEXT);
+CREATE TABLE item_wiki_slots (bsg_id TEXT, slot TEXT, allowed_bsg_id TEXT);
 
 CREATE TABLE item_slots (
   id TEXT PRIMARY KEY, bsg_id TEXT, name_id TEXT, name TEXT, required INTEGER, allowed_count INTEGER
@@ -156,6 +159,11 @@ CREATE INDEX idx_items_ptype ON items(properties_type);
 CREATE INDEX idx_items_caliber ON items(caliber);
 CREATE INDEX idx_item_types_type ON item_types(type);
 CREATE INDEX idx_item_grids ON item_grids(bsg_id);
+CREATE INDEX idx_item_conflicts ON item_conflicts(bsg_id);
+CREATE INDEX idx_item_conflict_other ON item_conflicts(other_bsg_id);
+CREATE INDEX idx_item_compat ON item_compatibility(bsg_id);
+CREATE INDEX idx_item_compat_other ON item_compatibility(other_bsg_id);
+CREATE INDEX idx_item_wiki_slots ON item_wiki_slots(bsg_id);
 CREATE INDEX idx_item_cat ON item_categories(kind, category_id);
 CREATE INDEX idx_item_slot ON item_slots(bsg_id);
 CREATE INDEX idx_slot_allowed ON item_slot_allowed(allowed_bsg_id);
@@ -393,6 +401,14 @@ def main():
                         [(r["bsg_id"], "item", cid, None) for cid in r["categories"]["ids"]]
                         + [(r["bsg_id"], "handbook", cid, None) for cid in r["handbook_categories"]["ids"]])
         cur.executemany("INSERT INTO item_sources VALUES (?,?)", [(r["bsg_id"], s) for s in r["sources"]])
+        cur.executemany("INSERT INTO item_conflicts VALUES (?,?,?)",
+                        [(r["bsg_id"], x, "tarkovdev") for x in r["conflicts"]["items"]]
+                        + [(r["bsg_id"], x["bsg_id"], "officialwiki") for x in r["conflicts"]["wiki_items"] if x.get("bsg_id")])
+        cur.executemany("INSERT INTO item_compatibility VALUES (?,?)",
+                        [(r["bsg_id"], x["bsg_id"]) for x in r.get("compatibility") or [] if x.get("bsg_id")])
+        for wm in ((r.get("wiki") or {}).get("mod_slots") or []):
+            cur.executemany("INSERT INTO item_wiki_slots VALUES (?,?,?)",
+                            [(r["bsg_id"], wm.get("slot"), x["bsg_id"]) for x in (wm.get("items") or []) if x.get("bsg_id")])
         cur.executemany("INSERT INTO item_grids VALUES (?,?,?,?,?)",
                         [(r["bsg_id"], g["width"], g["height"], json.dumps(g["allowed_categories"]),
                           json.dumps(g["allowed_items"])) for g in (r.get("grids") or [])])

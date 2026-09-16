@@ -106,6 +106,15 @@ allowed item per required slot. Compats come with `conflictingItems` /
 they are built on, `properties.default` marks the factory preset, and the
 preset appears in the base weapon's `properties.presets`. 484 presets.
 
+Compatibility has a second, independent view from the wiki: its page sections
+list, per item, the exact items a slot accepts (1,068 items), a "Compatibility"
+field naming the base weapon a mod belongs to (`compatibility`, 9,131
+relations over 1,645 items), and an explicit "Conflicting items" list
+(`conflicts.wiki_items`, 2,246 relations — 2,054 of which corroborate the
+API's 11,312 and 192 of which are new). Where the two sources disagree the
+wiki's mod list is a strict subset of the API's, so the API is authoritative
+for what fits and the wiki is the check.
+
 ### 2.4 Physical & economy fields
 
 `physical`: `width`/`height` (grid footprint), `weight`, `stack_max_size`,

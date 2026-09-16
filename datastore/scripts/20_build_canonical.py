@@ -957,6 +957,19 @@ def build_items(ctx):
                         reward_items, objective_uses, hideout_uses, sources)
 
 
+WIKI_PSEUDO_SLOTS = frozenset({"Compatibility", "Conflicting items"})
+
+
+def wiki_section(wiki_item, label):
+    """Item ids from one of the wiki parser's pseudo-sections."""
+    if not wiki_item:
+        return []
+    for m in (wiki_item.get("sections") or {}).get("mods") or []:
+        if m.get("slot") == label:
+            return [x for x in (m.get("items") or []) if x]
+    return []
+
+
 def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
               barter_by_offered, barter_uses, craft_by_product, craft_uses,
               reward_items, objective_uses, hideout_uses, sources):
@@ -1062,10 +1075,15 @@ def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
             for ci in (it.get("containsItems") or [])
         ],
         "conflicts": {
+            # The API supplies 11,312 conflict relations over 574 items; the
+            # wiki corroborates 2,054 of them and adds 192 more for 242 items.
+            # Kept under `wiki_items` so the API fields stay verbatim.
             "items": it.get("conflictingItems") or [],
             "slot_ids": it.get("conflictingSlotIds") or [],
             "categories": it.get("conflictingCategories") or [],
+            "wiki_items": [item_ref(ctx, c) for c in wiki_section(w, "Conflicting items")],
         },
+        "compatibility": [item_ref(ctx, c) for c in wiki_section(w, "Compatibility")],
         "images": {
             "icon": it.get("iconLink"),
             "grid": it.get("gridImageLink"),
@@ -1084,7 +1102,11 @@ def _item_row(ctx, i, it, props, pt, idx, w, mk, ob, cats, hcats, en, station,
         "wiki": ({
             "title": w.get("full_name"),
             "infobox": w.get("infobox") or {},
-            "mod_slots": (w.get("sections") or {}).get("mods") or [],
+            "mod_slots": [
+                {"slot": m.get("slot"), "items": [item_ref(ctx, x) for x in (m.get("items") or [])]}
+                for m in ((w.get("sections") or {}).get("mods") or [])
+                if (m.get("slot") or "") not in WIKI_PSEUDO_SLOTS
+            ],
             "weapon_variants": (w.get("sections") or {}).get("weapon_variants") or [],
         } if w else None),
         "market": ({"uid": mk.get("uid"), "tags": mk.get("tags") or [], "name": mk.get("name"), "short_name": mk.get("shortName")} if mk else None),

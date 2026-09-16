@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 44.3 MB
+- `tarkov.sqlite3` — 50.3 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -20,6 +20,8 @@
 | hideout_stations | 26 |
 | item_acquisition | 7903 |
 | item_categories | 35643 |
+| item_compatibility | 9131 |
+| item_conflicts | 13558 |
 | item_contained | 5995 |
 | item_grids | 903 |
 | item_slot_allowed | 39910 |
@@ -28,6 +30,7 @@
 | item_trade | 28146 |
 | item_types | 7019 |
 | item_used_in | 17597 |
+| item_wiki_slots | 25108 |
 | items | 5480 |
 | maps | 17 |
 | mastery | 82 |

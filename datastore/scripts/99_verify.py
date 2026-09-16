@@ -113,6 +113,8 @@ def main():
     check("barter unlocks present, none in failure", lambda: _unlock_phases(tasks))
     check("unlock sources are tagged", lambda: _unlock_sources(tasks))
     check("objective descriptions localised", lambda: _descriptions(tasks))
+    check("wiki conflict relations resolve", lambda: _wiki_conflicts(items))
+    check("wiki compatibility relations resolve", lambda: _compat(items))
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -139,6 +141,7 @@ def main():
     check("sqlite acquisition present", lambda: f"{con.execute('SELECT COUNT(*) FROM item_acquisition').fetchone()[0]} routes")
     check("category paths backfilled", lambda: _cat_paths(con))
     check("no table is entirely empty", lambda: _no_empty_tables(con))
+    check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
 
     lines = ["# Verification", "", "| # | check | result |", "| ---: | --- | --- |"]
@@ -252,6 +255,40 @@ def _descriptions(tasks):
     assert not bad, f"{len(bad)} placeholder objective descriptions"
     n = sum(1 for t in tasks for o in t["objectives"] if o["description"])
     return f"{n} described"
+
+
+def _wiki_conflicts(items):
+    """Both sources carry conflicts; the wiki corroborates most of the API's
+    and adds a non-trivial remainder, so assert neither is silently lost."""
+    api = {(i["bsg_id"], x) for i in items for x in i["conflicts"]["items"]}
+    wiki = [(i["bsg_id"], x) for i in items for x in i["conflicts"]["wiki_items"]]
+    wiki_ids = {(a, x["bsg_id"]) for a, x in wiki if x.get("bsg_id")}
+    assert len(api) >= 10_000, f"only {len(api)} API conflict edges"
+    assert len(wiki_ids) >= 2_000, f"only {len(wiki_ids)} wiki conflict edges"
+    added = len(wiki_ids - api)
+    assert added >= 100, f"wiki adds nothing new ({added})"
+    unresolved = [x for _, x in wiki if not x.get("name")]
+    assert not unresolved, f"{len(unresolved)} conflicts with no item name"
+    agreed = len(wiki_ids & api)
+    return f"api={len(api)}, wiki={len(wiki_ids)} ({agreed} corroborated, {added} wiki-only)"
+
+
+def _compat(items):
+    edges = [(i["bsg_id"], x) for i in items for x in i.get("compatibility") or []]
+    assert len(edges) >= 8000, f"only {len(edges)} compatibility edges"
+    unresolved = [x for _, x in edges if not x.get("name")]
+    assert not unresolved, f"{len(unresolved)} compatibility refs with no item name"
+    return f"{len(edges)} edges over {sum(1 for i in items if i.get('compatibility'))} items"
+
+
+def _wiki_tables(con):
+    out = {}
+    for t in ("item_wiki_slots", "item_conflicts", "item_compatibility", "item_grids"):
+        out[t] = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+        assert out[t] > 0, f"{t} is empty"
+    wiki_conf = con.execute("SELECT COUNT(*) FROM item_conflicts WHERE source='officialwiki'").fetchone()[0]
+    assert wiki_conf >= 2000, f"only {wiki_conf} wiki conflicts in sqlite"
+    return ", ".join(f"{k}={v}" for k, v in out.items())
 
 
 def _map_names(maps, key):

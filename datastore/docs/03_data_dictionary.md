@@ -30,7 +30,8 @@ denormalized convenience — the `bsg_id` is the join key.
 | `economy` | object | `{base_price, last_low_price, avg24h_price, low24h_price, high24h_price, change_last_48h, change_last_48h_percent, last_offer_count, min_level_for_flea, last_scan}` |
 | `trade` | object | `{buy_from[], sell_to[]}` → `{trader_id, trader_slug, price, price_rub, currency, currency_item, min_trader_level, task_unlock_id, buy_limit}` |
 | `contains_items` | object[] | default contents of a container/preset: `{bsg_id, name, count}` |
-| `conflicts` | object | `{items[], slot_ids[], categories[]}` — items/slots this cannot coexist with |
+| `conflicts` | object | `{items[], slot_ids[], categories[], wiki_items[]}` — items/slots this cannot coexist with; `wiki_items` are the wiki-sourced relations, `{bsg_id, name}` |
+| `compatibility` | object[] | `{bsg_id, name}` — the wiki's "Compatibility" field: the base weapon(s) this mod is made for (9,131 relations over 1,645 items), an independent view of the mod graph |
 | `images` | object | `{icon, grid, base, inspect, image512, image8x, market, market_big}` |
 | `links` | object | `{tarkovdev, wiki, market}` |
 | `wiki` | object? | `{title, infobox, mod_slots, weapon_variants}`; `infobox` is the raw wiki stat sheet |
@@ -190,10 +191,12 @@ index's unpriced offers), `barter`, `craft` and `task_reward` (`task_reward`
 rows include the `barter_unlock` kind); `item_used_in.route`
 holds `craft`, `barter`, `hideout_build` and `task_objective`.
 
-`conflicts` on an item is always empty in this snapshot (the upstream
-`conflictingItems`/`conflictingSlotIds`/`conflictingCategories` arrays are
-present but unpopulated for all 5,312 items); it is kept verbatim so a later
-snapshot that fills it needs no schema change.
+`conflicts` merges two sources without overwriting either: the API's
+`items`/`slot_ids`/`categories` (11,312 / 21 / 1 relations) verbatim, plus
+`wiki_items` from the wiki's "Conflicting items" section (2,246 relations over
+242 items — 2,054 corroborating the API, 192 wiki-only). `conflictingSlotIds`
+and `conflictingCategories` are near-unused upstream, which is real, not a
+parsing gap.
 
 `items_fts` is an FTS5 index over `name`, `short_name`, `slug`
 (`unicode61 remove_diacritics 2`), queried with
