@@ -1,8 +1,10 @@
 <%# A native <details> disclosure: the filter still opens and applies with
-    JavaScript disabled. The controller only adds Escape / click-outside. %>
+    JavaScript disabled. The controller only adds Escape / click-outside.
+    Menus with many options get a box that narrows them as you type. %>
+<% long_menu = @options.size > 12 %>
 <details
   class="filter-group"
-  data-controller="disclosure"
+  data-controller="disclosure<%= " filter-options" if long_menu %>"
   data-action="keydown.esc->disclosure#closeOnEscape click@document->disclosure#closeOnOutsideClick"
 >
   <summary>
@@ -16,8 +18,23 @@
   </summary>
 
   <div class="filter-group__menu">
+    <% if long_menu %>
+      <input
+        type="search"
+        class="input mb-2"
+        placeholder="Filter <%= @title.downcase %>…"
+        aria-label="Filter <%= @title.downcase %> options"
+        autocomplete="off"
+        data-filter-options-target="input"
+        data-action="input->filter-options#filter keydown->filter-options#stopEnter"
+      >
+    <% end %>
+
     <% @options.each do |option| %>
-      <label class="filter-group__option">
+      <label
+        class="filter-group__option"
+        <% if long_menu %>data-filter-options-target="option" data-label="<%= option[:label].to_s.downcase %>"<% end %>
+      >
         <input
           type="checkbox"
           name="filters[<%= @name %>][]"
