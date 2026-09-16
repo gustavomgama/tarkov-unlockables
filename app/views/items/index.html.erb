@@ -63,6 +63,12 @@
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
+        title: "Trader", name: "trader",
+        options: @filter_options[:trader],
+        selected: filter_selection(:trader)
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
         title: "Category", name: "category",
         options: @filter_options[:category],
         selected: filter_selection(:category)

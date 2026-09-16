@@ -656,6 +656,22 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ rub_item, usd_item ].each { |i| i&.destroy }
   end
 
+  test "index filters by trader" do
+    prapor_item = Item.create!(bsg_id: "tr1-#{SecureRandom.hex(4)}", full_name: "Prapor Only Item", short_name: "POI")
+    therapist_item = Item.create!(bsg_id: "tr2-#{SecureRandom.hex(4)}", full_name: "Therapist Only Item", short_name: "TOI")
+    prapor_item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    therapist_item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { trader: [ "Prapor" ] })
+
+    assert_response :success
+    assert_select "td a", text: "Prapor Only Item"
+    assert_no_match(/Therapist Only Item/, response.body)
+  ensure
+    ItemCurrency.destroy_all
+    [ prapor_item, therapist_item ].each { |i| i&.destroy }
+  end
+
   test "index survives malformed filter params" do
     # params[:filters] comes from the query string: it can be a String or an
     # Array rather than a nested hash, and each of these 500'd at some point.

@@ -9,9 +9,10 @@ class ItemsController < ApplicationController
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
     # once per hour instead of on every index request. Fetched first so
     # apply_filters can reuse its values instead of re-plucking the tables.
-    @filter_options = Rails.cache.fetch("items/filter_options/v2", expires_in: 1.hour) do
+    @filter_options = Rails.cache.fetch("items/filter_options/v3", expires_in: 1.hour) do
       {
         currency: currency_options,
+        trader: trader_options,
         category: category_options,
         armor_class: armor_class_options,
         caliber: caliber_options,
@@ -96,7 +97,7 @@ class ItemsController < ApplicationController
     raw = params[:filters]
     raw = ActionController::Parameters.new unless raw.is_a?(ActionController::Parameters)
     raw.permit(
-      { currency: [] }, { category: [] }, { armor_class: [] },
+      { currency: [] }, { trader: [] }, { category: [] }, { armor_class: [] },
       { caliber: [] }, { task_required: [] }, { source: [] },
       { exclude_ref: [] }
     )
@@ -116,6 +117,16 @@ class ItemsController < ApplicationController
     if currencies.any? && currencies.size < all_currencies.size
       items = items.joins(:item_currencies)
         .where(item_currencies: { currency: currencies })
+        .distinct
+    end
+
+    # Trader: skip if all selected. "What can I buy from Therapist?" the
+    # README asks; the Source filter only says "some trader".
+    traders = Array(filters[:trader]).reject(&:blank?)
+    all_traders = @filter_options[:trader].map { |o| o[:value] }
+    if traders.any? && traders.size < all_traders.size
+      items = items.joins(:item_currencies)
+        .where(item_currencies: { trader: traders })
         .distinct
     end
 
@@ -184,6 +195,15 @@ class ItemsController < ApplicationController
       counts = ItemCurrency.group(:currency).count
       counts.sort_by { |c, _| c }.map do |c, count|
         { value: c, label: c, count: count }
+      end
+    end
+  end
+
+  def trader_options
+    @trader_options ||= begin
+      counts = ItemCurrency.group(:trader).distinct.count(:item_id)
+      counts.sort_by { |trader, _| trader.to_s }.map do |trader, count|
+        { value: trader, label: trader.to_s.titleize, count: count }
       end
     end
   end
