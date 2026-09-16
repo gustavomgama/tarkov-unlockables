@@ -162,10 +162,12 @@ module ItemsHelper
   end
 
   # In development Rails wraps partial output in <!-- BEGIN … --> markers, so
-  # an empty partial still carries text. Strip comments before asking whether
-  # a partial produced anything to show.
+  # an empty partial still carries text. Parse the fragment rather than
+  # pattern-matching comments out of it: a regex filter for `<!--` can be
+  # walked around ("<!-->"), and the question here is only whether anything
+  # other than a comment or whitespace was rendered.
   def rendered_content?(html)
-    html.to_s.gsub(/<!--.*?-->/m, "").strip.present?
+    Nokogiri::HTML5.fragment(html.to_s).children.any? { |node| !node.comment? && node.to_html.present? }
   end
 
   # Long text ("Fragmentation Grenade") at display size reads as a headline;

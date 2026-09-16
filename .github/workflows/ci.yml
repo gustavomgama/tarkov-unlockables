@@ -18,6 +18,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: every job below only reads the repo (CodeQL
+# actions/missing-workflow-permissions). Buildx's gha cache uses
+# ACTIONS_RUNTIME_TOKEN, not this one.
+permissions:
+  contents: read
+
 jobs:
   # ── Security scanning (rake ci:security) ─────────────────────────────
   security:

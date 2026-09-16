@@ -50,6 +50,16 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "show renders only http(s) links, never a stored javascript: URL" do
+    @item.update!(links: [ "https://tarkov.dev/item/test-item", "javascript:alert(1)" ])
+
+    get item_url(@item)
+
+    assert_response :success
+    assert_select "a.chip--link[href=?]", "https://tarkov.dev/item/test-item"
+    assert_select "a[href=?]", "javascript:alert(1)", count: 0
+  end
+
   # --- per-type stat partials (Task 8) ---
 
   test "show renders weapon stats partial for Item::Weapon" do

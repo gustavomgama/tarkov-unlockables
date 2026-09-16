@@ -214,6 +214,13 @@ class Item < ApplicationRecord
     display_to_cats
   end
 
+  # Links come from the wiki import and are rendered as an `href`. A stored
+  # `javascript:`/`data:` value is not a link, it is stored XSS, so the
+  # template asks for these instead of the raw column.
+  def external_links
+    Array(links).select { |url| url.to_s.match?(%r{\Ahttps?://}i) }
+  end
+
   def ammo_packs
     return Item.none unless bsg_id.present?
     Item.where(type: "Item::Generic")

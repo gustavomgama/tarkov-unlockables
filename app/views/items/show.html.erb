@@ -42,8 +42,8 @@
                 <% category_chips(@item).each do |label| %>
                   <span class="chip chip--strong"><%= label %></span>
                 <% end %>
-                <% @item.links.each do |url| %>
-                  <%= link_to external_link_label(url), url, class: "chip chip--link", target: "_blank", rel: "noopener" %>
+                <% @item.external_links.each do |url| %>
+                  <%= link_to external_link_label(url), html_escape(url), class: "chip chip--link", target: "_blank", rel: "noopener" %>
                 <% end %>
               </div>
             </div>
