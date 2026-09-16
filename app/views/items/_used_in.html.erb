@@ -1,7 +1,7 @@
-<%# What this item is worth: the barters and crafts it feeds. The other half
-    of "should I keep this", and the question the item page could not answer.
-    Locals: item, barters, crafts (requirement rows). Capped because one item
-    (GP coin) feeds hundreds of barters. %>
+<%# What this item is worth: the barters and crafts it feeds and the quests
+    that accept it. The other half of "should I keep this". Locals: item,
+    barters, crafts, objectives (requirement/item rows). Capped because one
+    item (GP coin) feeds hundreds of barters. %>
 <% limit = 12 %>
 
 <div class="panel__body panel__body--flush">
@@ -60,5 +60,28 @@
   <% end %>
   <% if crafts.size > limit %>
     <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= crafts.size - limit %> more crafts.</p>
+  <% end %>
+
+  <%# Quest hand-ins: one row per task, even when several objectives of that
+      task accept this item. %>
+  <% handins = objectives.select { |o| o.task_objective }.uniq { |o| o.task_objective.task_id } %>
+  <% handins.first(limit).each do |entry| %>
+    <% objective = entry.task_objective %>
+    <% task = objective.task %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-task)">Hand-in</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title"><%= link_to task.full_name, task_path(task) %></p>
+        <p class="srcrow__meta">
+          <%= objective.description %>
+          <% if objective.count.to_i > 1 %>
+            <span class="font-data">×<%= objective.count %></span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+  <% if handins.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= handins.size - limit %> more quests.</p>
   <% end %>
 </div>

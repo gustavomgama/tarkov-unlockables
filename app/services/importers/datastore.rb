@@ -23,9 +23,10 @@ module Importers
       craft_requirement_items craft_requirements craft_result_items
       craft_results craft_unlocks
       item_barter_requirements item_barters item_currencies
-      item_hideout_requirements item_hideouts item_task_rewards
+      item_hideout_requirements item_hideouts
       leads_tos loose_items offer_unlocks previous_tasks requirements rewards
-      task_objectives items tasks
+      task_objective_items task_objectives item_task_rewards
+      items tasks
     ].freeze
 
     # Keys the wiki importer kept from the parsed infobox. Canonical keeps that
@@ -53,6 +54,7 @@ module Importers
       @task_id_by_bsg = {}
       @task_id_by_slug = {}
       @task_slug_by_id = @tasks.to_h { |task| [ task["id"], task["slug"] ] }
+      @item_name_by_bsg = @items.to_h { |item| [ item["bsg_id"], item["name"] ] }
     end
 
     def import!
@@ -171,15 +173,26 @@ module Importers
       task.rewards.destroy_all
       task.task_objectives.destroy_all
 
-      Array(raw["objectives"]).each_with_index do |objective, index|
-        task.task_objectives.create!(
-          objective_id:   objective["id"],
-          objective_type: objective["type"],
-          description:    objective["description"],
-          count:          objective["count"],
-          optional:       objective["optional"] || false,
+      Array(raw["objectives"]).each_with_index do |raw_objective, index|
+        objective = task.task_objectives.create!(
+          objective_id:   raw_objective["id"],
+          objective_type: raw_objective["type"],
+          description:    raw_objective["description"],
+          count:          raw_objective["count"],
+          optional:       raw_objective["optional"] || false,
           position:       index
         )
+
+        items = Array(raw_objective.dig("raw", "items"))
+        # Catch-alls ("sell any items to Ragman", 3,500+ ids) describe a
+        # category, so the ids add nothing and would swamp reverse usage.
+        next if items.size > 100
+        items.each do |bsg_id|
+          objective.task_objective_items.create!(
+            item_id:   @item_id_by_bsg[bsg_id],
+            item_name: @item_name_by_bsg[bsg_id] || bsg_id
+          )
+        end
       end
 
       Array(raw["leads_to"]).each do |entry|

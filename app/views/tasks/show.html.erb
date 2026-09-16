@@ -148,6 +148,14 @@
                     <span class="text-[var(--text-muted)]">optional</span>
                   <% end %>
                 </p>
+                <% items = objective.task_objective_items %>
+                <% if items.any? %>
+                  <p class="srcrow__meta">
+                    any of
+                    <%= safe_join(items.first(8).map { |oi| oi.item ? link_to(oi.item_name, item_path(oi.item)) : oi.item_name }, ", ") %>
+                    <% if items.size > 8 %><span class="text-[var(--text-muted)]">(+<%= items.size - 8 %> more)</span><% end %>
+                  </p>
+                <% end %>
               </div>
             </div>
           <% end %>

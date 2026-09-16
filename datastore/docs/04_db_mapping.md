@@ -16,7 +16,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | barter offers | 789 | 840 `item_barters` | one row per offer; inputs in `item_barter_requirements`, plus limit, restock and the task gate. |
 | crafts | 214 | 214 `item_hideouts` | one row per craft; inputs and tools in `item_hideout_requirements`, plus duration and yield. |
 | task rewards | 1,964 reward rows | 1,034 `rewards` (989 loose items, 288 offers, 98 barters, 71 crafts) | the kinds without a DB column are dropped: 362 `trader_standing`, 136 `skill_level_reward`, 13 `customization`, 4 `achievement`, 2 `trader_unlock`, 1 `trader_dialogue_unlock`. |
-| task objectives | 1,457 | 1,457 `task_objectives` | 1:1 per objective: type, description, count, optional, source order. The `raw.items` id lists (e.g. "any found in raid medicine") are dropped, so objectives cannot yet feed reverse usage. |
+| task objectives | 1,457 | 1,457 `task_objectives` (+ 1,467 `task_objective_items`) | 1:1 per objective: type, description, count, optional, source order. Accepted items live in `task_objective_items`; catch-alls with 100+ ids ("sell any items") are skipped. |
 | traders | 16 | — | no table: trader names are strings (`given_by`, `trader`, …). |
 | maps | 17 | — | no table: a task's map is `tasks.map_name` (13 values). |
 | categories | 200 | — | no table: leaf slugs live in `items.categories`. |
@@ -47,7 +47,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | `tasks.task_requirements` | `previous_tasks` (via `requirements`) | DB has the chain; canonical also has `status`. |
 | `tasks.trader_requirements` | `requirements.trader_level` (jsonb array) | DB is a loose jsonb array; canonical has requirement type + comparator + value. |
 | `tasks.leads_to` | `leads_tos` | 1:1. |
-| `tasks.objectives` | `task_objectives` | 1:1 per objective (type, description, count, optional, position). The `raw.items` id lists are not stored. |
+| `tasks.objectives` | `task_objectives` + `task_objective_items` | 1:1 per objective (type, description, count, optional, position) and its accepted items; catch-alls (100+ ids) are skipped. |
 | `tasks.start_rewards` | `rewards` (`reward_type='start_rewards'`) | 1:1, plus the kinds the DB drops (trader unlocks, skills, achievements, dialogue, customization). |
 | `tasks.finish_rewards` | `rewards` | 1:1. |
 | `tasks.needed_keys` | — | **no table.** |
@@ -69,9 +69,8 @@ queries the Postgres schema cannot express:
    (craft inputs, barter requirements, hideout build costs, objective
    hand-ins). 3,878 of the 5,481 items have at least one `used_in` route here.
 3. **"Can this weapon build work?"** — no slot graph, no allowed-items edges.
-4. **"What do I have to do for task T?"** — objectives are stored (1,457),
-   but their `raw.items` id lists are not, so "which items count" is not
-   answerable; needed keys are absent.
+4. **"What do I have to do for task T?"** — objectives and their accepted
+   items are stored; only needed keys are absent.
 5. **"Which tasks unlock the Jaeger trader / this craft / this offer?"** —
    `offer_unlocks` (288) and `craft_unlocks` (71) exist, but the 2
    `trader_unlock` and location unlocks are dropped.
@@ -90,14 +89,11 @@ be useful on its own. The item universe is already done — `db:seed` loads all
 1. **Add the two missing first-class tables**: `traders` (+ `trader_levels`)
    and `maps`. They are small wins that make existing string columns
    relational.
-2. **Add `task_objective_items`** (the `raw.items` id lists). Objectives are
-   readable now, but without the ids they cannot feed reverse usage ("which
-   quests hand this item in").
-3. **Add the item mod graph** (`item_slots`, `item_slot_allowed`) — needed
+2. **Add the item mod graph** (`item_slots`, `item_slot_allowed`) — needed
    for any gun-builder feature.
-4. **Add `hideout_stations` + level requirements**, and **`categories`**
+3. **Add `hideout_stations` + level requirements**, and **`categories`**
    (with `kind`) so the taxonomy is not item-local.
-5. **Widen rewards** to the full `task_rewards` shape (kind + phase +
+4. **Widen rewards** to the full `task_rewards` shape (kind + phase +
    trader/station/skill/achievement payloads).
 
 The canonical NDJSON maps to those tables one-to-one, and

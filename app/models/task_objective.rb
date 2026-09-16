@@ -23,4 +23,5 @@
 #
 class TaskObjective < ApplicationRecord
   belongs_to :task
+  has_many :task_objective_items, dependent: :destroy
 end

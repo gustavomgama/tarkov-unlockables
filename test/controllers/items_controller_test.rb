@@ -311,6 +311,10 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     craft = product.item_hideouts.create!(station: "Workbench", level: 2, task: task)
     craft.item_hideout_requirements.create!(item: item, item_name: item.full_name, count: 1)
 
+    quest = Task.create!(bsg_id: "used-o-#{SecureRandom.hex(4)}", full_name: "Hand-in Quest", name: "hand-in-quest", given_by: "Therapist")
+    objective = quest.task_objectives.create!(objective_type: "giveItem", description: "Hand over items", count: 2)
+    objective.task_objective_items.create!(item: item, item_name: item.full_name)
+
     get item_url(item)
 
     assert_response :success
@@ -322,9 +326,12 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
       assert_select ".srcrow", text: /crafts into Output Widget/
       assert_select ".srcrow", text: /Workbench Lv\.2/
       assert_select ".srcrow", text: /needs 1 × UTI/
+      assert_select ".srcrow", text: /Hand-in Quest/
+      assert_select ".srcrow", text: /Hand over items/
     end
   ensure
     product&.destroy
+    quest&.destroy
     item&.destroy
     task&.destroy
   end

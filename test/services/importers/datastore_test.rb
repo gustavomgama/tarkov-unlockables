@@ -95,9 +95,13 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         "task_requirements" => [], "previous_tasks" => [],
         "objectives" => [
           { "id" => "o1", "type" => "giveItem", "description" => "Hand over 3 Salewa kits",
-            "count" => 3, "optional" => false },
+            "count" => 3, "optional" => false, "raw" => { "items" => [ "a1" ] } },
           { "id" => "o2", "type" => "visit", "description" => "Visit Customs",
-            "count" => nil, "optional" => true }
+            "count" => nil, "optional" => true },
+          # A catch-all: 101 ids, skipped so it cannot swamp reverse usage.
+          { "id" => "o3", "type" => "sellItem", "description" => "Sell any items",
+            "count" => nil, "optional" => false,
+            "raw" => { "items" => Array.new(101) { |i| "bulk-#{i}" } } }
         ],
         "leads_to" => [ { "task_id" => "", "task_name" => "second-task" } ],
         "start_rewards" => { "items" => [], "offer_unlock" => [], "barter_unlock" => [], "craft_unlock" => [] },
@@ -248,11 +252,18 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                  first.requirements.first.trader_level
 
     # Objectives keep source order, count and the optional flag.
-    assert_equal [ "Hand over 3 Salewa kits", "Visit Customs" ], first.task_objectives.map(&:description)
-    assert_equal [ "giveItem", "visit" ], first.task_objectives.map(&:objective_type)
-    assert_equal [ 3, nil ], first.task_objectives.map(&:count)
-    assert_equal [ false, true ], first.task_objectives.map(&:optional)
-    assert_equal [ 0, 1 ], first.task_objectives.map(&:position)
+    assert_equal [ "Hand over 3 Salewa kits", "Visit Customs", "Sell any items" ],
+                 first.task_objectives.map(&:description)
+    assert_equal [ "giveItem", "visit", "sellItem" ], first.task_objectives.map(&:objective_type)
+    assert_equal [ 3, nil, nil ], first.task_objectives.map(&:count)
+    assert_equal [ false, true, false ], first.task_objectives.map(&:optional)
+    assert_equal [ 0, 1, 2 ], first.task_objectives.map(&:position)
+
+    hand_in = first.task_objectives.find_by!(objective_id: "o1")
+    assert_equal [ "5.45x39mm PS" ], hand_in.task_objective_items.map(&:item_name)
+    assert_equal Item.find_by!(bsg_id: "a1").id, hand_in.task_objective_items.first.item_id
+    # The 101-id catch-all is skipped.
+    assert_equal 0, first.task_objectives.find_by!(objective_id: "o3").task_objective_items.count
   end
 
   test "imports every reward kind" do
@@ -286,7 +297,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
-               ItemHideoutRequirement.count, TaskObjective.count ]
+               ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count ]
 
     Importers::Datastore.import!(source: @source)
 
@@ -294,6 +305,6 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                            ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                            PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                            BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
-                           ItemHideoutRequirement.count, TaskObjective.count ]
+                           ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count ]
   end
 end

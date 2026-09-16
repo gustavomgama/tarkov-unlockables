@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -287,6 +287,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000004) do
     t.index ["task_id"], name: "index_rewards_on_task_id"
   end
 
+  create_table "task_objective_items", force: :cascade do |t|
+    t.bigint "task_objective_id", null: false
+    t.bigint "item_id"
+    t.string "item_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_id"], name: "index_task_objective_items_on_item_id"
+    t.index ["task_objective_id"], name: "index_task_objective_items_on_task_objective_id"
+  end
+
   create_table "task_objectives", force: :cascade do |t|
     t.bigint "task_id", null: false
     t.string "objective_id"
@@ -360,5 +370,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000004) do
   add_foreign_key "previous_tasks", "tasks"
   add_foreign_key "requirements", "tasks"
   add_foreign_key "rewards", "tasks"
+  add_foreign_key "task_objective_items", "items"
+  add_foreign_key "task_objective_items", "task_objectives"
   add_foreign_key "task_objectives", "tasks"
 end

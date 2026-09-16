@@ -144,8 +144,11 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
   test "show lists the task objectives in source order" do
     task = Task.create!(bsg_id: "obj-#{SecureRandom.hex(4)}", full_name: "Objective Quest", name: "objective-quest", given_by: "Prapor")
+    item = Item.create!(bsg_id: "obj-i-#{SecureRandom.hex(4)}", full_name: "Hand-in Widget", short_name: "HW")
+    objective = task.task_objectives.create!(objective_id: "o1", objective_type: "giveItem",
+                                             description: "Hand over 3 Salewas", count: 3, position: 0, optional: true)
+    objective.task_objective_items.create!(item: item, item_name: item.full_name)
     task.task_objectives.create!(objective_id: "o2", objective_type: "visit", description: "Visit Customs", position: 1)
-    task.task_objectives.create!(objective_id: "o1", objective_type: "giveItem", description: "Hand over 3 Salewas", count: 3, position: 0, optional: true)
 
     get task_url(task)
 
@@ -154,10 +157,12 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       assert_select "h2", text: "Objectives"
       assert_select ".srcrow", text: /Hand over 3 Salewas/
       assert_select ".srcrow", text: /Visit Customs/
+      assert_select "a[href=?]", item_path(item), text: "Hand-in Widget"
     end
     assert_operator response.body.index("Hand over 3 Salewas"), :<, response.body.index("Visit Customs")
   ensure
     task&.destroy
+    item&.destroy
   end
 
   test "show renders gracefully when a task has no requirements or rewards" do
