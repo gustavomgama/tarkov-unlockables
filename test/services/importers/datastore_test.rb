@@ -143,7 +143,26 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     write("items", item_rows)
     write("tasks", task_rows)
     write("hideout_stations", hideout_rows)
+    write("traders", trader_rows)
     Importers::Datastore.import!(source: @source)
+  end
+
+  def trader_rows
+    [
+      {
+        "id" => "tr1", "slug" => "prapor", "name" => "Prapor",
+        "description" => "Warrant officer.", "currency" => "RUB",
+        "image_url" => "https://assets/prapor.webp", "task_count" => 14,
+        "levels" => [
+          { "id" => "tr1-1", "level" => 1, "required_player_level" => 0,
+            "required_reputation" => 0, "required_commerce" => 0,
+            "pay_rate" => 0.4, "insurance_rate" => 0.21, "repair_cost_multiplier" => 3.8 },
+          { "id" => "tr1-2", "level" => 2, "required_player_level" => 6,
+            "required_reputation" => 0.7, "required_commerce" => 0,
+            "pay_rate" => 0.4, "insurance_rate" => 0.2, "repair_cost_multiplier" => 3.75 }
+        ]
+      }
+    ]
   end
 
   def hideout_rows
@@ -356,6 +375,17 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal Item.find_by!(bsg_id: "w1").id, req.item_id
   end
 
+  test "imports traders and their loyalty levels" do
+    import!
+
+    trader = Trader.find_by!(slug: "prapor")
+    assert_equal [ "Prapor", "RUB", 14 ], [ trader.name, trader.currency, trader.task_count ]
+    assert_equal [ 1, 2 ], trader.trader_levels.map(&:level)
+
+    ll2 = trader.trader_levels.last
+    assert_equal [ 6, 0.7, 0.4 ], [ ll2.required_player_level, ll2.required_reputation, ll2.pay_rate ]
+  end
+
   test "is idempotent — reseeding replaces rather than accumulates" do
     import!
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
@@ -363,7 +393,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
                ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
-               HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count ]
+               HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count,
+               Trader.count, TraderLevel.count ]
 
     Importers::Datastore.import!(source: @source)
 
@@ -372,6 +403,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                            PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                            BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
                            ItemHideoutRequirement.count, TaskObjective.count, TaskObjectiveItem.count,
-                           HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count ]
+                           HideoutStation.count, HideoutLevel.count, HideoutItemRequirement.count,
+                           Trader.count, TraderLevel.count ]
   end
 end

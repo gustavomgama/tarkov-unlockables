@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   end
 
   resources :stations, only: [ :index, :show ], path: "hideout", param: :slug
+  resources :traders, only: [ :index, :show ], param: :slug
 
   namespace :admin do
     resources :items, :tasks, :requirements, :rewards, :leads_tos,

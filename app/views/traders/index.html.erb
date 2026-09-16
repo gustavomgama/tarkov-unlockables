@@ -1,0 +1,29 @@
+<% content_for :title, "Traders" %>
+
+<div class="space-y-4 sm:space-y-5">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Traders</h1>
+    <p class="mt-1 text-sm text-[var(--text-muted)]">
+      Loyalty levels, what they cost, and what each trader sells.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
+    <% @traders.each do |trader| %>
+      <%= link_to trader_path(trader.slug), class: "card" do %>
+        <% if trader.image_url.present? %>
+          <div class="card__media">
+            <img src="<%= trader.image_url %>" alt="" loading="lazy" width="120" height="120" class="card__img">
+          </div>
+        <% end %>
+        <div class="card__body">
+          <span class="card__name"><%= trader.name %></span>
+          <span class="block text-xs text-[var(--text-muted)]">
+            <span class="font-data"><%= @offer_counts[trader.name] || 0 %></span> items ·
+            <span class="font-data"><%= @level_counts[trader.id] || 0 %></span> levels
+          </span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

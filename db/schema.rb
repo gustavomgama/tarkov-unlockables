@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000009) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -371,6 +371,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000009) do
     t.index ["search_text"], name: "index_tasks_on_search_text_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
+  create_table "trader_levels", force: :cascade do |t|
+    t.bigint "trader_id", null: false
+    t.integer "level"
+    t.integer "required_player_level"
+    t.float "required_reputation"
+    t.float "required_commerce"
+    t.float "pay_rate"
+    t.float "insurance_rate"
+    t.float "repair_cost_multiplier"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trader_id"], name: "index_trader_levels_on_trader_id"
+  end
+
+  create_table "traders", force: :cascade do |t|
+    t.string "bsg_id"
+    t.string "slug"
+    t.string "name"
+    t.text "description"
+    t.string "currency"
+    t.string "image_url"
+    t.integer "task_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bsg_id"], name: "index_traders_on_bsg_id", unique: true
+    t.index ["slug"], name: "index_traders_on_slug", unique: true
+  end
+
   add_foreign_key "barter_requirement_items", "barter_requirements"
   add_foreign_key "barter_requirement_items", "items"
   add_foreign_key "barter_requirements", "barter_unlocks"
@@ -416,4 +444,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000009) do
   add_foreign_key "task_objective_items", "items"
   add_foreign_key "task_objective_items", "task_objectives"
   add_foreign_key "task_objectives", "tasks"
+  add_foreign_key "trader_levels", "traders"
 end

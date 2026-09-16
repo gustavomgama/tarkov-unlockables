@@ -27,6 +27,7 @@ module Importers
       item_hideout_requirements item_hideouts
       leads_tos loose_items offer_unlocks previous_tasks requirements rewards
       task_objective_items task_objectives item_task_rewards
+      trader_levels traders
       items tasks
     ].freeze
 
@@ -52,6 +53,7 @@ module Importers
       @items = read("items")
       @tasks = read("tasks")
       @hideout_stations = read("hideout_stations")
+      @traders = read("traders")
       @item_id_by_bsg = {}
       @task_id_by_bsg = {}
       @task_id_by_slug = {}
@@ -66,6 +68,7 @@ module Importers
       import_task_graph
       import_item_acquisition
       import_hideout
+      import_traders
       self
     end
 
@@ -443,6 +446,31 @@ module Importers
     def hideout_trader_requirements(level_raw)
       Array(level_raw["trader_requirements"]).map do |req|
         { "name" => req["trader_slug"].to_s.titleize, "level" => req["level"] }
+      end
+    end
+
+    # --- traders ---------------------------------------------------------
+
+    def import_traders
+      Trader.transaction do
+        @traders.each do |raw|
+          trader = Trader.create!(
+            bsg_id: raw["id"], slug: raw["slug"], name: raw["name"],
+            description: raw["description"], currency: raw["currency"],
+            image_url: raw["image_url"], task_count: raw["task_count"]
+          )
+          Array(raw["levels"]).each do |level_raw|
+            trader.trader_levels.create!(
+              level:                  level_raw["level"],
+              required_player_level:  level_raw["required_player_level"],
+              required_reputation:    level_raw["required_reputation"],
+              required_commerce:      level_raw["required_commerce"],
+              pay_rate:               level_raw["pay_rate"],
+              insurance_rate:         level_raw["insurance_rate"],
+              repair_cost_multiplier: level_raw["repair_cost_multiplier"]
+            )
+          end
+        end
       end
     end
 
