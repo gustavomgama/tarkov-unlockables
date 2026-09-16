@@ -22,7 +22,11 @@
           <p class="mt-2 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
             <span class="inline-flex items-center gap-2">
               <span class="trader-dot" style="background: var(--trader-<%= @task.given_by.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-              <%= @task.given_by.to_s.titleize %>
+              <% if @task.given_by.present? %>
+                <%= link_to @task.given_by.titleize, trader_path(@task.given_by.parameterize) %>
+              <% else %>
+                Unassigned
+              <% end %>
             </span>
             <% if @task.kappa_required %>
               <span class="chip" style="--tone: var(--danger); background: var(--danger); color: var(--text-bright)">Kappa required</span>
@@ -114,7 +118,13 @@
             <% trader_requirements(req).each do |entry| %>
               <div class="spec">
                 <dt class="spec__key">Trader</dt>
-                <dd class="spec__val"><%= trader_requirement_label(entry) %></dd>
+                <dd class="spec__val">
+                  <% if entry["trader_name"].present? %>
+                    <%= link_to "#{entry['trader_name'].to_s.titleize} LL#{entry['trader_level']}", trader_path(entry["trader_name"].to_s.parameterize) %>
+                  <% else %>
+                    <%= trader_requirement_label(entry) %>
+                  <% end %>
+                </dd>
               </div>
             <% end %>
             <% if req.previous_tasks.any? %>

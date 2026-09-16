@@ -15,7 +15,7 @@
         <div class="srcrow__body">
           <p class="srcrow__title">
             <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= currency.trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-            <%= currency.trader.titleize %> <span class="font-data text-[var(--text-muted)]">LL<%= currency.min_trader_level %></span>
+            <%= link_to currency.trader.titleize, trader_path(currency.trader.to_s.parameterize) %> <span class="font-data text-[var(--text-muted)]">LL<%= currency.min_trader_level %></span>
             <% if currency.price.present? %>
               <span class="font-data text-[var(--text-bright)]"><%= number_with_delimiter(currency.price) %> <%= currency.currency %></span>
             <% elsif currency.currency.present? %>
@@ -45,7 +45,11 @@
         <div class="srcrow__body">
           <p class="srcrow__title">
             <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= barter.trader.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-            <%= barter.trader.presence&.titleize || "Unknown trader" %>
+            <% if barter.trader.present? %>
+              <%= link_to barter.trader.titleize, trader_path(barter.trader.parameterize) %>
+            <% else %>
+              Unknown trader
+            <% end %>
             <span class="font-data text-[var(--text-muted)]">LL<%= barter.trader_level %></span>
             <% if barter.count.to_i > 1 %>
               <span class="font-data text-[var(--text-bright)]">×<%= barter.count %></span>

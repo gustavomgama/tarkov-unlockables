@@ -18,7 +18,11 @@
         </p>
         <p class="srcrow__meta">
           <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= barter.trader.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-          <%= barter.trader.presence&.titleize || "Unknown trader" %>
+          <% if barter.trader.present? %>
+            <%= link_to barter.trader.titleize, trader_path(barter.trader.parameterize) %>
+          <% else %>
+            Unknown trader
+          <% end %>
           <span class="font-data">LL<%= barter.trader_level %></span>
           · needs <span class="font-data"><%= entry.count || 1 %></span> × <%= item.short_name.presence || item.full_name %>
           <% if barter.task %>

@@ -531,6 +531,7 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "22,997 RUB", response.body
     assert_match "Buy limit 5 per reset", response.body
+    assert_select "a[href=?]", trader_path("mechanic"), text: "Mechanic"
   ensure
     item&.item_currencies&.destroy_all
     item&.destroy

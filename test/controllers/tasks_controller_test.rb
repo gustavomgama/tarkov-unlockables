@@ -71,6 +71,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: "Task One"
     assert_select "p", text: /Prapor/
+    assert_select "a[href=?]", trader_path("prapor"), text: "Prapor"
 
     # requirement + previous-task link (Task One requires Task Two)
     assert_select "dt", text: "Player level"
