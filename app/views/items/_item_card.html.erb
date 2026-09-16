@@ -7,7 +7,7 @@
     <%= render "items/image", item: card, priority: priority %>
   </div>
   <div class="card__body">
-    <h3 class="card__name"><%= card.full_name %></h3>
+    <h2 class="card__name"><%= card.full_name %></h2>
 
     <% stats = card_stats(card) %>
     <% if stats.any? %>

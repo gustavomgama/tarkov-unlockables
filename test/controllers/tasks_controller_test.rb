@@ -25,7 +25,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "index filters by trader" do
     get tasks_url(trader: "Prapor")
     assert_response :success
-    assert_select "h3", text: "Task One"
+    assert_select "h2", text: "Task One"
     assert_no_match(/Task Two/, response.body)
   end
 

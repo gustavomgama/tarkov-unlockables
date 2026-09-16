@@ -79,7 +79,7 @@
         <%= link_to task_path(task), class: "task-row" do %>
           <span class="trader-dot" style="background: var(--trader-<%= task.given_by.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
           <span class="min-w-0 flex-1">
-            <h3 class="text-sm font-bold text-[var(--text-bright)] truncate"><%= task.full_name %></h3>
+            <h2 class="text-sm font-bold text-[var(--text-bright)] truncate"><%= task.full_name %></h2>
             <span class="block text-xs text-[var(--text-muted)]">
               <%= task.given_by.to_s.titleize %>
               <% if task.leads_tos_count.to_i.positive? %>
