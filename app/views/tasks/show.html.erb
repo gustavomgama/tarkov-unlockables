@@ -173,6 +173,34 @@
       <% end %>
     </section>
 
+    <% gated_currencies = @task.gated_currencies %>
+    <% if gated_currencies.any? %>
+      <section class="panel lg:col-span-2" aria-labelledby="gated-head">
+        <div class="panel__head">
+          <h2 id="gated-head" class="panel__title">Unlocks trader offers</h2>
+          <span class="panel__note"><%= gated_currencies.size %> buyable after this quest</span>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <% gated_currencies.each do |currency| %>
+            <div class="srcrow">
+              <span class="srcbadge" style="--tone: var(--badge-currency)">Trader</span>
+              <div class="srcrow__body">
+                <p class="srcrow__title">
+                  <%= link_to currency.item.full_name, item_path(currency.item) %>
+                </p>
+                <p class="srcrow__meta">
+                  <span class="font-data"><%= "#{currency.trader.to_s.titleize} LL#{currency.min_trader_level}" %></span>
+                  <% if currency.currency.present? %>
+                    · <span class="font-data"><%= currency.currency %></span>
+                  <% end %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
     <% if @task.leads_tos.any? %>
       <section class="panel lg:col-span-2" aria-labelledby="leads-head">
         <div class="panel__head">

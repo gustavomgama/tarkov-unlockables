@@ -103,6 +103,24 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", task_path(tasks(:two)), text: "Task Two"
   end
 
+  test "show lists the trader offers the quest unlocks" do
+    task = Task.create!(bsg_id: "gate-#{SecureRandom.hex(4)}", full_name: "Gate Quest", name: "gate-quest", given_by: "Therapist")
+    item = Item.create!(bsg_id: "gate-item-#{SecureRandom.hex(4)}", full_name: "Gated Salewa", short_name: "GS")
+    item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 3,
+                                 task_unlock: true, task: task)
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "h2", text: "Unlocks trader offers"
+    assert_select "a[href=?]", item_path(item), text: "Gated Salewa"
+    assert_select "span", text: /Therapist LL3/
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+    task&.destroy
+  end
+
   test "show renders gracefully when a task has no requirements or rewards" do
     bare = Task.create!(bsg_id: "bare_#{SecureRandom.hex(4)}", full_name: "Bare Task", name: "bare-task", given_by: "Jaeger")
 
