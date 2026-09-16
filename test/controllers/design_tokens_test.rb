@@ -1,39 +1,48 @@
 require "test_helper"
 
-# The palette lives in app/views/shared/_design_tokens. Both layouts render it,
-# and the admin layout adds its own extras on top. Before this, the admin kept
-# a second hand-maintained palette that had already drifted from the site's.
+# The palette lives in app/assets/stylesheets/application.css, linked by both
+# layouts. It used to be rendered from a partial inside a <style> tag, which is
+# invalid CSS in development: view annotations inject <!-- BEGIN --> comments
+# into the declaration block and the parser swallows the first declaration,
+# silently dropping --bg-dark and turning the whole site white.
+#
+# The browser test below is the one that catches that: it asks for the computed
+# value rather than searching the response text.
 class DesignTokensTest < ActionDispatch::IntegrationTest
-  OLD_PALETTE = %w[#d2af78 #e6c58c].freeze
-  ACCENT = "--accent: #c9a84c".freeze
+  ACCENT = "#c9a84c".freeze
 
-  def style_block(body)
-    body[body.index("<style>")..body.index("</style>")]
+  def assert_tokens_in_stylesheet
+    css = Rails.root.join("app/assets/stylesheets/application.css").read
+
+    assert_includes css, "--bg-dark: #06080a"
+    assert_includes css, "--accent: #{ACCENT}"
+    assert_includes css, "--ac6: #b0463a"
+    # Print palette must be gated, or it repaints the screen.
+    assert_match(/@media print \{\s*:root \{/, css)
   end
 
-  def admin_headers
-    password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
-    { "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", password) }
-  end
-
-  test "the public layout carries the shared palette once" do
+  test "the palette is defined in the linked stylesheet, not inline" do
     get items_url
 
-    css = style_block(response.body)
-    assert_includes css, ACCENT
-    assert_equal 1, css.scan(ACCENT).size
-    assert_includes css, "--ac6: #b0463a"
-    OLD_PALETTE.each { |hex| assert_not_includes css, hex }
+    assert_response :success
+    assert_tokens_in_stylesheet
+    assert_select "link[rel=stylesheet][href*=application]"
+
+    inline = response.body[response.body.index("<style>")..response.body.index("</style>")]
+    refute_match(/^\s*--[a-z-]+\s*:/, inline,
+                     "tokens must not be declared inline: development annotations corrupt the block")
+    refute_match(/:root\s*\{/, inline, "no :root block belongs in the layout")
   end
 
-  test "the admin layout carries the shared palette plus its own extras" do
-    get admin_items_url, headers: admin_headers
+  test "the admin layout inherits the same palette" do
+    password = ENV.fetch("ADMIN_PASSWORD") { "admin" }
+    headers = { "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", password) }
+
+    get admin_items_url, headers: headers
 
     assert_response :success
-    css = style_block(response.body)
-    assert_includes css, ACCENT
-    assert_includes css, "--ac6: #b0463a"
-    assert_includes css, "--border-faint"
-    OLD_PALETTE.each { |hex| assert_not_includes css, hex }
+    assert_select "link[rel=stylesheet][href*=application]"
+    inline = response.body[response.body.index("<style>")..response.body.index("</style>")]
+    refute_match(/^\s*--[a-z-]+\s*:/, inline)
   end
 end

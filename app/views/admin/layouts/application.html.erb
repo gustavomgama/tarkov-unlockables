@@ -27,11 +27,6 @@
     src: local('Bender Bold'), url('https://tarkov.dev/fonts/bender-bold.woff2') format('woff2');
    }
    @layer base {
-    :root {
-     <%= render "shared/design_tokens" %>
-     /* Admin-only. */
-     --border-faint: rgba(255,255,255,0.06);
-    }
     html { background-color: var(--bg-dark); }
     body {
      background-color: var(--bg-dark);

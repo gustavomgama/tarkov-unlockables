@@ -45,9 +45,6 @@
       }
 
       @layer base {
-        :root {
-          <%= render "shared/design_tokens" %>        }
-
         html {
           background-color: var(--bg-dark);
           overflow-x: clip;
@@ -361,6 +358,28 @@
           border-color: var(--danger);
         }
 
+        /* List row with a chevron drawn in CSS: 468 task rows used to carry
+           an inline SVG each. */
+        .task-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.625rem 0.75rem;
+          border-bottom: 1px solid var(--border);
+          text-decoration: none;
+        }
+        .task-row:last-child { border-bottom: 0; }
+        .task-row:hover { background: var(--bg-elevated); text-decoration: none; }
+        .task-row::after {
+          content: "";
+          flex-shrink: 0;
+          width: 0.4rem;
+          height: 0.4rem;
+          border-right: 2px solid var(--text-muted);
+          border-bottom: 2px solid var(--text-muted);
+          transform: rotate(-45deg);
+        }
+
         /* Trader dot shared by lists and timelines. */
         .trader-dot {
           width: 0.5rem;
@@ -497,17 +516,6 @@
         /* Print: a reference page is worth printing (a quest chain, a
            weapon's ammo table), so drop the chrome and flip the palette. */
         @media print {
-          :root {
-            --bg-dark: #ffffff;
-            --bg-panel: #ffffff;
-            --bg-surface: #ffffff;
-            --bg-elevated: #f1efe9;
-            --text: #1a1a1a;
-            --text-bright: #000000;
-            --text-muted: #55514a;
-            --border: #b9b4a8;
-            --accent: #6b5312;
-          }
           .no-print { display: none !important; }
           body { background: #fff; color: #1a1a1a; }
           main { max-width: none; padding: 0; }
