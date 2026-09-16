@@ -117,6 +117,7 @@ def main():
     check("wiki conflict relations resolve", lambda: _wiki_conflicts(items))
     check("wiki compatibility relations resolve", lambda: _compat(items))
     check("wiki trader offers parse and corroborate", lambda: _wiki_offers(items, trader_slugs))
+    check("wiki trade/craft tables corroborate", lambda: _wiki_crosscheck())
     check("task graph is a well-formed DAG", lambda: _task_graph(tasks))
     check("wiki weapon variants map 1:1 to presets", lambda: _weapon_variants())
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
@@ -425,6 +426,24 @@ def _route_costs(con):
     cheaper = con.execute("SELECT COUNT(*) FROM v_item_acquisition_cost WHERE vs_flea_rub > 0").fetchone()[0]
     return (f"{n} rows, {priced} priced, {n - priced} incomplete (null cost), "
             f"{zeros} legitimately zero-cost (no inputs), {cheaper} cheaper than flea")
+
+
+def _wiki_crosscheck():
+    """Read the cross-check summary and pin the agreement levels, so a change
+    in matching or in the source data cannot silently pass."""
+    path = os.path.join(C.REPORTS, "08_wiki_crosscheck.json")
+    assert os.path.exists(path), "08_wiki_crosscheck.json missing; run 70_crosscheck.py"
+    with open(path, encoding="utf-8") as fh:
+        s = json.load(fh)
+    trade_pct = s["trades_matched"] * 100 // s["wiki_trades"]
+    craft_pct = s["crafts_matched"] * 100 // s["wiki_crafts"]
+    assert trade_pct >= 80, f"wiki trades only {trade_pct}% corroborated"
+    assert craft_pct >= 85, f"wiki crafts only {craft_pct}% corroborated"
+    assert s["wiki_only_crafts"] <= 30, f"{s['wiki_only_crafts']} unmatched wiki crafts"
+    assert s["unresolved_wiki_names"] <= 40, f"{s['unresolved_wiki_names']} wiki names with no item"
+    return (f"trades {s['trades_matched']}/{s['wiki_trades']} ({trade_pct}%), "
+            f"crafts {s['crafts_matched']}/{s['wiki_crafts']} ({craft_pct}%), "
+            f"{s['wiki_only_trades']} wiki-only trades")
 
 
 def _weapon_variants():

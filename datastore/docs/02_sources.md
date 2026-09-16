@@ -54,6 +54,12 @@ Rails app's `db/seeds.rb` imports.
 | `task_gated_barters.json` | 45 | task → barter unlocks |
 | `task_gated_crafts.json` | 34 | task → craft unlocks |
 
+The wiki's `barter_list.json` / `craft_list.json` are name-only and lag the
+live API; they are used strictly as corroboration (`70_crosscheck.py`): 85% of
+its 443 trade rows and 93% of its 213 craft outputs match a canonical route,
+matching by (normalized trader, normalized item name). The wiki-only residuals
+are listed in `reports/08_wiki_crosscheck.md` rather than dropped.
+
 `obtain_from` per item is `{task_rewards, hideout, barter, currency}`. Useful
 as a ready-made summary and as a **cross-check**, but it only covers 3,399
 items (62% of the universe) and its `hideout` entries are crafts, so the

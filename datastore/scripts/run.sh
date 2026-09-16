@@ -15,6 +15,7 @@ steps=(
   40_analyze.py
   50_economics.py
   60_builds.py
+  70_crosscheck.py
   99_verify.py
 )
 

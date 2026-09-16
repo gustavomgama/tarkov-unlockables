@@ -44,29 +44,30 @@
 | 40 | PASS | wiki conflict relations resolve — api=11312, wiki=2246 (2054 corroborated, 192 wiki-only) |
 | 41 | PASS | wiki compatibility relations resolve — 9131 edges over 1645 items |
 | 42 | PASS | wiki trader offers parse and corroborate — 2536 offers over 2371 items, 2490 (98%) corroborated, 2784 internal ids |
-| 43 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 13, lightkeeper 7 |
-| 44 | PASS | wiki weapon variants map 1:1 to presets — 102 variants over 51 base weapons, 101 matched 1:1, 1043 attachments |
-| 45 | PASS | map boss names resolved — 129 entries named |
-| 46 | PASS | map transit names resolved — 33 entries named |
-| 47 | PASS | map extract names resolved — 152 entries named |
-| 48 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
-| 49 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
-| 50 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 51 | PASS | sqlite file exists — 51339264 |
-| 52 | PASS | sqlite integrity_check — ok |
-| 53 | PASS | sqlite item count matches canonical — ==5480 = 5480 |
-| 54 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
-| 55 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
-| 56 | PASS | view v_item_price returns — 3540 priced items |
-| 57 | PASS | sqlite trader levels — ==42 = 42 |
-| 58 | PASS | sqlite slot graph present — 39910 allowed-item edges |
-| 59 | PASS | sqlite acquisition present — 7903 routes |
-| 60 | PASS | category paths backfilled — 35643/35643 populated |
-| 61 | PASS | route costs are complete or null, never faked — 929 rows, 921 priced, 8 incomplete (null cost), 1 legitimately zero-cost (no inputs), 146 cheaper than flea |
-| 62 | PASS | weapon build stats present — 171 weapons, 109 with capped combinatorial counts |
-| 63 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
-| 64 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
-| 65 | PASS | no table is entirely empty — 52 tables all non-empty |
-| 66 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
+| 43 | PASS | wiki trade/craft tables corroborate — trades 379/443 (85%), crafts 199/213 (93%), 62 wiki-only trades |
+| 44 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 13, lightkeeper 7 |
+| 45 | PASS | wiki weapon variants map 1:1 to presets — 102 variants over 51 base weapons, 101 matched 1:1, 1043 attachments |
+| 46 | PASS | map boss names resolved — 129 entries named |
+| 47 | PASS | map transit names resolved — 33 entries named |
+| 48 | PASS | map extract names resolved — 152 entries named |
+| 49 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
+| 50 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
+| 51 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
+| 52 | PASS | sqlite file exists — 51339264 |
+| 53 | PASS | sqlite integrity_check — ok |
+| 54 | PASS | sqlite item count matches canonical — ==5480 = 5480 |
+| 55 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
+| 56 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
+| 57 | PASS | view v_item_price returns — 3540 priced items |
+| 58 | PASS | sqlite trader levels — ==42 = 42 |
+| 59 | PASS | sqlite slot graph present — 39910 allowed-item edges |
+| 60 | PASS | sqlite acquisition present — 7903 routes |
+| 61 | PASS | category paths backfilled — 35643/35643 populated |
+| 62 | PASS | route costs are complete or null, never faked — 929 rows, 921 priced, 8 incomplete (null cost), 1 legitimately zero-cost (no inputs), 146 cheaper than flea |
+| 63 | PASS | weapon build stats present — 171 weapons, 109 with capped combinatorial counts |
+| 64 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
+| 65 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
+| 66 | PASS | no table is entirely empty — 52 tables all non-empty |
+| 67 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
 
-**66/66 checks passed.**
+**67/67 checks passed.**
