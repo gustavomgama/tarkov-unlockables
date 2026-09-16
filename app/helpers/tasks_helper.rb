@@ -27,6 +27,18 @@ module TasksHelper
     task.rewards.sum { |reward| reward_groups(reward).sum { |_, rows, _| rows.size } }
   end
 
+  # Trader level a requirement asks for, as [[name, level], …]. One formatter
+  # for both the requirements panel and the timeline nodes.
+  def trader_requirements(requirement)
+    Array(requirement.trader_level).select { |tr| tr.is_a?(Hash) }
+  end
+
+  def trader_requirement_label(entry)
+    name = entry["trader_name"].to_s.strip
+    level = entry["trader_level"]
+    name.empty? ? "LL#{level}" : "#{name.titleize} LL#{level}"
+  end
+
   # Money rewards arrive in the same list as items; name them for what they
   # are so "Items" does not read as a bug next to "Roubles".
   def reward_label(label, row)

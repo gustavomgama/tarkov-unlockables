@@ -33,16 +33,12 @@
           <% if t[:given_by].present? %>
             <span class="text-xs text-[var(--text-muted)]"><%= t[:given_by].titleize %></span>
           <% end %>
-          <% if t[:player_level].to_i > 0 || (t[:trader_requirements] || []).any? %>
+          <% if t[:player_level].to_i > 0 || Array(t[:trader_requirements]).any? %>
             <span class="font-data text-[0.6875rem] text-[var(--text-muted)]">
               <% parts = [] %>
               <% parts << "lvl #{t[:player_level]}" if t[:player_level].to_i > 0 %>
-              <% (t[:trader_requirements] || []).each do |tr| %>
-                <% if tr['trader_name'].to_s.strip.empty? %>
-                  <% parts << "LL#{tr['trader_level']}" %>
-                <% else %>
-                  <% parts << "#{tr['trader_name'].to_s.titleize} LL#{tr['trader_level']}" %>
-                <% end %>
+              <% Array(t[:trader_requirements]).each do |tr| %>
+                <% parts << trader_requirement_label(tr) if tr.is_a?(Hash) %>
               <% end %>
               <%= parts.join(' · ') %>
             </span>

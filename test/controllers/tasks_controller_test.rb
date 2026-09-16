@@ -56,6 +56,24 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", tasks(:one).wiki_link, text: "Wiki walkthrough"
   end
 
+  test "show renders a trader-level requirement with no prerequisites" do
+    # Without the timeline (no prerequisites) a trader gate used to appear
+    # nowhere on the page.
+    task = Task.create!(bsg_id: "tl-#{SecureRandom.hex(4)}", full_name: "Trader Gated", name: "trader-gated", given_by: "Jaeger")
+    task.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "jaeger", "trader_level" => "4" } ])
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=requirements-head]" do
+      assert_select "dt", text: "Trader"
+      assert_select "dd", text: "Jaeger LL4"
+    end
+    assert_select "h2", text: "Unlock path", count: 0
+  ensure
+    task&.destroy
+  end
+
   test "show renders every reward type and leads-to" do
     get task_url(tasks(:one))
 

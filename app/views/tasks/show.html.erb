@@ -1,7 +1,9 @@
 <% content_for :title, @task.full_name %>
 <% chain = @task.prerequisite_chain([], task_map) %>
 <% prerequisites = chain.length - 1 %>
-<% requirements = @task.requirements.select { |r| r.player_level.to_i.positive? || r.previous_tasks.any? } %>
+<% requirements = @task.requirements.select { |r|
+     r.player_level.to_i.positive? || r.previous_tasks.any? || trader_requirements(r).any?
+   } %>
 <% reward_count = @task.rewards.sum { |r| r.loose_items.size + r.offer_unlocks.size + r.barter_unlocks.size + r.craft_unlocks.size } %>
 
 <div class="space-y-4 sm:space-y-6">
@@ -91,6 +93,12 @@
               <div class="spec">
                 <dt class="spec__key">Player level</dt>
                 <dd class="spec__val"><%= req.player_level %></dd>
+              </div>
+            <% end %>
+            <% trader_requirements(req).each do |entry| %>
+              <div class="spec">
+                <dt class="spec__key">Trader</dt>
+                <dd class="spec__val"><%= trader_requirement_label(entry) %></dd>
               </div>
             <% end %>
             <% if req.previous_tasks.any? %>
