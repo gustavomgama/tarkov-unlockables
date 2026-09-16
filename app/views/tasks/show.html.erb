@@ -127,6 +127,34 @@
       </section>
     <% end %>
 
+    <% objectives = @task.task_objectives %>
+    <% if objectives.any? %>
+      <section class="panel lg:col-span-2" aria-labelledby="objectives-head">
+        <div class="panel__head">
+          <h2 id="objectives-head" class="panel__title">Objectives</h2>
+          <span class="panel__note"><%= objectives.size %> to complete</span>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <% objectives.each do |objective| %>
+            <div class="srcrow">
+              <span class="srcbadge" style="--tone: var(--badge-task)"><%= objective_label(objective.objective_type) %></span>
+              <div class="srcrow__body">
+                <p class="srcrow__title"><%= objective.description %></p>
+                <p class="srcrow__meta">
+                  <% if objective.count.to_i > 1 %>
+                    <span class="font-data">×<%= objective.count %></span>
+                  <% end %>
+                  <% if objective.optional %>
+                    <span class="text-[var(--text-muted)]">optional</span>
+                  <% end %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
     <section class="panel <%= "lg:col-span-2" unless requirements.any? %>" aria-labelledby="rewards-head">
       <div class="panel__head">
         <h2 id="rewards-head" class="panel__title">Rewards</h2>

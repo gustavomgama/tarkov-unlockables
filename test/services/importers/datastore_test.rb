@@ -93,6 +93,12 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         "min_player_level" => 5,
         "trader_requirements" => [ { "trader_slug" => "prapor", "value" => 2 } ],
         "task_requirements" => [], "previous_tasks" => [],
+        "objectives" => [
+          { "id" => "o1", "type" => "giveItem", "description" => "Hand over 3 Salewa kits",
+            "count" => 3, "optional" => false },
+          { "id" => "o2", "type" => "visit", "description" => "Visit Customs",
+            "count" => nil, "optional" => true }
+        ],
         "leads_to" => [ { "task_id" => "", "task_name" => "second-task" } ],
         "start_rewards" => { "items" => [], "offer_unlock" => [], "barter_unlock" => [], "craft_unlock" => [] },
         "finish_rewards" => {
@@ -240,6 +246,13 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal 5, first.requirements.first.player_level
     assert_equal [ { "trader_name" => "prapor", "trader_level" => "2" } ],
                  first.requirements.first.trader_level
+
+    # Objectives keep source order, count and the optional flag.
+    assert_equal [ "Hand over 3 Salewa kits", "Visit Customs" ], first.task_objectives.map(&:description)
+    assert_equal [ "giveItem", "visit" ], first.task_objectives.map(&:objective_type)
+    assert_equal [ 3, nil ], first.task_objectives.map(&:count)
+    assert_equal [ false, true ], first.task_objectives.map(&:optional)
+    assert_equal [ 0, 1 ], first.task_objectives.map(&:position)
   end
 
   test "imports every reward kind" do
@@ -273,7 +286,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
-               ItemHideoutRequirement.count ]
+               ItemHideoutRequirement.count, TaskObjective.count ]
 
     Importers::Datastore.import!(source: @source)
 
@@ -281,6 +294,6 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                            ItemHideout.count, ItemTaskReward.count, LeadsTo.count, Requirement.count,
                            PreviousTask.count, Reward.count, LooseItem.count, OfferUnlock.count,
                            BarterUnlock.count, CraftUnlock.count, ItemBarterRequirement.count,
-                           ItemHideoutRequirement.count ]
+                           ItemHideoutRequirement.count, TaskObjective.count ]
   end
 end

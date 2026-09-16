@@ -32,6 +32,8 @@ class Task < ApplicationRecord
   has_many :requirements, dependent: :destroy
   has_many :rewards, dependent: :destroy
   has_many :item_task_rewards, dependent: :destroy
+  # Source order, which is how the game lists them.
+  has_many :task_objectives, -> { order(:position) }, dependent: :destroy
   # Trader offers this quest makes purchasable (item_currencies.task_id).
   has_many :gated_currencies, -> { where(task_unlock: true) },
            class_name: "ItemCurrency", dependent: :nullify, inverse_of: :task

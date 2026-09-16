@@ -25,7 +25,7 @@ module Importers
       item_barter_requirements item_barters item_currencies
       item_hideout_requirements item_hideouts item_task_rewards
       leads_tos loose_items offer_unlocks previous_tasks requirements rewards
-      items tasks
+      task_objectives items tasks
     ].freeze
 
     # Keys the wiki importer kept from the parsed infobox. Canonical keeps that
@@ -169,6 +169,18 @@ module Importers
       task.leads_tos.destroy_all
       task.requirements.destroy_all
       task.rewards.destroy_all
+      task.task_objectives.destroy_all
+
+      Array(raw["objectives"]).each_with_index do |objective, index|
+        task.task_objectives.create!(
+          objective_id:   objective["id"],
+          objective_type: objective["type"],
+          description:    objective["description"],
+          count:          objective["count"],
+          optional:       objective["optional"] || false,
+          position:       index
+        )
+      end
 
       Array(raw["leads_to"]).each do |entry|
         # `task_id` is blank for most canonical leads_to rows; the follow-up

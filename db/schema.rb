@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -287,6 +287,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000003) do
     t.index ["task_id"], name: "index_rewards_on_task_id"
   end
 
+  create_table "task_objectives", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.string "objective_id"
+    t.string "objective_type"
+    t.text "description"
+    t.integer "count"
+    t.boolean "optional", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id"], name: "index_task_objectives_on_task_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "bsg_id"
     t.string "full_name"
@@ -347,4 +360,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000003) do
   add_foreign_key "previous_tasks", "tasks"
   add_foreign_key "requirements", "tasks"
   add_foreign_key "rewards", "tasks"
+  add_foreign_key "task_objectives", "tasks"
 end

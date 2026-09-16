@@ -45,7 +45,8 @@ class TasksController < ApplicationController
         { craft_unlocks: :item }
       ],
       leads_tos: :follow_up_task,
-      gated_currencies: :item
+      gated_currencies: :item,
+      task_objectives: []
     ).find(params[:id])
     fresh_when(@task, public: true)
   end
