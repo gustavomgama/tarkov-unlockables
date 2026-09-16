@@ -27,10 +27,7 @@
         <%= text_field_tag :q, params[:q], type: "search", placeholder: "Search by name…",
               class: "input", "aria-label": "Search items",
               autocomplete: "off",
-              role: "combobox",
-              "aria-expanded": "false",
               "aria-controls": "search-results",
-              "aria-autocomplete": "list",
               data: { search_target: "input", action: "input->search#query" } %>
 
         <div

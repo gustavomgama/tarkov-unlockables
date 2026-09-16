@@ -78,13 +78,11 @@ export default class extends Controller {
 
   show() {
     this.resultsTarget.classList.remove("hidden")
-    this.inputTarget.setAttribute("aria-expanded", "true")
   }
 
   hide() {
     this.resultsTarget.innerHTML = ""
     this.resultsTarget.classList.add("hidden")
-    this.inputTarget.setAttribute("aria-expanded", "false")
   }
 
   keydown(event) {
