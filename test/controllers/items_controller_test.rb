@@ -302,32 +302,31 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "show lists the barters and crafts the item feeds" do
     item = Item.create!(bsg_id: "used-#{SecureRandom.hex(4)}", full_name: "Used Test Item", short_name: "UTI")
+    product = Item.create!(bsg_id: "used-p-#{SecureRandom.hex(4)}", full_name: "Output Widget", short_name: "OW")
     task = Task.create!(bsg_id: "used-t-#{SecureRandom.hex(4)}", full_name: "Used Task", name: "used-task", given_by: "Prapor")
-    reward = task.rewards.create!(reward_type: "finish_rewards")
 
-    barter = reward.barter_unlocks.create!(item: item, item_name: item.full_name)
-    barter.barter_requirements.create!(trader_name: "Prapor", trader_level: 2)
-          .barter_requirement_items.create!(item: item, item_name: item.full_name, count: 5)
+    barter = product.item_barters.create!(trader: "Prapor", trader_level: "2", item_name: product.full_name, task: task)
+    barter.item_barter_requirements.create!(item: item, item_name: item.full_name, count: 5)
 
-    craft = reward.craft_unlocks.create!(item: item, item_name: item.full_name,
-                                         hideout_station: "Workbench", station_level: 2)
-    craft.craft_requirements.create!
-         .craft_requirement_items.create!(item: item, item_name: item.full_name, count: 1)
+    craft = product.item_hideouts.create!(station: "Workbench", level: 2, task: task)
+    craft.item_hideout_requirements.create!(item: item, item_name: item.full_name, count: 1)
 
     get item_url(item)
 
     assert_response :success
     assert_select "section[aria-labelledby=used-in-head]" do
       assert_select "h2", text: "Used in"
+      assert_select ".srcrow", text: /gives Output Widget/
       assert_select ".srcrow", text: /Prapor LL2/
       assert_select ".srcrow", text: /needs 5 × UTI/
+      assert_select ".srcrow", text: /crafts into Output Widget/
       assert_select ".srcrow", text: /Workbench Lv\.2/
       assert_select ".srcrow", text: /needs 1 × UTI/
     end
   ensure
-    Reward.where(task_id: task&.id).destroy_all
-    task&.destroy
+    product&.destroy
     item&.destroy
+    task&.destroy
   end
 
   test "show gives melee damage a home" do

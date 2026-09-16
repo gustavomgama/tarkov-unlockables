@@ -62,8 +62,8 @@ class ItemsController < ApplicationController
       { offer_unlocks: { reward: :task } },
       { barter_unlocks: { reward: :task } },
       { craft_unlocks: { reward: :task } },
-      { barter_requirement_items: { barter_requirement: { barter_unlock: :item } } },
-      { craft_requirement_items: { craft_requirement: { craft_unlock: :item } } }
+      { item_barter_requirements: { item_barter: [ :item, :task ] } },
+      { item_hideout_requirements: { item_hideout: [ :item, :task ] } }
     ).find(params[:id])
     fresh_when(@item, public: true)
   end
