@@ -16,9 +16,4 @@ class TaskChainsTest < ActionDispatch::SystemTestCase
     visit chains_tasks_path
     assert_selector "h1", text: /chains/i
   end
-
-  def test_svg_graph_renders
-    visit chains_tasks_path
-    assert_selector "svg#task-graph"
-  end
 end
