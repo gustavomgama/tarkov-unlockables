@@ -78,8 +78,10 @@ against postgres:18, matching Neon production.
   `RAILS_MASTER_KEY`, `ADMIN_PASSWORD`).
 - VPS: Kamal via `config/deploy.yml` (`kamal setup`, then `kamal deploy`).
 
-Seed data lives in `offlinedata/` (`parsed_items.json` is tracked because
-`db:seed` needs it); regenerate it with `rake wiki:parse`.
+`db:seed` loads `datastore/canonical/` (the verified, cross-checked dataset —
+see `datastore/README.md`), not `offlinedata/` directly. Regenerate the
+canonical dataset with the scripts in `datastore/scripts/`; `offlinedata/` is
+its input.
 
 ## Queries
 

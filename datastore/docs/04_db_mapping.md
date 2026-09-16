@@ -1,23 +1,26 @@
 # Canonical dataset ↔ the Rails database
 
 The app's Postgres schema (`db/schema.rb`, version `2026_09_12_000000`) is a
-normalized, item-centric view of the same domain. It is **populated from
-`offlinedata/tarkovunlockables/items_index.json` + `tarkovdev/items.json` +
-`officialwiki/parsed_items.json` + `tarkovunlockables/tasks_index.json`**
-(`db/seeds.rb` → `Importers::Index` → `Importers::TarkovDev` →
-`Importers::Wiki` → `Importers::TaskGraph`).
+normalized, item-centric **projection** of this dataset. `db:seed` truncates
+its data tables and reloads them from `datastore/canonical/` through
+`Importers::Datastore` (`app/services/importers/datastore.rb`): the NDJSON is
+the source of truth, and the Rails schema is the subset the app renders today.
 
-Current live shape of `tarkov_db_development` vs this dataset:
+Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 
-| | Postgres (dev) | canonical | why they differ |
+| | canonical | Postgres | why they differ |
 | --- | ---: | ---: | --- |
-| items | 3,399 | 5,481 | the DB only creates rows present in `items_index`; `TarkovDev`/`Wiki` only *enrich* existing rows (`Item.find_by`, never create). ~1,950 mods/presets/ammo-packs and 135 quest items are absent. |
-| tasks | 468 | 517 | `TaskGraph` skips the 52 blank-`bsg_id` rows in `tasks_index`; the other gap is the canonical task set being the tarkovdev one. |
-| item_currencies | 3,351 | 2,965 buy routes | both derived, different sources (`obtain_from.currency` vs `buyFromTrader`). |
-| item_barters | 305 | 713 barter items / 789 barters | `items_index.obtain_from.barter` records *that* an item is barterable; the canonical barters carry the full recipe. |
-| item_hideouts | 188 | 184 craft items / 214 crafts | `obtain_from.hideout` is the craft list; canonical has recipes, durations, tools. |
-| item_task_rewards | 443 | 392 reward items / 989 reward rows | index only knows "given by task X"; canonical knows phase + count. |
-| rewards / loose_items / offer_unlocks / barter_unlocks / craft_unlocks | 936 / … / 134 / 52 / 36 | 1,732 reward rows | the DB's task-reward graph comes from `tasks_index`; canonical from tarkovdev, which includes trader unlocks, skill rewards, achievements and dialogue unlocks. |
+| items | 5,481 | 5,481 | 1:1 on `bsg_id`. Slots, grids, `properties` and acquisition collapse into the `data` jsonb. |
+| tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives, maps, needed keys and most reward kinds are dropped. |
+| buy routes | 2,658 `buy` + 3,202 `index_offers` | 3,248 `item_currencies` | one row per `(trader, currency, level)`, the two sources deduped; price and buy limit dropped. |
+| barter offers | 789 | 840 `item_barters` | one row per offer, as `(trader, level)`; the recipe is dropped. |
+| crafts | 214 | 214 `item_hideouts` | one row per craft, as `(station, level)`; inputs, duration and tools are dropped. |
+| task rewards | 1,964 reward rows | 1,034 `rewards` (989 loose items, 288 offers, 98 barters, 71 crafts) | the kinds without a DB column are dropped: 362 `trader_standing`, 136 `skill_level_reward`, 13 `customization`, 4 `achievement`, 2 `trader_unlock`, 1 `trader_dialogue_unlock`. |
+| traders | 16 | — | no table: trader names are strings (`given_by`, `trader`, …). |
+| maps | 17 | — | no table: a task's map is not stored. |
+| categories | 200 | — | no table: leaf slugs live in `items.categories`. |
+| hideout stations | 26 stations / 68 levels | — | no table: station names are strings on `item_hideouts`. |
+| reference | levels, skills, mastery, armor materials, achievements | — | no tables. |
 
 ---
 
@@ -30,7 +33,6 @@ Current live shape of `tarkov_db_development` vs this dataset:
 | `items.grids` | — | **no table.** Only `data` jsonb. |
 | `items.contains_items` | — | **no table.** Only `data.containsItems`. |
 | `items.trade.buy_from` | `item_currencies` | canonical adds `price`, `price_rub`, `buy_limit`; `task_unlock` is a bool in the DB but a task id here. |
-| `items.trade.sell_to` | `item_barters` (misused) | the DB stores barter *traders* in `item_barters`, not barter recipes. |
 | `items.acquisition.barter` | `item_barters` | DB: `(trader, trader_level)`. Canonical: full `required_items`/`offered_item`/limits. |
 | `items.acquisition.craft` | `item_hideouts` | DB: `(station, level)`. Canonical: recipe, duration, tools. |
 | `items.acquisition.task_rewards` | `item_task_rewards` | canonical adds `phase` and `count`. |
@@ -40,7 +42,7 @@ Current live shape of `tarkov_db_development` vs this dataset:
 | `traders.levels` | — | **no table.** No loyalty thresholds stored, so "can I buy this yet" is unanswerable. |
 | `barters` | `item_barters` (+ nothing) | canonical is a first-class entity with an id. |
 | `crafts` | `item_hideouts` (+ nothing) | same. |
-| `tasks` | `tasks` | 1:1 on `bsg_id`. Canonical adds `map_id`, `min_player_level`, `experience`, `faction`, `trader_id`, `name_source`, `wiki_link`. |
+| `tasks` | `tasks` | 1:1 on `bsg_id`. The DB keeps `full_name`, `slug`, `trader_slug`, `wiki_link` and the kappa/lightkeeper flags. Canonical also has `map_id`, `min_player_level`, `experience`, `faction`, `trader_id`, `name_source`. |
 | `tasks.task_requirements` | `previous_tasks` (via `requirements`) | DB has the chain; canonical also has `status`. |
 | `tasks.trader_requirements` | `requirements.trader_level` (jsonb array) | DB is a loose jsonb array; canonical has requirement type + comparator + value. |
 | `tasks.leads_to` | `leads_tos` | 1:1. |
@@ -70,8 +72,8 @@ queries the Postgres schema cannot express:
    trader-loyalty requirements are all absent; only level + previous tasks
    survive.
 5. **"Which tasks unlock the Jaeger trader / this craft / this offer?"** —
-   `offer_unlocks` (134) and `craft_unlocks` (36) exist but trader unlocks
-   (`trader_unlock`) and location unlocks are dropped.
+   `offer_unlocks` (288) and `craft_unlocks` (71) exist, but the 2
+   `trader_unlock` and location unlocks are dropped.
 6. **"Where does this task happen?"** — no map data at all.
 7. **"How much does it cost to build the Lavatory?"** — no hideout
    requirements.
@@ -80,25 +82,21 @@ queries the Postgres schema cannot express:
 
 ## Recommended path if the DB should carry the richer data
 
-Ordered by value per unit of work; nothing is required for this dataset to be
-useful on its own.
+Ordered by value per unit of work; nothing above is required for the dataset to
+be useful on its own. The item universe is already done — `db:seed` loads all
+5,481 canonical items, not the 3,399 the old index knew.
 
-1. **Switch the item universe to tarkovdev** (upsert instead of
-   `find_by`-only in `Importers::TarkovDev`). That alone takes items from
-   3,399 → 5,312 and brings presets/mods/ammo-packs in. Prefer
-   `items_en` names over the merged index/wiki name to stop the three-way
-   vocabulary drift.
-2. **Add the two missing first-class tables**: `traders` (+ `trader_levels`)
+1. **Add the two missing first-class tables**: `traders` (+ `trader_levels`)
    and `maps`. They are small wins that make existing string columns
    relational.
-3. **Promote objectives to a table** (`task_objectives` +
+2. **Promote objectives to a table** (`task_objectives` +
    `task_objective_items`). Currently the single biggest blind spot for any
    "what do I have to do" feature.
-4. **Add the item mod graph** (`item_slots`, `item_slot_allowed`) — needed
+3. **Add the item mod graph** (`item_slots`, `item_slot_allowed`) — needed
    for any gun-builder feature.
-5. **Add `hideout_stations` + level requirements**, and **`categories`**
+4. **Add `hideout_stations` + level requirements**, and **`categories`**
    (with `kind`) so the taxonomy is not item-local.
-6. **Widen rewards** to the full `task_rewards` shape (kind + phase +
+5. **Widen rewards** to the full `task_rewards` shape (kind + phase +
    trader/station/skill/achievement payloads).
 
 The canonical NDJSON maps to those tables one-to-one, and

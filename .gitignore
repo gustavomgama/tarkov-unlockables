@@ -64,8 +64,9 @@ skills-lock.json
 
 /offlinedata/tarkovmarket/*
 offlinedata/officialwiki/itembatches
-# parsed_items.json is required by db:seed (runs in CI via db:prepare),
-# so it stays tracked; regenerate locally with rake wiki:parse.
+# parsed_items.json is an input to the canonical build
+# (datastore/scripts/20_build_canonical.py), so it stays tracked;
+# regenerate locally with rake wiki:parse.
 
 # Local GoopSpec workflow state (agent-local, not project source)
 .goopspec/
