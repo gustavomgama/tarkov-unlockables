@@ -1,13 +1,15 @@
 class ItemsController < ApplicationController
   PER_PAGE = 20
   MAX_PER_PAGE = 100
+  AUTOCOMPLETE_LIMIT = 8
+  AUTOCOMPLETE_MIN_QUERY = 2
 
   def index
     # Filter dropdowns only change on seed/import: cache the whole block so
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
     # once per hour instead of on every index request. Fetched first so
     # apply_filters can reuse its values instead of re-plucking the tables.
-    @filter_options = Rails.cache.fetch("items/filter_options", expires_in: 1.hour) do
+    @filter_options = Rails.cache.fetch("items/filter_options/v2", expires_in: 1.hour) do
       {
         currency: currency_options,
         category: category_options,
@@ -19,12 +21,12 @@ class ItemsController < ApplicationController
 
     items = Item.all.order(full_name: :asc)
     items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
-    items = apply_filters(items) if params[:filters].present?
+    items = apply_filters(items) if filter_params.present?
     @item_count = items.count
 
-    page = params[:page].to_i
+    page = int_param(:page)
     page = 1 if page < 1
-    per_page = [ params[:per_page].to_i, 1 ].max
+    per_page = [ int_param(:per_page), 1 ].max
     per_page = MAX_PER_PAGE if per_page > MAX_PER_PAGE
     per_page = PER_PAGE if per_page < PER_PAGE
     @items = items.offset((page - 1) * per_page).limit(per_page)
@@ -33,10 +35,36 @@ class ItemsController < ApplicationController
     @total_pages = (@item_count.to_f / per_page).ceil
   end
 
+  # Typeahead for the search field. Renders the result rows as HTML so the
+  # row markup lives in one template instead of being rebuilt in JavaScript.
+  def search
+    query = params[:q].to_s.strip
+    return head :no_content if query.length < AUTOCOMPLETE_MIN_QUERY
+
+    @items = Item.all
+                 .loose_search(query, columns: %w[full_name short_name])
+                 .order(full_name: :asc)
+                 .limit(AUTOCOMPLETE_LIMIT)
+    return head :no_content if @items.empty?
+
+    expires_in 10.minutes, public: true
+    render partial: "items/autocomplete_results", locals: { items: @items }, layout: false
+  end
+
   def show
     # Unlock associations carry reward → task so the view renders the
     # "How to Unlock" section and raid timelines with zero extra queries.
-    @item = Item.find(params[:id])
+    @item = Item.includes(
+      { item_task_rewards: :task },
+      :item_hideouts,
+      :item_barters,
+      :item_currencies,
+      { offer_unlocks: { reward: :task } },
+      { barter_unlocks: { reward: :task } },
+      { craft_unlocks: { reward: :task } },
+      { barter_requirement_items: { barter_requirement: { barter_unlock: :item } } },
+      { craft_requirement_items: { craft_requirement: { craft_unlock: :item } } }
+    ).find(params[:id])
     fresh_when(@item, public: true)
   end
 
@@ -52,12 +80,29 @@ class ItemsController < ApplicationController
     caliber_map.values.flatten.uniq
   end
 
-  def apply_filters(items)
-    filters = params[:filters].permit(
+  # A query-string value can arrive as an array ("?per_page[]=x"), and an array
+  # has no #to_i: read the first entry, or none.
+  def int_param(name)
+    value = params[name]
+    value = value.first if value.is_a?(Array)
+    value.to_i
+  end
+
+  # params[:filters] arrives from the query string, so it can be a String or an
+  # Array rather than a nested hash ("?filters=string" 500'd on String#permit).
+  # Anything unexpected is read as "no filters".
+  def filter_params
+    raw = params[:filters]
+    raw = ActionController::Parameters.new unless raw.is_a?(ActionController::Parameters)
+    raw.permit(
       { currency: [] }, { category: [] }, { armor_class: [] },
       { caliber: [] }, { task_required: [] }, { source: [] },
       { exclude_ref: [] }
     )
+  end
+
+  def apply_filters(items)
+    filters = filter_params
 
     # Exclude Ref: drop items obtainable from the Ref trader
     if Array(filters[:exclude_ref]).include?("1")
@@ -165,7 +210,7 @@ class ItemsController < ApplicationController
       end
 
       grouped.sort_by { |base, _| base }.map do |base, variants|
-        { value: base, label: base.humanize, count: variants.sum { |v| variant_counts[v] } }
+        { value: base, label: helpers.category_label(base), count: variants.sum { |v| variant_counts[v] } }
       end
     end
   end
@@ -182,17 +227,6 @@ class ItemsController < ApplicationController
   def caliber_options
     @caliber_options ||= begin
       calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
-    # One grouped query for data-field counts
-    data_counts = Item.where("data->>'caliber' IS NOT NULL")
-                      .group(Arel.sql("data->>'caliber'")).count
-    # One grouped query for category-based counts (ammo packs/boxes)
-    all_cal_cats = caliber_map.values.flatten.uniq
-    cat_counts = Hash.new(0)
-    if all_cal_cats.any?
-      Item.where("categories && ?", "{#{all_cal_cats.join(',')}}")
-          .group(Arel.sql("unnest(categories)")).count
-          .each { |cat, count| cat_counts[cat] = count }
-    end
 
       calibers.map do |c|
         cats = caliber_map[c] || []

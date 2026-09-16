@@ -1,14 +1,49 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.full_name.present? %>
-    <div class="col-span-2 md:col-span-4">
-      <dt class="text-[var(--text-muted)]">Full Name</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.full_name %></dd>
-    </div>
-  <% end %>
-  <% if item.short_name.present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Short Name</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.short_name %></dd>
-    </div>
-  <% end %>
-</dl>
+<% part_type = item.data["type"].presence %>
+<% ergonomics = item.data["ergonomics"].presence %>
+<% stab = item.data["stab_damage"].presence %>
+<% slash = item.data["slash_damage"].presence %>
+<% base = bsg_item(item.data["base_item"]) %>
+<%# The BSG type ("Mount", "Handguard", "Stock") is the most useful fact an
+    attachment has, so it leads. Skip it when it just repeats the class. %>
+<% part_type = nil if part_type == item.class.name.demodulize %>
+
+<% if stab.present? || slash.present? || part_type.present? %>
+  <dl class="stats">
+    <%# Melee weapons are Generic items, so their damage had no home. %>
+    <% if stab.present? %>
+      <div class="stat stat--xl">
+        <dt class="stat__key">Stab Damage</dt>
+        <dd class="stat__val"><%= stab %></dd>
+      </div>
+    <% end %>
+    <% if slash.present? %>
+      <div class="stat stat--xl">
+        <dt class="stat__key">Slash Damage</dt>
+        <dd class="stat__val"><%= slash %></dd>
+      </div>
+    <% end %>
+    <% if part_type.present? %>
+      <div class="stat <%= stat_scale(part_type) unless stab.present? || slash.present? %>">
+        <dt class="stat__key">Part Type</dt>
+        <dd class="stat__val"><%= part_type.titleize %></dd>
+      </div>
+    <% end %>
+  </dl>
+<% end %>
+
+<% if (ergonomics.present? && ergonomics.to_f.nonzero?) || base %>
+  <dl class="specs">
+    <% if base %>
+      <div class="spec">
+        <dt class="spec__key">Base item</dt>
+        <dd class="spec__val"><%= link_to base.full_name, item_path(base) %></dd>
+      </div>
+    <% end %>
+    <% if ergonomics.present? && ergonomics.to_f.nonzero? %>
+      <div class="spec">
+        <dt class="spec__key">Ergonomics</dt>
+        <dd class="spec__val"><%= ergonomics.to_f.positive? ? "+#{ergonomics}" : ergonomics %></dd>
+      </div>
+    <% end %>
+  </dl>
+<% end %>

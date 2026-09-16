@@ -1,0 +1,44 @@
+{
+  "hideout": {
+    "bytes": 80199,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "882180dfc433ca4d54c8d148f225a891994ee28a9beac14799ea02819ebac161",
+    "url": "https://json.tarkov.dev/regular/hideout"
+  },
+  "hideout_en": {
+    "bytes": 14543,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "0265f9169aec0719c6685884c95a8981356320ae6e55b607085bffe6aa19b22d",
+    "url": "https://json.tarkov.dev/regular/hideout_en"
+  },
+  "items_en": {
+    "bytes": 1649014,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "c7f38877b9880336548712b519325ac4386f7134c2fd53d29d746aca7d523ace",
+    "url": "https://json.tarkov.dev/regular/items_en"
+  },
+  "maps": {
+    "bytes": 8600352,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "d6a210ab843f2aca7106d22c3fb288050901a3c23547fa7c6c3bb4fc456c25c7",
+    "url": "https://json.tarkov.dev/regular/maps"
+  },
+  "maps_en": {
+    "bytes": 22617,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "b3a7e32e35f10903ffb02ef56dcf104177c162bce0965d94e192696f5a6039d5",
+    "url": "https://json.tarkov.dev/regular/maps_en"
+  },
+  "tasks_en": {
+    "bytes": 248677,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "511712e3b9d7c925e3cdd8b548110c3f62c4c3c531ccc75cfb155b85198440f1",
+    "url": "https://json.tarkov.dev/regular/tasks_en"
+  },
+  "traders_en": {
+    "bytes": 3537,
+    "fetched_at": "2026-09-16T04:00:00Z",
+    "sha256": "1d837a5d33dbde4b8860ba49488b3f885af8adbb13c5c52bcecd26637a6568c7",
+    "url": "https://json.tarkov.dev/regular/traders_en"
+  }
+}

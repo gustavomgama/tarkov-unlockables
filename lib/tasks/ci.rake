@@ -1,6 +1,6 @@
 namespace :ci do
   desc "Run full CI pipeline locally (mirrors .github/workflows/ci.yml)"
-  task all: %i[security lint fasterer development test coverage audit docker] do
+  task all: %i[security lint assets fasterer development test coverage system audit docker] do
     puts "\n✅ All CI checks passed."
   end
 
@@ -15,6 +15,18 @@ namespace :ci do
   task :lint do
     puts "── Lint ──"
     run "bundle exec rubocop"
+  end
+
+  desc "Verify the committed Tailwind bundle is current"
+  task :assets do
+    puts "── Assets ──"
+    # The built bundle is committed. A view that uses a utility which is not in
+    # it ships unstyled markup that no test would catch, so rebuild and fail if
+    # the committed file was stale.
+    bundle = Rails.root.join("app/assets/builds/tailwind.css")
+    before = bundle.read
+    run "bundle exec rails tailwindcss:build"
+    abort "❌ app/assets/builds/tailwind.css is stale — rebuild and commit it" if bundle.read != before
   end
 
   desc "Fasterer performance-idiom check"
@@ -51,6 +63,12 @@ namespace :ci do
     abort "❌ Coverage is #{score}% — requires 89%" if score < 89
   end
 
+  desc "Browser (system) tests"
+  task :system do
+    puts "── System ──"
+    run "RAILS_ENV=test bundle exec rails test:system", clean_env: true
+  end
+
   desc "Rubycritic score (≥ 75 threshold)"
   task :audit do
     puts "── Audit ──"
@@ -63,8 +81,51 @@ namespace :ci do
   desc "Build production Docker image (same Dockerfile Render deploys)"
   task :docker do
     puts "── Docker ──"
-    tag = ENV.fetch("CI_IMAGE_TAG", "tarkov-db:ci")
-    run "docker build -t #{tag} ."
+    run "docker build -t #{image_tag} ."
+  end
+
+  desc "Rehearse the Render deploy: migrate, boot Puma, poll /up"
+  task :rehearsal do
+    puts "── Deploy rehearsal ──"
+    # Mirrors render.yaml: migrate as preDeployCommand, then boot with
+    # Render's dockerCommand and env, and poll healthCheckPath. Uses its own
+    # network and throwaway credentials so it needs nothing from the host.
+    port = ENV.fetch("CI_REHEARSAL_PORT", "3001")
+    network = "tarkov-db-ci-#{Process.pid}"
+    db = "#{network}-db"
+    app = "#{network}-app"
+    database_url = "postgres://postgres:postgres@#{db}:5432/tarkov_db_prod"
+    env = {
+      "RAILS_ENV" => "production",
+      "DATABASE_URL" => database_url,
+      "SECRET_KEY_BASE" => ENV["SECRET_KEY_BASE"] || SecureRandom.hex(64),
+      "ADMIN_PASSWORD" => ENV.fetch("ADMIN_PASSWORD", "ci-dummy"),
+      "RAILS_LOG_TO_STDOUT" => "1",
+      "RAILS_SERVE_STATIC_FILES" => "1",
+      "RAILS_LOG_LEVEL" => "info",
+      "WEB_CONCURRENCY" => "1",
+      "RAILS_MAX_THREADS" => "5"
+    }
+
+    begin
+      run "docker network create #{network}"
+      run "docker run -d --name #{db} --network #{network} " \
+          "-e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=tarkov_db_prod postgres:18"
+      wait_for "postgres", "docker exec #{db} pg_isready -U postgres"
+
+      run "docker run --rm --network #{network} #{env_args(env)} " \
+          "#{image_tag} bundle exec rails db:migrate"
+
+      run "docker run -d --name #{app} --network #{network} -p #{port}:3001 " \
+          "#{env_args(env.merge('PORT' => '3001'))} " \
+          "#{image_tag} bundle exec puma -C config/puma.rb"
+      wait_for "http://localhost:#{port}/up", "curl -sf http://localhost:#{port}/up"
+
+      run "docker logs --tail 20 #{app}"
+    ensure
+      system("docker rm -f #{app} #{db} >/dev/null 2>&1")
+      system("docker network rm #{network} >/dev/null 2>&1")
+    end
   end
 
   desc "Verify Bullet N+1 detection is active and strict"
@@ -90,6 +151,24 @@ namespace :ci do
   task quick: %i[security lint]
 
   private
+
+  # Image tag shared by ci:docker and ci:rehearsal; CI passes the commit sha.
+  def image_tag
+    ENV.fetch("CI_IMAGE_TAG", "tarkov-db:ci")
+  end
+
+  def env_args(env)
+    env.map { |key, value| "-e #{key}=#{value}" }.join(" ")
+  end
+
+  def wait_for(what, command, attempts: 24)
+    attempts.times do
+      return puts("  ✅ #{what} ready") if system("#{command} >/dev/null 2>&1")
+
+      sleep 5
+    end
+    abort "❌ #{what} did not come up within #{attempts * 5}s"
+  end
 
   def run(command, clean_env: false)
     puts "  $ #{command}"

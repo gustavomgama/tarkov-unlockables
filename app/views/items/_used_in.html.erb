@@ -1,0 +1,57 @@
+<%# What this item is worth: the barters and crafts it feeds. The other half
+    of "should I keep this", and the question the item page could not answer.
+    Locals: item %>
+<% barters = item.barter_requirement_items.select { |ri| ri.barter_requirement&.barter_unlock } %>
+<% crafts  = item.craft_requirement_items.select { |ri| ri.craft_requirement&.craft_unlock } %>
+
+<div class="panel__body panel__body--flush">
+  <% barters.each do |entry| %>
+    <% requirement = entry.barter_requirement %>
+    <% unlock = requirement.barter_unlock %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-barter)">Barter</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title">
+          <% if unlock.item %>
+            gives <%= link_to unlock.item.full_name, item_path(unlock.item) %>
+          <% else %>
+            gives <%= unlock.item_name %>
+          <% end %>
+        </p>
+        <p class="srcrow__meta">
+          <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= requirement.trader_name.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+          <% if requirement.trader_name.present? %>
+            <%= requirement.trader_name.titleize %>
+            <span class="font-data">LL<%= requirement.trader_level %></span>
+          <% else %>
+            trader not recorded
+          <% end %>
+          · needs <span class="font-data"><%= entry.count || 1 %></span> × <%= item.short_name.presence || item.full_name %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+
+  <% crafts.each do |entry| %>
+    <% requirement = entry.craft_requirement %>
+    <% unlock = requirement.craft_unlock %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-craft)">Craft</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title">
+          <% if unlock.item %>
+            crafts into <%= link_to unlock.item.full_name, item_path(unlock.item) %>
+          <% else %>
+            crafts into <%= unlock.item_name %>
+          <% end %>
+        </p>
+        <p class="srcrow__meta">
+          <% if unlock.hideout_station.present? %>
+            <%= unlock.hideout_station %> <span class="font-data">Lv.<%= unlock.station_level %></span> ·
+          <% end %>
+          needs <span class="font-data"><%= entry.count || 1 %></span> × <%= item.short_name.presence || item.full_name %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+</div>

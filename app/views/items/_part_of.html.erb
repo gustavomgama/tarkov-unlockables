@@ -1,0 +1,29 @@
+<%# Packs, bundles and weapon presets that contain this item. The heading
+    names what the rows actually are: a mod belongs to preset builds, a
+    round belongs to packs.
+    Locals: item, packs — pass the caller's already-loaded list; the partial
+    loads its own if it was rendered standalone. %>
+<% packs = local_assigns.fetch(:packs) { item.ammo_packs.to_a } %>
+<% presets = packs.any? { |p| p.categories.include?("preset") } %>
+
+<div class="panel__body panel__body--flush">
+  <% packs.each do |pack| %>
+    <%= link_to item_path(pack), class: "srcrow hover:bg-[var(--bg-elevated)] no-underline" do %>
+      <span class="srcbadge" style="--tone: var(--bg-elevated); color: var(--text-muted)"><%= presets ? "Preset" : "Pack" %></span>
+      <div class="srcrow__body">
+        <p class="srcrow__title"><%= pack.full_name %></p>
+        <% contains = pack.data&.dig("containsItems")&.find { |ci| ci["item"] == item.bsg_id } %>
+        <p class="srcrow__meta">
+          <% if contains&.dig("count") %>
+            contains <span class="font-data"><%= contains["count"] %></span> × <%= item.short_name.presence || item.full_name %>
+          <% else %>
+            includes this item
+          <% end %>
+        </p>
+      </div>
+      <svg class="w-4 h-4 mt-1 shrink-0 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    <% end %>
+  <% end %>
+</div>

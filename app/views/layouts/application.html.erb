@@ -4,16 +4,30 @@
     <title><%= content_for?(:title) ? "#{yield(:title)} // TARKOV DB" : "Tarkov Unlock Navigator" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Escape from Tarkov item, task and trader unlock reference." %>">
+    <meta name="theme-color" content="#06080a">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "application", "tailwind" %>
     <%= javascript_importmap_tags %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://tarkov.dev" crossorigin>
     <link rel="preload" href="https://tarkov.dev/fonts/bender.woff2" as="font" type="font/woff2" crossorigin="">
+    <link rel="preload" href="https://tarkov.dev/fonts/bender-bold.woff2" as="font" type="font/woff2" crossorigin="">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%# Installable: start_url, theme colour and icons live in the manifest. %>
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tarkov DB">
+    <meta property="og:type" content="<%= content_for?(:og_type) ? yield(:og_type) : "website" %>">
+    <meta property="og:site_name" content="Tarkov DB">
+    <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) : "Tarkov Unlock Navigator" %>">
+    <meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : "Escape from Tarkov item, task and trader unlock reference." %>">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="<%= request.base_url + request.path %>">
     <style>
       @font-face {
         font-family: 'bender';
@@ -29,138 +43,669 @@
         font-weight: 700;
         src: local('Bender Bold'), url('https://tarkov.dev/fonts/bender-bold.woff2') format('woff2');
       }
+
       @layer base {
-        :root {
-          --bg-dark: #06080a;
-          --bg-panel: #0d1117;
-          --bg-surface: #12161c;
-          --bg-elevated: #1a1f26;
-          --text: #e8e4d8;
-          --text-bright: #f0ebe3;
-          --text-muted: #8a8578;
-          --accent: #c9a84c;
-          --accent-hover: #d4b85e;
-          --border: #2a2f36;
-          --border-faint: rgba(255,255,255,0.06);
-          --success: #5a9a3a;
-          --danger: #b83a2a;
-          --tactical-olive: #4a5a2a;
-          --tactical-rust: #8a3c2a;
-          --badge-task: #7a6b8a;
-          --badge-barter: #5a8a8a;
-          --badge-craft: #6a8a6a;
-          --badge-hideout: #5a7a5a;
-          --badge-currency: #5a7a8a;
-          --badge-offer: #8a8a5a;
-          --trader-prapor: #8a5a3c;
-          --trader-therapist: #7a8a5a;
-          --trader-fence: #9a7a4a;
-          --trader-skier: #5a6a8a;
-          --trader-ragman: #8a6a8a;
-          --trader-mechanic: #5a8a7a;
-          --trader-jaeger: #6a7a4a;
-          --trader-lightkeeper: #4a7a8a;
-          --trader-peacekeeper: #4a6a8a;
-          --trader-ref: #7a7a7a;
-          --trader-btr-driver: #6a6a5a;
-          --font-data: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        html {
+          background-color: var(--bg-dark);
+          overflow-x: clip;
         }
-        html { background-color: var(--bg-dark); }
         body {
           background-color: var(--bg-dark);
           color: var(--text);
           font-family: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 700;
+          font-weight: 400;
           word-spacing: 1px;
           -webkit-font-smoothing: antialiased;
         }
-        h1, h2, h3, h4, .font-bold, .font-semibold { font-weight: 700; }
+        h1, h2, h3, h4 { font-weight: 700; letter-spacing: -0.01em; }
         a { color: var(--accent); text-decoration: none; }
         a:hover { color: var(--accent-hover); text-decoration: underline; }
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        .font-data {
-          font-family: var(--font-data);
-          font-variant-numeric: tabular-nums;
+        .font-data { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+      }
+
+      @layer components {
+        /* Skip link: keyboard users land here first. */
+        .skip-link {
+          position: absolute;
+          left: -9999px;
+          top: 0;
         }
+        .skip-link:focus {
+          left: 0.75rem;
+          top: 0.75rem;
+          z-index: 100;
+          padding: 0.5rem 0.75rem;
+          background: var(--accent);
+          color: var(--bg-dark);
+          font-size: 0.8125rem;
+          font-weight: 700;
+          text-decoration: none;
+        }
+
+        /* Masthead */
+        .nav-link {
+          display: inline-flex;
+          align-items: center;
+          min-height: 2.75rem;
+          padding: 0 0.125rem;
+          font-size: 0.875rem;
+          font-weight: 400;
+          color: var(--text-muted);
+          border-bottom: 2px solid transparent;
+          text-decoration: none;
+        }
+        .nav-link:hover { color: var(--text); text-decoration: none; }
+        .nav-link[aria-current="page"] {
+          color: var(--accent);
+          font-weight: 700;
+          border-bottom-color: var(--accent);
+        }
+
+        /* Panels: the only container shape on the site. */
+        .panel {
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+        }
+        .panel__head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+        .panel__title {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: var(--text-bright);
+        }
+        .panel__note { font-size: 0.75rem; color: var(--text-muted); }
+        .panel__body { padding: 1rem; }
+        .panel__body--flush { padding: 0; }
+
+        /* Stat readout: one framed block. The primary row is a grid of the
+           numbers that decide the item; everything else is a spec list, so a
+           leftover cell can never leave a hole in the grid. */
+        .readout {
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+        }
+        .readout > * + * { border-top: 1px solid var(--border); }
+        .readout .stats { border: 0; }
+        .stats {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1px;
+          margin: 0;
+          background: var(--border);
+          border: 1px solid var(--border);
+        }
+        .stat {
+          flex: 1 1 calc(50% - 2px);
+          min-width: 0;
+          padding: 0.75rem 0.875rem;
+          background: var(--bg-surface);
+        }
+        @media (min-width: 640px) {
+          .stat { flex-basis: 7rem; }
+        }
+        .stat--wide { flex: 1 1 100%; }
+        .stat__key {
+          display: block;
+          margin: 0 0 0.25rem;
+          font-size: 0.625rem;
+          font-weight: 400;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .stat__val {
+          display: block;
+          margin: 0;
+          font-weight: 700;
+          font-size: 1.0625rem;
+          line-height: 1.2;
+          color: var(--text-bright);
+          font-variant-numeric: tabular-nums;
+          overflow-wrap: anywhere;
+        }
+        .stat__val a { color: inherit; }
+        .stat__note {
+          display: block;
+          margin: 0;
+          font-size: 0.6875rem;
+          color: var(--text-muted);
+        }
+        .stat--xl .stat__val {
+          font-size: clamp(1.75rem, 1.35rem + 1.6vw, 2.5rem);
+          letter-spacing: -0.02em;
+          line-height: 1;
+        }
+        .stat--tone .stat__val { color: var(--tone); }
+
+        /* Secondary specs: label left, value right, one fact per row. */
+        .specs { margin: 0; }
+        .spec {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.4375rem 1rem;
+          font-size: 0.8125rem;
+        }
+        .spec + .spec { border-top: 1px solid var(--border); }
+        .spec__key { flex-shrink: 0; color: var(--text-muted); }
+        .spec__val {
+          margin: 0;
+          min-width: 0;
+          text-align: right;
+          color: var(--text-bright);
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+          overflow-wrap: anywhere;
+        }
+
+
+        /* Armor-class / penetration ladder: six blocks, lit up to the rating. */
+        .ac-grid {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 0.25rem;
+          max-width: 34rem;
+        }
+        .ac-cell {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 1.75rem;
+          background: var(--bg-elevated);
+          border: 1px solid var(--border);
+          font-size: 0.75rem;
+          font-variant-numeric: tabular-nums;
+          color: var(--text-muted);
+        }
+        .ac-cell--on {
+          background: var(--tone);
+          border-color: var(--tone);
+          color: #0a0c0e;
+          font-weight: 700;
+        }
+
+        /* Horizontal meter for ergonomics / recoil style values. */
+        .meter {
+          height: 0.25rem;
+          background: var(--bg-elevated);
+          overflow: hidden;
+        }
+        .meter__fill { height: 100%; background: var(--tone, var(--accent)); }
+
+        /* Chips */
+        .chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.1875rem 0.4375rem;
+          font-size: 0.6875rem;
+          line-height: 1.4;
+          background: var(--bg-elevated);
+          color: var(--text-muted);
+          border: 1px solid var(--border);
+        }
+        .chip--strong { color: var(--text); }
+        .chip--link { color: var(--text); }
+        /* Interactive chips are thumb targets, not labels. */
+        .chip--tap { align-items: center; min-height: 2.5rem; padding: 0.4375rem 0.6875rem; }
+        .chip--link:hover {
+          border-color: var(--accent);
+          color: var(--accent);
+          text-decoration: none;
+        }
+
+        /* Form fields */
+        .input {
+          width: 100%;
+          min-height: 2.75rem;
+          padding: 0.5rem 0.75rem;
+          font-family: inherit;
+          font-size: 0.875rem;
+          color: var(--text);
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+          border-radius: 0;
+        }
+        .input::placeholder { color: var(--text-muted); }
+        .input:focus { border-color: var(--accent); outline: none; }
+        .input[type="search"]::-webkit-search-cancel-button { filter: invert(0.7); }
+
+        /* Buttons: square corners, no glow. */
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          white-space: nowrap;
+          gap: 0.375rem;
+          min-height: 2.75rem;
+          padding: 0.5rem 0.875rem;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          border: 1px solid var(--border);
+          background: var(--bg-surface);
+          color: var(--text);
+          transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+        .btn--accent { background: var(--accent); border-color: var(--accent); color: #0a0c0e; }
+        .btn--accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #0a0c0e; }
+        .btn--danger { border-color: var(--danger); color: var(--danger); }
+        .btn--danger:hover { background: var(--danger); border-color: var(--danger); color: var(--text-bright); }
+
+        /* Item card */
+        .card {
+          display: block;
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+          transition: border-color 120ms ease;
+        }
+        .card:hover { border-color: var(--accent); text-decoration: none; }
+        .card__media {
+          position: relative;
+          aspect-ratio: 4 / 3;
+          background: var(--bg-panel);
+          overflow: hidden;
+        }
+        .card__img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          transition: transform 160ms ease-out;
+        }
+        @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+          /* Pointer devices only: a tapped card keeps its hover state on
+             touch, and the lift is decoration. */
+          .card:hover { transform: translateY(-1px); }
+          .card:hover .card__img { transform: scale(1.04); }
+        }
+        .card__body { padding: 0.625rem 0.6875rem 0.6875rem; }
+        .card__name {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          line-height: 1.3;
+          color: var(--text-bright);
+          margin-bottom: 0.375rem;
+          overflow-wrap: anywhere;
+        }
+
+        /* Remove control overlaid on a favourite card. Its own class rather
+           than utilities: the .btn base sets a 2.75rem tap target that is too
+           big for a card corner. */
+        .card-remove {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.25rem;
+          height: 2.25rem;
+          font-size: 0.875rem;
+          line-height: 1;
+          cursor: pointer;
+          color: var(--text-muted);
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+        }
+        .card-remove:hover {
+          color: var(--danger);
+          border-color: var(--danger);
+        }
+
+        /* List row with a chevron drawn in CSS: 468 task rows used to carry
+           an inline SVG each. */
+        .task-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.625rem 0.75rem;
+          border-bottom: 1px solid var(--border);
+          text-decoration: none;
+          /* 468 rows: let the browser skip layout and paint for the ones off
+             screen. Ignored by browsers without support, which just render
+             them as before. */
+          content-visibility: auto;
+          contain-intrinsic-size: auto 2.9rem;
+        }
+        .task-row:last-child { border-bottom: 0; }
+        .task-row:hover { background: var(--bg-elevated); text-decoration: none; }
+        .task-row::after {
+          content: "";
+          flex-shrink: 0;
+          width: 0.4rem;
+          height: 0.4rem;
+          border-right: 2px solid var(--text-muted);
+          border-bottom: 2px solid var(--text-muted);
+          transform: rotate(-45deg);
+        }
+
+        /* Trader dot shared by lists and timelines. */
         .trader-dot {
-          width: 0.5rem; height: 0.5rem; border-radius: 9999px; flex-shrink: 0;
+          width: 0.5rem;
+          height: 0.5rem;
+          border-radius: 9999px;
+          flex-shrink: 0;
           background: var(--trader-unknown, var(--text-muted));
         }
-        @media (prefers-reduced-motion: no-preference) {
-          .timeline-node { animation: node-in 200ms ease-out backwards; }
-          .timeline-node:nth-child(2) { animation-delay: 60ms; }
-          .timeline-node:nth-child(3) { animation-delay: 120ms; }
-          .timeline-node:nth-child(4) { animation-delay: 180ms; }
-          .timeline-node:nth-child(5) { animation-delay: 240ms; }
-          .timeline-node:nth-child(n+6) { animation-delay: 300ms; }
+
+        /* Timeline */
+        .timeline-node { position: relative; padding-left: 1.5rem; padding-bottom: 0.875rem; }
+        .timeline-node:last-child { padding-bottom: 0; }
+
+        /* Disclosure: collapsed by default. <details> works without
+           JavaScript and reports its own expanded state; the controller only
+           adds Escape and click-outside to close. */
+        .disclosure > summary {
+          cursor: pointer;
+          list-style: none;
         }
-        @keyframes node-in {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
+        .disclosure > summary::-webkit-details-marker { display: none; }
+        .disclosure > summary::after {
+          content: "+";
+          font-weight: 700;
+          color: var(--text-muted);
         }
-        @keyframes fade-up {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
+        .disclosure[open] > summary::after { content: "−"; }
+
+        /* Site menu (small screens). The panel hangs off the sticky header so
+           it spans the viewport without any measuring. */
+        .site-menu > summary {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.75rem;
+          height: 2.75rem;
+          cursor: pointer;
+          list-style: none;
+          color: var(--text);
         }
-        .anim-fade-up { animation: fade-up 180ms ease-out both; }
-        .anim-delay-1 { animation-delay: 60ms; }
-        .anim-delay-2 { animation-delay: 120ms; }
-        .anim-delay-3 { animation-delay: 180ms; }
-        .anim-delay-4 { animation-delay: 240ms; }
-        .hover-card { transition: transform 120ms ease-out, box-shadow 120ms ease-out; }
-        .hover-card:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 8px 24px rgba(201,168,76,0.12); }
-        .hover-glow:hover { box-shadow: 0 0 0 1px var(--accent), 0 4px 16px rgba(201,168,76,0.15); }
+        .site-menu > summary::-webkit-details-marker { display: none; }
+        .site-menu[open] .site-menu__icon--menu { display: none; }
+        .site-menu:not([open]) .site-menu__icon--close { display: none; }
+        .site-menu__panel {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 100%;
+          padding: 0.5rem 1rem;
+          background: var(--bg-panel);
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
+        }
+        .site-menu__link {
+          display: flex;
+          align-items: center;
+          min-height: 2.75rem;
+          padding: 0 0.75rem;
+          font-size: 0.875rem;
+          color: var(--text);
+        }
+        .site-menu__link:hover {
+          background: var(--bg-elevated);
+          color: var(--accent);
+          text-decoration: none;
+        }
+        .site-menu__link[aria-current="page"] { color: var(--accent); font-weight: 700; }
+
+        /* Filter group: a <details> so it opens without JavaScript. The menu
+           sits in flow on phones (it can never overflow the viewport) and
+           floats under the button from sm up. */
+        .filter-group { position: relative; }
+        .filter-group > summary {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          min-height: 2.5rem;
+          padding: 0.5rem 0.75rem;
+          font-size: 0.875rem;
+          cursor: pointer;
+          list-style: none;
+          color: var(--text);
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+        }
+        .filter-group > summary::-webkit-details-marker { display: none; }
+        .filter-group > summary:hover { border-color: var(--accent); }
+        .filter-group[open] > summary { border-color: var(--accent); }
+        .filter-group__chevron {
+          color: var(--text-muted);
+          transition: transform 120ms ease;
+        }
+        .filter-group[open] .filter-group__chevron { transform: rotate(180deg); }
+        .filter-group__count {
+          padding: 0 0.3rem;
+          font-size: 0.75rem;
+          font-weight: 700;
+          background: var(--accent);
+          color: var(--bg-dark);
+        }
+        .filter-group__menu {
+          margin-top: 0.25rem;
+          padding: 0.75rem;
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+        }
+        @media (min-width: 640px) {
+          .filter-group__menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 40;
+            margin-top: 0;
+            width: 14rem;
+            max-height: 18rem;
+            overflow-y: auto;
+          }
+        }
+        .filter-group__option {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.375rem 0.5rem;
+          cursor: pointer;
+        }
+        .filter-group__option:hover { background: var(--bg-elevated); }
+        .filter-group__label { flex: 1; font-size: 0.875rem; color: var(--text); }
+        .filter-group__hint {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          font-variant-numeric: tabular-nums;
+        }
+
+        /* Print: a reference page is worth printing (a quest chain, a
+           weapon's ammo table), so drop the chrome and flip the palette. */
+        @media print {
+          .no-print { display: none !important; }
+          body { background: #fff; color: #1a1a1a; }
+          main { max-width: none; padding: 0; }
+          .panel { break-inside: avoid; }
+          a { color: inherit; text-decoration: underline; }
+          /* Nothing is clickable on paper: show where a link goes. */
+          .crumbs a[href^="http"]::after,
+          .chip--link[href^="http"]::after {
+            content: " (" attr(href) ")";
+            font-size: 0.75em;
+            word-break: break-all;
+          }
+          .stat--tone .stat__val,
+          .ammo-table td[style],
+          .ac-cell--on {
+            color: #1a1a1a !important;
+            background: #d9d4c6 !important;
+          }
+        }
+
+        /* Keyboard hint, inline in body copy. */
+        kbd {
+          padding: 0.05rem 0.3rem;
+          font-family: var(--font-data);
+          font-size: 0.75em;
+          color: var(--text);
+          background: var(--bg-elevated);
+          border: 1px solid var(--border);
+        }
+
+        /* Breadcrumbs */
+        .crumbs {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.375rem;
+          font-size: 0.75rem;
+          color: var(--text-muted);
+        }
+        .crumbs a { color: var(--text-muted); }
+        .crumbs a:hover { color: var(--accent); }
+
+        /* Source badge: what kind of acquisition a row describes. */
+        .srcbadge {
+          display: inline-flex;
+          align-items: center;
+          flex-shrink: 0;
+          padding: 0.1875rem 0.4375rem;
+          font-size: 0.625rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--text-bright);
+          background: var(--tone, var(--bg-elevated));
+        }
+
+        /* Acquisition rows: badge on the left, detail lines on the right. */
+        .srcrow {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.625rem;
+          padding: 0.6875rem 1rem;
+        }
+        .srcrow + .srcrow { border-top: 1px solid var(--border); }
+        .srcrow__body { min-width: 0; flex: 1; }
+        .srcrow__title {
+          font-size: 0.8125rem;
+          color: var(--text-bright);
+          overflow-wrap: anywhere;
+        }
+        .srcrow__meta {
+          margin-top: 0.125rem;
+          font-size: 0.75rem;
+          color: var(--text-muted);
+        }
+
+        /* Comparison table: one row per round, numbers right-aligned. */
+        .ammo-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .ammo-table th,
+        .ammo-table td {
+          padding: 0.5rem 1rem;
+          text-align: left;
+          font-weight: 400;
+          vertical-align: middle;
+        }
+        .ammo-table thead th {
+          font-size: 0.625rem;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          border-bottom: 1px solid var(--border);
+        }
+        .ammo-table tbody th {
+          font-size: 0.8125rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .ammo-table tbody tr + tr th,
+        .ammo-table tbody tr + tr td { border-top: 1px solid var(--border); }
+        .ammo-table tbody tr:hover { background: var(--bg-elevated); }
+        .ammo-table tbody td {
+          width: 3.5rem;
+          font-size: 0.8125rem;
+          text-align: right;
+          font-variant-numeric: tabular-nums;
+          color: var(--text-bright);
+        }
+        .ammo-table td.muted { color: var(--text-muted); }
+        .ammo-table tr.current {
+          background: var(--bg-elevated);
+          box-shadow: inset 2px 0 0 var(--accent);
+        }
+        .ammo-table tr.current th a { color: var(--accent); font-weight: 700; }
+
       }
     </style>
   </head>
-  <body class="min-h-screen">
-    <header class="border-b border-[var(--border)] bg-[var(--bg-panel)] sticky top-0 z-50" data-controller="mobile-nav">
+  <body class="min-h-screen flex flex-col">
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    <header class="no-print border-b border-[var(--border)] bg-[var(--bg-panel)] sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center gap-6">
-            <%= link_to "Tarkov DB", root_path, class: "text-xl font-bold tracking-tight text-[var(--accent)]" %>
-            <nav class="hidden md:flex gap-4">
-              <%= link_to "Items", items_path, class: "text-sm font-medium text-[var(--text)] hover:text-[var(--accent)]" %>
-              <%= link_to "Tasks", tasks_path, class: "text-sm font-medium text-[var(--text)] hover:text-[var(--accent)]" %>
-              <%= link_to "Favorites", favorites_path, class: "text-sm font-medium text-[var(--text)] hover:text-[var(--accent)]" %>
+        <div class="flex items-center justify-between h-14 sm:h-16">
+          <div class="flex items-center gap-5 sm:gap-7">
+            <%= link_to root_path, class: "flex items-baseline gap-1.5 text-[var(--accent)] hover:text-[var(--accent-hover)] no-underline" do %>
+              <span class="text-base sm:text-lg font-bold tracking-tight">TARKOV</span>
+              <span class="text-base sm:text-lg font-normal text-[var(--text-muted)]">DB</span>
+            <% end %>
+            <nav class="hidden md:flex gap-5" aria-label="Primary">
+              <%= link_to "Items", items_path, class: "nav-link", "aria-current": ("page" if controller_name == "items") %>
+              <%= link_to "Tasks", tasks_path, class: "nav-link", "aria-current": ("page" if controller_name == "tasks") %>
+              <%= link_to "Favorites", favorites_path, class: "nav-link", "aria-current": ("page" if controller_name == "favorites") %>
             </nav>
           </div>
-          <button
-            type="button"
-            class="md:hidden p-2 -mr-2 text-[var(--text)] min-w-[44px] min-h-[44px] flex items-center justify-center"
-            data-action="mobile-nav#toggle"
-            aria-expanded="false"
-            aria-controls="mobile-menu"
-            aria-label="Menu"
+
+          <%# <details> so navigation still works with JavaScript disabled. %>
+          <details
+            class="site-menu md:hidden"
+            data-controller="disclosure"
+            data-action="keydown.esc->disclosure#closeOnEscape click@document->disclosure#closeOnOutsideClick"
           >
-            <svg data-mobile-nav-target="icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            <summary aria-label="Menu">
+              <svg class="site-menu__icon--menu w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg class="site-menu__icon--close w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </summary>
+            <nav class="site-menu__panel" aria-label="Primary">
+              <%= link_to "Items", items_path, class: "site-menu__link", "aria-current": ("page" if controller_name == "items") %>
+              <%= link_to "Tasks", tasks_path, class: "site-menu__link", "aria-current": ("page" if controller_name == "tasks") %>
+              <%= link_to "Favorites", favorites_path, class: "site-menu__link", "aria-current": ("page" if controller_name == "favorites") %>
+            </nav>
+          </details>
         </div>
       </div>
-      <nav id="mobile-menu" data-mobile-nav-target="menu" class="hidden md:hidden border-t border-[var(--border)]">
-        <div class="px-4 py-3 space-y-1">
-          <%= link_to "Items", items_path, class: "block px-3 py-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center" %>
-          <%= link_to "Tasks", tasks_path, class: "block px-3 py-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center" %>
-          <%= link_to "Favorites", favorites_path, class: "block px-3 py-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] min-h-[44px] flex items-center" %>
-        </div>
-      </nav>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main id="main" tabindex="-1" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 outline-none">
       <%= yield %>
     </main>
 
-    <footer class="border-t border-[var(--border)] mt-auto">
+    <footer class="no-print border-t border-[var(--border)] mt-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <%= render "shared/feedback" %>
 
-        <div class="text-sm text-[var(--text-muted)] mt-2">
-          data:
-          <%= link_to "tarkov.dev", "https://tarkov.dev", class: "hover:text-[var(--accent)]", target: "_blank", rel: "noopener" %> ·
-          <%= link_to "Escape from Tarkov Wiki", "https://escapefromtarkov.fandom.com", class: "hover:text-[var(--accent)]", target: "_blank", rel: "noopener" %> ·
-          <%= link_to "tarkov-market.com", "https://tarkov-market.com", class: "hover:text-[var(--accent)]", target: "_blank", rel: "noopener" %>
+        <div class="text-xs text-[var(--text-muted)] mt-3">
+          <% if (freshness = data_freshness) %>
+            data updated <time datetime="<%= freshness.to_date.iso8601 %>"><%= freshness.to_date.to_fs(:long) %></time> ·
+          <% end %>
+          source:
+          <%= link_to "tarkov.dev", "https://tarkov.dev", target: "_blank", rel: "noopener" %> ·
+          <%= link_to "Escape from Tarkov Wiki", "https://escapefromtarkov.fandom.com", target: "_blank", rel: "noopener" %> ·
+          <%= link_to "tarkov-market.com", "https://tarkov-market.com", target: "_blank", rel: "noopener" %>
         </div>
       </div>
     </footer>

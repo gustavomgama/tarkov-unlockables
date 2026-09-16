@@ -1,12 +1,12 @@
 # Skills Reference
 
-All **45** AI skills installed in `~/.opencode/skills/`, with trigger phrases/commands
-and full descriptions.
+All installed AI skills, with trigger phrases/commands and full descriptions.
 
 ## Quick Access — `Ctrl+P` then type `>skills`
 
 ```
 >skills task-observer      → Monitors task execution, skill improvement opportunities
+>skills i-have-adhd        → ADHD-shaped output; always on for this agent
 >skills ponytail           → Anti-over-engineering, laziest solution
 >skills ponytail-review    → Code review for over-engineering
 >skills ponytail-audit     → Whole-repo over-engineering audit
@@ -25,7 +25,7 @@ and full descriptions.
 >skills ruby-version-manager → Detect Ruby version manager first
 >skills ruby-resource-map  → Ruby docs, typing, tooling sources
 >skills ruby-test-frameworks → minitest vs test-unit gotchas
->skills rubyn-rails        → Rails patterns and gotchasas
+>skills rubyn-rails        → Rails patterns and gotchas
 >skills rubyn-rspec        → RSpec patterns
 >skills rubyn-minitest     → Minitest patterns
 >skills rubyn-ruby         → Ruby language deep cuts
@@ -35,8 +35,6 @@ and full descriptions.
 Type `>skills` followed by any skill name above to activate it instantly.
 
 ---
-
-asdi
 
 ## How activation works
 
@@ -177,6 +175,6 @@ Distilled rule sets from the named book; each triggers when you name its book or
 
 ---
 
-Total: **45 skills installed** — all documented above (1 + 6 + 14 + 6 + 1 + 13 + 3 + 1).
+Total: **all installed skills** are documented above.
 
 *Note: ponytail's repo also targets a "Hermes" chat harness (*`/ponytail`* *slash commands) — here those strings act as plain natural-language triggers, only the skill bundles are installed.*

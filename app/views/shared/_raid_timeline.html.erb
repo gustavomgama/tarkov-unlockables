@@ -1,46 +1,62 @@
-<%# Raid timeline: vertical prerequisite chain with trader-colored nodes.
+<%# Raid timeline: vertical prerequisite chain with trader-coloured nodes.
+    Long chains collapse behind a disclosure — a 16-step wall of text buries
+    the answer the page already gave in the hero. Pass expand: true on pages
+    whose entire subject is the chain.
     Locals:
       chain — Array<Hash> from Task#prerequisite_chain (start-to-end order; reversed for display)
       current_name — optional String; task name to highlight as current (default: last node)
+      expand — optional Boolean; render the whole chain without a disclosure
 %>
 <% current_name ||= nil %>
+<% expand ||= false %>
 <% ordered = chain.reverse %>
 <% current_name ||= ordered.last[:name] %>
-<ol class="relative ml-3 border-l border-[var(--border)] space-y-0">
-  <% ordered.each_with_index do |t, i| %>
-    <% is_current = t[:name] == current_name %>
-    <% trader_key = t[:given_by].to_s.parameterize %>
-    <li class="timeline-node relative pl-6 pb-5 last:pb-0">
-      <span
-        class="absolute -left-[7px] top-1 w-3.5 h-3.5 rounded-full border-2 <%= is_current ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]' %>"
-        style="<%= "background: var(--trader-#{trader_key}, var(--bg-elevated));" unless is_current %>"
-        aria-hidden="true"
-      ></span>
-      <div class="flex items-baseline gap-2 flex-wrap">
-        <% if t[:id] %>
-          <%= link_to t[:name], task_path(t[:id]),
-                class: "text-sm #{is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)] hover:text-[var(--accent-hover)]'}" %>
-        <% else %>
-          <span class="text-sm <%= is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)]' %>"><%= t[:name] %></span>
-        <% end %>
-        <% if t[:given_by].present? %>
-          <span class="text-xs text-[var(--text-muted)]"><%= t[:given_by].titleize %></span>
-        <% end %>
-        <% if t[:player_level].to_i > 0 || (t[:trader_requirements] || []).any? %>
-          <span class="font-data text-[11px] text-[var(--text-muted)]">
-            <% parts = [] %>
-            <% parts << "lvl #{t[:player_level]}" if t[:player_level].to_i > 0 %>
-            <% (t[:trader_requirements] || []).each do |tr| %>
-              <% if tr['trader_name'].to_s.strip.empty? %>
-                <% parts << "LL#{tr['trader_level']}" %>
-              <% else %>
-                <% parts << "#{tr['trader_name'].to_s.titleize} LL#{tr['trader_level']}" %>
+
+<% list = capture do %>
+  <ol class="relative ml-3 border-l border-[var(--border)]">
+    <% ordered.each do |t| %>
+      <% is_current = t[:name] == current_name %>
+      <% trader_key = t[:given_by].to_s.parameterize %>
+      <li class="timeline-node relative pl-6">
+        <span
+          class="absolute -left-[7px] top-1 w-3.5 h-3.5 rounded-full border-2 <%= is_current ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]' %>"
+          style="<%= "background: var(--trader-#{trader_key}, var(--bg-elevated));" unless is_current %>"
+          aria-hidden="true"
+        ></span>
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <% if t[:id] %>
+            <%= link_to task_display_name(t[:name]), task_path(t[:id]),
+                  class: "text-[0.8125rem] #{is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)] hover:text-[var(--accent-hover)]'}" %>
+          <% else %>
+            <span class="text-[0.8125rem] <%= is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)]' %>"><%= task_display_name(t[:name]) %></span>
+          <% end %>
+          <% if t[:given_by].present? %>
+            <span class="text-xs text-[var(--text-muted)]"><%= t[:given_by].titleize %></span>
+          <% end %>
+          <% if t[:player_level].to_i > 0 || Array(t[:trader_requirements]).any? %>
+            <span class="font-data text-[0.6875rem] text-[var(--text-muted)]">
+              <% parts = [] %>
+              <% parts << "lvl #{t[:player_level]}" if t[:player_level].to_i > 0 %>
+              <% Array(t[:trader_requirements]).each do |tr| %>
+                <% parts << trader_requirement_label(tr) if tr.is_a?(Hash) %>
               <% end %>
-            <% end %>
-            <%= parts.join(' · ') %>
-          </span>
-        <% end %>
-      </div>
-    </li>
-  <% end %>
-</ol>
+              <%= parts.join(' · ') %>
+            </span>
+          <% end %>
+        </div>
+      </li>
+    <% end %>
+  </ol>
+<% end %>
+
+<% if ordered.size > 6 && !expand %>
+  <details class="disclosure">
+    <summary class="inline-flex items-center gap-2 min-h-[44px] px-3 border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--accent)]">
+      <span class="text-sm font-bold text-[var(--text)]">Show all <%= ordered.size %> steps</span>
+      <span class="text-xs text-[var(--text-muted)]">from the first prerequisite to this quest</span>
+    </summary>
+    <div class="mt-4"><%= list %></div>
+  </details>
+<% else %>
+  <%= list %>
+<% end %>

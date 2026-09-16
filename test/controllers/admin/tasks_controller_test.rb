@@ -181,5 +181,11 @@ module Admin
       delete admin_task_url(@task)
       assert_response :unauthorized
     end
+
+    test "missing task renders the admin 404 page" do
+      get_auth admin_task_url(id: 999_999_999)
+      assert_response :not_found
+      assert_select "h1", "404"
+    end
   end
 end

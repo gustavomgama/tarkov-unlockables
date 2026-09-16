@@ -1,80 +1,103 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.data["caliber"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Caliber</dt>
-      <dd class="font-medium text-[var(--text)]"><%= caliber_display(item.data["caliber"]) %></dd>
+<% ergonomics = item.data["ergonomics"].presence %>
+<% recoil = item.data["recoil"].presence %>
+<% range = item.data["range"].presence %>
+<% velocity = item.data["velocity"].presence %>
+<% default_preset = bsg_item(item.data["default_preset"].presence || item.data["defaultPreset"]) %>
+<% default_ammo_raw = item.data["default_ammo"].presence || item.data["def_ammo"] %>
+<% default_ammo = bsg_item(default_ammo_raw) %>
+<% accepted = compatible_ammo(item) %>
+<% top_round = accepted.max_by { |a| a.data["penetration_power"].to_i } %>
+<% top_round = nil if top_round == default_ammo %>
+<% mod_slots = Array(item.data["mods"]).select { |m| m.is_a?(Hash) }
+                                      .filter_map { |m| m["slot"].presence && [ m["slot"], Array(m["items"]).size ] } %>
+<% caliber = item_caliber(item) %>
+
+<dl class="stats">
+  <% if caliber.present? %>
+    <div class="stat stat--xl">
+      <dt class="stat__key">Caliber</dt>
+      <dd class="stat__val"><%= caliber %></dd>
     </div>
   <% end %>
-  <% if item.data["default_ammo"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Default Ammo</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["default_ammo"] %></dd>
+
+  <% if top_round %>
+    <% pen = top_round.data["penetration_power"] %>
+    <div class="stat stat--tone" style="--tone: <%= penetration_tone(pen) %>">
+      <dt class="stat__key">Best round</dt>
+      <dd class="stat__val text-sm"><%= link_to top_round.short_name.presence || top_round.full_name, item_path(top_round) %></dd>
+      <dd class="stat__note">pen <%= pen %><% if pen.present? %> · beats class <%= penetration_class(pen) %><% end %></dd>
     </div>
   <% end %>
-  <% if item.data["fire_modes"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Fire Modes</dt>
-      <dd class="font-medium text-[var(--text)]"><%= Array(item.data["fire_modes"]).join(", ") %></dd>
-    </div>
-  <% end %>
-  <% if item.data["default_preset"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Default Preset</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["default_preset"] %></dd>
-    </div>
-  <% end %>
-  <% if item.data["presets"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Presets</dt>
-      <dd class="font-medium text-[var(--text)]"><%= Array(item.data["presets"]).join(", ") %></dd>
-    </div>
-  <% end %>
-  <% if item.data["ergonomics"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)] text-xs uppercase tracking-wider font-bold mb-1">Ergonomics</dt>
-      <dd class="font-bold text-[var(--text-bright)] text-lg"><%= item.data["ergonomics"] %></dd>
-      <div class="w-full h-1.5 bg-[var(--bg-elevated)] mt-1.5 rounded-full overflow-hidden">
-        <div class="h-full bg-[var(--tactical-olive)] rounded-full" style="width: <%= [item.data["ergonomics"].to_f / 100.0 * 100, 100].min %>%"></div>
-      </div>
-    </div>
-  <% end %>
-  <% if item.data["recoil"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)] text-xs uppercase tracking-wider font-bold mb-1">Recoil</dt>
-      <dd class="font-bold text-[var(--text-bright)] text-lg"><%= item.data["recoil"] %></dd>
-      <div class="w-full h-1.5 bg-[var(--bg-elevated)] mt-1.5 rounded-full overflow-hidden">
-        <div class="h-full bg-[var(--tactical-rust)] rounded-full" style="width: <%= [item.data["recoil"].to_f / 100.0 * 100, 100].min %>%"></div>
-      </div>
-    </div>
-  <% end %>
-  <% if item.data["sightrange"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Sight Range</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["sightrange"] %></dd>
-    </div>
-  <% end %>
-  <% if item.data["effective_distance"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Effective Distance</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["effective_distance"] %></dd>
-    </div>
-  <% end %>
-  <% if item.data["velocity"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Velocity</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["velocity"] %></dd>
-    </div>
-  <% end %>
-  <% if item.data["mods"].present? %>
-    <div class="col-span-2 md:col-span-4">
-      <dt class="text-[var(--text-muted)]">Mods</dt>
-      <dd class="font-medium text-[var(--text)]">
-        <ul class="list-disc list-inside">
-          <% Array(item.data["mods"]).each do |mod| %>
-            <li><%= mod.is_a?(Hash) ? mod["name"] || mod.to_s : mod %></li>
-          <% end %>
-        </ul>
+
+  <% if default_ammo || default_ammo_raw %>
+    <div class="stat">
+      <dt class="stat__key">Default Ammo</dt>
+      <dd class="stat__val text-sm">
+        <% if default_ammo %>
+          <%= link_to default_ammo.full_name, item_path(default_ammo) %>
+        <% else %>
+          <%# Import carries a display name instead of a bsg_id here. %>
+          <%= default_ammo_raw %>
+        <% end %>
       </dd>
     </div>
   <% end %>
+
+  <% if ergonomics.present? && ergonomics.to_f.nonzero? %>
+    <div class="stat">
+      <dt class="stat__key">Ergonomics</dt>
+      <dd class="stat__val">
+        <%= ergonomics %>
+        <span class="mt-1.5 block meter">
+          <span class="meter__fill" style="--tone: var(--ac3); width: <%= ergonomics.to_f.clamp(0, 100) %>%"></span>
+        </span>
+      </dd>
+    </div>
+  <% end %>
+
+  <% if recoil.present? && recoil.to_f.nonzero? %>
+    <div class="stat">
+      <dt class="stat__key">Recoil</dt>
+      <dd class="stat__val"><%= recoil %></dd>
+      <dd class="stat__note">lower is better</dd>
+    </div>
+  <% end %>
+
+  <% if range.present? %>
+    <div class="stat">
+      <dt class="stat__key">Range</dt>
+      <dd class="stat__val"><%= range %></dd>
+    </div>
+  <% end %>
 </dl>
+
+<% if mod_slots.any? %>
+  <div class="stat stat--wide">
+    <span class="stat__key">Mod slots &amp; compatible parts</span>
+    <span class="stat__val flex flex-wrap gap-1 pt-0.5">
+      <% mod_slots.first(12).each do |slot, count| %>
+        <span class="chip chip--strong"><%= slot.to_s.titleize %> <span class="font-data text-[var(--text-muted)]"><%= count %></span></span>
+      <% end %>
+      <% if mod_slots.size > 12 %>
+        <span class="chip">+<%= mod_slots.size - 12 %> more</span>
+      <% end %>
+    </span>
+  </div>
+<% end %>
+
+<% if velocity.present? || default_preset %>
+  <dl class="specs">
+    <% if default_preset %>
+      <div class="spec">
+        <dt class="spec__key">Default preset</dt>
+        <dd class="spec__val"><%= link_to default_preset.full_name, item_path(default_preset) %></dd>
+      </div>
+    <% end %>
+    <% if velocity.present? %>
+      <div class="spec">
+        <dt class="spec__key">Muzzle Velocity</dt>
+        <dd class="spec__val"><%= velocity %> m/s</dd>
+      </div>
+    <% end %>
+  </dl>
+<% end %>

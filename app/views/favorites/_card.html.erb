@@ -1,0 +1,15 @@
+<%# A favourite card with a remove control. The control is a sibling of the
+    card link, not a child: a <form> inside an <a> is invalid and swallows the
+    tap. Locals: card %>
+<div class="relative">
+  <%= render "items/item_card", card: card, priority: false %>
+
+  <div class="absolute top-1.5 right-1.5">
+    <%= button_to "★",
+          favorite_path(item_id: card.id),
+          method: :delete,
+          class: "card-remove",
+          aria: { label: "Remove #{card.full_name} from favorites" },
+          data: { turbo_confirm: "Remove #{card.full_name} from favorites?" } %>
+  </div>
+</div>

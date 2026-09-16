@@ -1,0 +1,17 @@
+<%# One row per quest match, rendered by TasksController#search and injected by
+    the search Stimulus controller.
+    Locals: tasks — matched collection (already limited and ordered) %>
+<% tasks.each do |task| %>
+  <%= link_to task_path(task), class: "flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-elevated)] no-underline border-b border-[var(--border)] last:border-b-0" do %>
+    <span class="trader-dot" style="background: var(--trader-<%= task.given_by.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+    <span class="flex-1 min-w-0">
+      <span class="block text-sm font-bold truncate text-[var(--text-bright)]"><%= task.full_name %></span>
+      <span class="block text-xs text-[var(--text-muted)] truncate"><%= task.given_by.to_s.titleize %></span>
+    </span>
+    <% if task.lightkeeper_required %>
+      <span class="chip shrink-0" style="background: var(--trader-lightkeeper); color: var(--text-bright)">Lighthouse</span>
+    <% elsif task.kappa_required %>
+      <span class="chip shrink-0" style="background: var(--danger); color: var(--text-bright)">Kappa</span>
+    <% end %>
+  <% end %>
+<% end %>

@@ -176,7 +176,8 @@ class Item < ApplicationRecord
     end
   end
 
-  # Maps caliber display name → matching category bases (excludes _pack/_box/_bundle).
+  # Maps caliber display name → matching categories, including the
+  # _pack/_box/_bundle variants so an ammo pack matches its caliber too.
   # Computed on demand (not at class load) so boot never touches the DB and
   # re-imported data is reflected immediately.
   def self.caliber_category_map
@@ -196,9 +197,7 @@ class Item < ApplicationRecord
     # Normalize: lowercase, strip non-alphanumeric, strip 'x', strip trailing 'mm'
     norm = ->(s) { s.downcase.gsub(/[^a-zA-Z0-9]/, "").gsub("x", "").sub(/mm\z/, "") }
 
-    all_cats = category_list
-    cal_bases = all_cats.map { |c| c.sub(/_(pack|box|bundle)\z/, "") }
-                        .uniq.select { |b| b =~ /^\d/ || b =~ /^\./ }
+    cal_cats = category_list.select { |c| c.sub(/_(pack|box|bundle)\z/, "").match?(/^\d|^\./) }
 
     raw_calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact
     display_to_cats = {}
@@ -207,23 +206,46 @@ class Item < ApplicationRecord
       next if display.start_with?("Caliber")
       next if display_to_cats.key?(display)
       dn = norm.call(display)
-      display_to_cats[display] = cal_bases.select { |b|
-        bn = norm.call(b)
+      display_to_cats[display] = cal_cats.select { |c|
+        bn = norm.call(c.sub(/_(pack|box|bundle)\z/, ""))
         bn == dn || bn.start_with?(dn) || dn.start_with?(bn)
       }
     end
     display_to_cats
   end
 
-  # All category bases that are caliber-like (matched by any caliber)
-  def self.caliber_category_bases
-    caliber_category_map.values.flatten.uniq
+  # Links come from the wiki import and are rendered as an `href`. A stored
+  # `javascript:`/`data:` value is not a link, it is stored XSS, so the
+  # template asks for these instead of the raw column.
+  def external_links
+    Array(links).select { |url| url.to_s.match?(%r{\Ahttps?://}i) }
   end
 
   def ammo_packs
     return Item.none unless bsg_id.present?
     Item.where(type: "Item::Generic")
         .where("data->'containsItems' @> ?", [ { "item" => bsg_id } ].to_json)
+  end
+
+  # Guarded casts for the comparison ordering. A plain ::int raises on any
+  # non-integer value the import might store ("31.5", "n/a"), which would
+  # take the whole caliber listing down with it.
+  PEN_ORDER = "CASE WHEN data->>'penetration_power' ~ '^[0-9]+$' " \
+              "THEN (data->>'penetration_power')::int END DESC NULLS LAST".freeze
+  DMG_ORDER = "CASE WHEN data->>'damage' ~ '^[0-9]+$' " \
+              "THEN (data->>'damage')::int END DESC NULLS LAST".freeze
+
+  # Every other round in the same caliber, hardest-hitting first. A round's
+  # penetration number only means something next to its siblings, so the
+  # ammo page leads with this comparison.
+  def caliber_ammo(limit: 14)
+    raw = data["caliber"]
+    return Item.none if raw.blank?
+
+    Item::Ammo.where("data->>'caliber' = ?", raw)
+              .where.not(id: id)
+              .order(Arel.sql(PEN_ORDER), Arel.sql(DMG_ORDER))
+              .limit(limit)
   end
 
   def self.type_for(properties_type, wiki_infobox = nil)

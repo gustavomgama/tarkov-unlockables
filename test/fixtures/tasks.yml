@@ -28,6 +28,8 @@ one:
   bsg_id: task_one
   full_name: Task One
   name: Task One
+  # Mirrors Task#set_search_text, which fixtures skip (they insert via SQL).
+  search_text: taskonetaskone
   wiki_link: https://example.com/task-one
   given_by: Prapor
   kappa_required: false
@@ -38,6 +40,7 @@ two:
   bsg_id: task_two
   full_name: Task Two
   name: Task Two
+  search_text: tasktwotasktwo
   wiki_link: https://example.com/task-two
   given_by: Therapist
   kappa_required: false

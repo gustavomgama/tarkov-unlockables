@@ -50,7 +50,11 @@ class Task < ApplicationRecord
     return [] if visited.include?(id)
     visited << id
 
-    first_req = requirements.first
+    # Read through the map's preloaded copy: the object this was called on
+    # (e.g. an unlock's task) has no preloaded requirements, so touching
+    # self.requirements would fire one query per chain node.
+    node = task_map[name] || self
+    first_req = node.requirements.first
     chain = [ {
       id:                  id,
       name:                name,
@@ -60,7 +64,7 @@ class Task < ApplicationRecord
       trader_requirements: first_req&.trader_level || []
     } ]
 
-    requirements.each do |req|
+    node.requirements.each do |req|
       req.previous_tasks.each do |pt|
         prev = task_map[pt.task_name]
         chain += prev.prerequisite_chain(visited, task_map) if prev

@@ -1,20 +1,37 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.data["max_uses"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Max Uses</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["max_uses"] %></dd>
+<% effect = clean_wiki_text(item.data["effect"]) %>
+<% uses = item.data["max_uses"].presence %>
+<% use_time = item.data["use_time"].presence %>
+
+<% if uses.present? || use_time.present? %>
+  <dl class="stats">
+    <% if uses.present? %>
+      <div class="stat stat--xl">
+        <dt class="stat__key">Max Uses</dt>
+        <dd class="stat__val"><%= uses %></dd>
+      </div>
+    <% else %>
+      <div class="stat stat--xl">
+        <dt class="stat__key">Use Time</dt>
+        <dd class="stat__val"><%= use_time %> <span class="text-[0.6875rem] font-normal text-[var(--text-muted)]">s</span></dd>
+      </div>
+    <% end %>
+  </dl>
+<% end %>
+
+<% if effect.present? %>
+  <dl class="stats">
+    <div class="stat stat--wide">
+      <dt class="stat__key">Effect</dt>
+      <dd class="stat__val text-sm font-normal leading-relaxed whitespace-pre-line"><%= effect %></dd>
     </div>
-  <% end %>
-  <% if item.data["effect"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Effect</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["effect"] %></dd>
+  </dl>
+<% end %>
+
+<% if uses.present? && use_time.present? %>
+  <dl class="specs">
+    <div class="spec">
+      <dt class="spec__key">Use Time</dt>
+      <dd class="spec__val"><%= use_time %> s</dd>
     </div>
-  <% end %>
-  <% if item.data["use_time"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Use Time</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["use_time"] %></dd>
-    </div>
-  <% end %>
-</dl>
+  </dl>
+<% end %>

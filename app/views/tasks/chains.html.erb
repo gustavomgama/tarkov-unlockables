@@ -1,22 +1,36 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between flex-wrap gap-2">
-    <h1 class="text-2xl font-bold text-[var(--text-bright)]">Task Chains</h1>
-    <span class="text-sm text-[var(--text-muted)]">Unlock paths by trader</span>
+<% content_for :title, "Task chains" %>
+
+<div class="space-y-4 sm:space-y-6">
+  <nav class="crumbs no-print" aria-label="Breadcrumb">
+    <%= link_to "Tasks", tasks_path %>
+    <span aria-hidden="true">/</span>
+    <span class="text-[var(--text)]">Chains</span>
+  </nav>
+
+  <div class="flex items-baseline justify-between gap-3 flex-wrap">
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Task chains</h1>
+    <p class="text-sm text-[var(--text-muted)]">deepest unlock path per trader</p>
   </div>
 
-  <p class="text-sm text-[var(--text-muted)]">
-    Each trader's task progression, from tasks with no prerequisites to their deepest chains.
+  <p class="max-w-2xl text-sm text-[var(--text-muted)]">
+    Each trader's longest quest progression, from the first quest with no
+    prerequisites down to the one that needs the most before it.
   </p>
 
-  <% @trader_chains.each do |trader, deepest, chain| %>
-
-    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="trader-dot" style="background: var(--trader-<%= trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-        <h2 class="text-lg font-bold text-[var(--text-bright)]"><%= trader.titleize %></h2>
-        <span class="font-data text-xs text-[var(--text-muted)]"><%= chain.length %> deep</span>
-      </div>
-      <%= render "shared/raid_timeline", chain: chain, current_name: deepest.name %>
-    </div>
-  <% end %>
+  <div class="grid gap-4 sm:gap-5 lg:grid-cols-2 lg:items-start">
+    <% @trader_chains.each do |trader, deepest, chain| %>
+      <section class="panel" aria-labelledby="chain-<%= trader.parameterize %>">
+        <div class="panel__head">
+          <h2 id="chain-<%= trader.parameterize %>" class="panel__title flex items-center gap-2">
+            <span class="trader-dot" style="background: var(--trader-<%= trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+            <%= trader.titleize %>
+          </h2>
+          <span class="panel__note"><%= chain.length %> quests deep</span>
+        </div>
+        <div class="panel__body">
+          <%= render "shared/raid_timeline", chain: chain, current_name: deepest.name, expand: true %>
+        </div>
+      </section>
+    <% end %>
+  </div>
 </div>

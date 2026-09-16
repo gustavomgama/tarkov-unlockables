@@ -1,20 +1,38 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.data["caliber"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Caliber</dt>
-      <dd class="font-medium text-[var(--text)]"><%= caliber_display(item.data["caliber"]) %></dd>
+<% capacity = item.data["capacity"].presence || magazine_capacity(item) %>
+<% caliber = caliber_label(item.data["caliber"]) %>
+<% ergonomics = item.data["ergonomics"].presence %>
+<% recoil = item.data["recoil"].presence %>
+
+<dl class="stats">
+  <% if capacity %>
+    <div class="stat stat--xl">
+      <dt class="stat__key">Capacity</dt>
+      <dd class="stat__val"><%= capacity %></dd>
+      <dd class="stat__note">rounds</dd>
     </div>
   <% end %>
-  <% if item.data["default_ammo"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Default Ammo</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["default_ammo"] %></dd>
+
+  <% if caliber.present? %>
+    <div class="stat <%= stat_scale(caliber, limit: 10) if capacity.nil? %>">
+      <dt class="stat__key">Caliber</dt>
+      <dd class="stat__val"><%= caliber %></dd>
     </div>
   <% end %>
-  <% if item.data["capacity"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Capacity</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["capacity"] %></dd>
+
+  <% if ergonomics.present? && ergonomics.to_f.nonzero? %>
+    <div class="stat">
+      <dt class="stat__key">Ergonomics</dt>
+      <dd class="stat__val"><%= ergonomics.to_f.positive? ? "+#{ergonomics}" : ergonomics %></dd>
+      <dd class="stat__note">while equipped</dd>
     </div>
   <% end %>
 </dl>
+
+<% if recoil.present? && recoil.to_f.nonzero? %>
+  <dl class="specs">
+    <div class="spec">
+      <dt class="spec__key">Recoil</dt>
+      <dd class="spec__val"><%= recoil.to_f.positive? ? "+#{recoil}" : recoil %></dd>
+    </div>
+  </dl>
+<% end %>

@@ -35,6 +35,8 @@ one:
   slug: item-one
   full_name: Test Item One
   short_name: TIO
+  # Mirrors Item#set_search_text, which fixtures skip (they insert via SQL).
+  search_text: testitemonetio
   wiki_title: Test_Item_One
   categories: [ "general" ]
   links: [ "https://example.com/item-one" ]
@@ -47,6 +49,7 @@ two:
   slug: item-two
   full_name: Test Item Two
   short_name: TIT
+  search_text: testitemtwotit
   wiki_title: Test_Item_Two
   categories: [ "general" ]
   links: [ "https://example.com/item-two" ]

@@ -14,9 +14,50 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "index filters work without JavaScript" do
+    get items_url
+
+    assert_response :success
+    # Native <details> opens without a script; the noscript submit is the
+    # only way to apply a selection before the change handler runs.
+    assert_select "details.filter-group", minimum: 1
+    assert_select "noscript button[type=submit]", text: "Apply filters"
+    # Dead JS-only affordances must not come back.
+    assert_select "button[data-action='filter-group#toggle']", count: 0
+    assert_select "div[data-mobile-nav-target='menu']", count: 0
+  end
+
+  test "site menu is a native disclosure" do
+    get items_url
+
+    assert_response :success
+    assert_select "details.site-menu summary[aria-label=Menu]"
+    assert_select "details.site-menu a[href=?]", items_path
+    assert_select "details.site-menu a[href=?]", tasks_path
+    assert_select "details.site-menu a[href=?]", favorites_path
+  end
+
+  test "the layout states when the reference data last changed" do
+    get items_url
+
+    assert_response :success
+    assert_select "time[datetime]", minimum: 1
+    assert_match(/data updated/, response.body)
+  end
+
   test "should get show" do
     get item_url(@item)
     assert_response :success
+  end
+
+  test "show renders only http(s) links, never a stored javascript: URL" do
+    @item.update!(links: [ "https://tarkov.dev/item/test-item", "javascript:alert(1)" ])
+
+    get item_url(@item)
+
+    assert_response :success
+    assert_select "a.chip--link[href=?]", "https://tarkov.dev/item/test-item"
+    assert_select "a[href=?]", "javascript:alert(1)", count: 0
   end
 
   # --- per-type stat partials (Task 8) ---
@@ -39,13 +80,16 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     )
     get item_url(weapon)
     assert_response :success
-    assert_select "h2", text: /Details/
+    # Stats live in a readout directly under the item name, with no heading.
+    assert_select ".readout"
     assert_select "dt", text: "Caliber"
     assert_select "dd", text: "5.45x39mm"
     assert_select "dt", text: "Default Ammo"
-    assert_select "dt", text: "Fire Modes"
     assert_select "dt", text: "Ergonomics"
     assert_select "dt", text: "Recoil"
+    # fire_modes / sightrange / effective_distance are not in the imported
+    # weapon data, so the readout no longer claims to show them.
+    assert_select "dt", text: "Fire Modes", count: 0
   ensure
     weapon&.destroy
   end
@@ -93,10 +137,10 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
     assert_select "dt", text: "Durability"
-    # armor type / slots / zones are intentionally not shown
-    assert_select "dt", text: "Armor Type", count: 0
-    assert_select "dt", text: "Armor Slots", count: 0
-    assert_select "dt", text: "Zones", count: 0
+    # Zone coverage is surfaced now; a legacy `armor_slots` integer must not
+    # be mistaken for the real array-of-hashes structure.
+    assert_select "dt", text: "Zones covered"
+    assert_select "dt", text: "Plate slots", count: 0
   ensure
     armor&.destroy
   end
@@ -205,6 +249,146 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     gen&.destroy
   end
 
+  test "show draws no stats frame when the stats partial has nothing to render" do
+    # A key carries only type/categories in the imported data, and a bare item
+    # carries nothing. The frame must not be drawn around an empty partial.
+    # Annotations are on in development, so they are on here too — they are
+    # what made an empty partial look like it had content.
+    bare = Item.create!(bsg_id: "bare-#{SecureRandom.hex(4)}", full_name: "Bare", short_name: "B")
+    key = Item::Key.create!(
+      bsg_id: "ktype-#{SecureRandom.hex(4)}",
+      full_name: "Key With Type Only",
+      short_name: "KTO",
+      data: { "type" => "Key", "types" => [ "keys" ] }
+    )
+
+    annotations = ActionView::Base.annotate_rendered_view_with_filenames
+    ActionView::Base.annotate_rendered_view_with_filenames = true
+    [ bare, key ].each do |item|
+      get item_url(item)
+      assert_response :success
+      assert_select ".readout", count: 0
+      assert_select "dt", count: 0
+    end
+  ensure
+    ActionView::Base.annotate_rendered_view_with_filenames = annotations
+    Item.where(id: [ bare&.id, key&.id ]).delete_all
+  end
+
+  test "show lists named build variants for a weapon" do
+    part = Item.create!(bsg_id: "var-part-#{SecureRandom.hex(4)}", full_name: "Kobra Sight", short_name: "Kobra")
+    weapon = Item::Weapon.create!(
+      bsg_id: "var-w-#{SecureRandom.hex(4)}",
+      full_name: "AS VAL",
+      short_name: "VAL",
+      data: {
+        "caliber" => "9x39mm",
+        "weapon_variants" => [ { "name" => "AS VAL Kobra", "attachments" => [ part.bsg_id ] } ]
+      }
+    )
+
+    get item_url(weapon)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=variants-head]" do
+      assert_select "h2", text: "Build variants"
+      assert_select ".srcrow", text: /AS VAL Kobra/
+      assert_select "a[href=?]", item_path(part), text: "Kobra Sight"
+    end
+  ensure
+    weapon&.destroy
+    part&.destroy
+  end
+
+  test "show lists the barters and crafts the item feeds" do
+    item = Item.create!(bsg_id: "used-#{SecureRandom.hex(4)}", full_name: "Used Test Item", short_name: "UTI")
+    task = Task.create!(bsg_id: "used-t-#{SecureRandom.hex(4)}", full_name: "Used Task", name: "used-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+
+    barter = reward.barter_unlocks.create!(item: item, item_name: item.full_name)
+    barter.barter_requirements.create!(trader_name: "Prapor", trader_level: 2)
+          .barter_requirement_items.create!(item: item, item_name: item.full_name, count: 5)
+
+    craft = reward.craft_unlocks.create!(item: item, item_name: item.full_name,
+                                         hideout_station: "Workbench", station_level: 2)
+    craft.craft_requirements.create!
+         .craft_requirement_items.create!(item: item, item_name: item.full_name, count: 1)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=used-in-head]" do
+      assert_select "h2", text: "Used in"
+      assert_select ".srcrow", text: /Prapor LL2/
+      assert_select ".srcrow", text: /needs 5 × UTI/
+      assert_select ".srcrow", text: /Workbench Lv\.2/
+      assert_select ".srcrow", text: /needs 1 × UTI/
+    end
+  ensure
+    Reward.where(task_id: task&.id).destroy_all
+    task&.destroy
+    item&.destroy
+  end
+
+  test "show gives melee damage a home" do
+    # Melee weapons are Item::Generic, so their damage had nowhere to render.
+    melee = Item.create!(bsg_id: "melee-#{SecureRandom.hex(4)}", full_name: "MPL-50", short_name: "MPL",
+                         data: { "type" => "Melee weapon", "stab_damage" => 43, "slash_damage" => 24 })
+
+    get item_url(melee)
+
+    assert_response :success
+    assert_select "dt", text: "Stab Damage"
+    assert_select "dd", text: "43"
+    assert_select "dt", text: "Slash Damage"
+    assert_select "dd", text: "24"
+  ensure
+    melee&.destroy
+  end
+
+  test "show links a preset to the item it is built from" do
+    base = Item.create!(bsg_id: "base-#{SecureRandom.hex(4)}", full_name: "AK-74N", short_name: "AK")
+    preset = Item.create!(bsg_id: "preset-#{SecureRandom.hex(4)}", full_name: "AK-74N Default", short_name: "AKD",
+                          categories: [ "preset" ], data: { "base_item" => base.bsg_id })
+
+    get item_url(preset)
+
+    assert_response :success
+    assert_select "dt", text: "Base item"
+    assert_select "a[href=?]", item_path(base), text: "AK-74N"
+  ensure
+    preset&.destroy
+    base&.destroy
+  end
+
+  test "show links a weapon to its default preset" do
+    preset = Item.create!(bsg_id: "dp-#{SecureRandom.hex(4)}", full_name: "SCAR-L Default", short_name: "SCARD")
+    weapon = Item::Weapon.create!(bsg_id: "w-#{SecureRandom.hex(4)}", full_name: "SCAR-L", short_name: "SCAR",
+                                  data: { "caliber" => "Caliber556x45NATO", "default_preset" => preset.bsg_id })
+
+    get item_url(weapon)
+
+    assert_response :success
+    assert_select "dt", text: "Default preset"
+    assert_select "a[href=?]", item_path(preset), text: "SCAR-L Default"
+  ensure
+    weapon&.destroy
+    preset&.destroy
+  end
+
+  test "show counts the plates an armor ships with" do
+    armor = Item::Armor.create!(bsg_id: "pl-#{SecureRandom.hex(4)}", full_name: "Plated Vest", short_name: "PV",
+                                data: { "class" => 5, "default_plates" => "2x {{id}}<br/>2x {{id2}}" })
+
+    get item_url(armor)
+
+    assert_response :success
+    assert_select "dt", text: "Ships with"
+    assert_select "dd", text: "4 plates"
+  ensure
+    armor&.destroy
+  end
+
   test "show handles item with no data without error" do
     bare = Item.create!(
       bsg_id: "bare-#{SecureRandom.hex(4)}",
@@ -238,16 +422,16 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Timeline nodes include each task name (in reverse order, root first)
-    assert_select ".timeline-node", text: /wet-job-part-1/
-    assert_select ".timeline-node", text: /the-guide/
-    assert_select ".timeline-node", text: /the-cleaner/
+    assert_select ".timeline-node", text: /Wet Job Part 1/
+    assert_select ".timeline-node", text: /The Guide/
+    assert_select ".timeline-node", text: /The Cleaner/
 
     # Per-node requirements rendered
     assert_select ".timeline-node .font-data", minimum: 1, text: /lvl 14/
     assert_select ".timeline-node .font-data", text: /LL4/
     assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
 
-    assert_select "h2", text: /How to Unlock/
+    assert_select "h2", text: /How to unlock/
   ensure
     OfferUnlock.where(item_id: item&.id).destroy_all
     PreviousTask.where(task_id: [ wet1&.id, guide&.id, cleaner&.id ]).update_all(task_id: nil)
@@ -275,8 +459,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
 
     # Inline timeline rendered under the Where to Get sub-block
     assert_select ".timeline-node", minimum: 1
-    assert_select ".timeline-node", text: /wet-job-part-1/
-    assert_select ".timeline-node", text: /the-cleaner/
+    assert_select ".timeline-node", text: /Wet Job Part 1/
+    assert_select ".timeline-node", text: /The Cleaner/
     # Inline Task-gated indicator
     assert_select ".timeline-node .font-data", text: /lvl 14/
     assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
@@ -289,6 +473,46 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.item_currencies&.destroy_all
     [ wet1, cleaner ].each { |t| t&.destroy }
     item&.destroy
+  end
+
+  # --- typeahead ---
+
+  test "search suggests matching items as rows" do
+    item = Item.create!(bsg_id: "ta-#{SecureRandom.hex(4)}", full_name: "Alpha Autocomplete", short_name: "AA")
+
+    get search_items_url(q: "alpha autocomplete")
+
+    assert_response :success
+    assert_select "a[href=?]", item_path(item)
+    assert_match "Alpha Autocomplete", response.body
+  ensure
+    item&.destroy
+  end
+
+  test "search ignores a query shorter than the minimum" do
+    get search_items_url(q: "a")
+    assert_response :no_content
+
+    get search_items_url
+    assert_response :no_content
+  end
+
+  test "search returns no content when nothing matches" do
+    get search_items_url(q: "zzzzzzzzzzzz")
+    assert_response :no_content
+  end
+
+  test "search caps how many suggestions it returns" do
+    created = Array.new(ItemsController::AUTOCOMPLETE_LIMIT + 4) do |i|
+      Item.create!(bsg_id: "cap-#{i}-#{SecureRandom.hex(4)}", full_name: "Cap Suggestion #{i}", short_name: "CS#{i}")
+    end
+
+    get search_items_url(q: "cap suggestion")
+
+    assert_response :success
+    assert_select "a", maximum: ItemsController::AUTOCOMPLETE_LIMIT
+  ensure
+    Item.where(id: created&.map(&:id)).delete_all
   end
 
   # --- Ransack search ---
@@ -326,7 +550,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    assert_select "p", text: /unlocking task not found/
+    assert_select "p", text: /Task-gated trader offer/
+    assert_select "p", text: /quest is not recorded/
   ensure
     item&.item_currencies&.destroy_all
     item&.destroy
@@ -347,6 +572,40 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     ItemCurrency.destroy_all
     [ rub_item, usd_item ].each { |i| i&.destroy }
+  end
+
+  test "index survives malformed filter params" do
+    # params[:filters] comes from the query string: it can be a String or an
+    # Array rather than a nested hash, and each of these 500'd at some point.
+    [
+      { filters: "string" },
+      { filters: [ "x" ] },
+      { filters: { currency: "string" } },
+      { filters: { nonsense: [ "x" ] } },
+      { filters: { armor_class: [ "<script>" ] } }
+    ].each do |params|
+      get items_url(params)
+      assert_response :success, "expected 200 for #{params.inspect}"
+    end
+  end
+
+  test "active filter pills read in player language, not raw keys" do
+    item = Item.create!(bsg_id: "pill-#{SecureRandom.hex(4)}", full_name: "Pill Test Item", short_name: "PTI")
+    item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { caliber: [ "Caliber556x45NATO" ], armor_class: [ "6" ], category: [ "noFlea" ] })
+
+    assert_response :success
+    assert_select ".chip", text: /Caliber: 5\.56x45mm NATO/
+    assert_select ".chip", text: /Armor class: Class 6/
+    assert_select ".chip", text: /Category: Not on flea market/
+    # Raw keys stay in the form values (they are what the query needs) but
+    # must never be what the user reads.
+    assert_select ".chip", text: /Caliber556x45NATO/, count: 0
+    assert_select ".chip", text: /noFlea/, count: 0
+  ensure
+    ItemCurrency.destroy_all
+    item&.destroy
   end
 
   test "index exclude_ref filter hides items sold by Ref" do
@@ -390,6 +649,20 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match(/7.62x39mm PS/, response.body)
   ensure
     [ ammo545, ammo762 ].each { |i| i&.destroy }
+  end
+
+  test "index caliber filter also matches ammo packs by their category" do
+    loose = Item::Ammo.create!(bsg_id: "calp1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT", short_name: "BT", data: { "caliber" => "5.45x39mm" })
+    other = Item::Ammo.create!(bsg_id: "calp2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm" })
+    pack = Item.create!(bsg_id: "calp3-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT ammo pack", short_name: "BTP", categories: [ "ammobox", "5.45x39mm_pack" ])
+
+    get items_url(filters: { caliber: [ "5.45x39mm" ] })
+    assert_response :success
+    assert_select "td a", text: "5.45x39mm BT"
+    assert_select "td a", text: "5.45x39mm BT ammo pack"
+    assert_no_match(/7.62x39mm PS/, response.body)
+  ensure
+    [ loose, other, pack ].each { |i| i&.destroy }
   end
 
   test "index filters by armor class" do

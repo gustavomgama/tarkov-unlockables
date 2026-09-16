@@ -1,1 +1,80 @@
-/* Application styles - Tailwind CSS is loaded separately */
+/*
+ * Application styles.
+ *
+ * The design tokens live here rather than inline in the layout, for three
+ * reasons: the browser caches them, they are not re-sent with every page, and
+ * rendering a partial inside a <style> tag is invalid CSS in development —
+ * view annotations inject <!-- BEGIN --> comments into the declaration block,
+ * which makes the parser swallow the first declaration (this silently dropped
+ * --bg-dark and turned the whole site white).
+ *
+ * Deliberately unlayered: @layer rules in the layout and in tailwind.css are
+ * lower priority than unlayered ones, so these values cannot be overridden by
+ * a stray utility.
+ */
+
+:root {
+  --bg-dark: #06080a;
+  --bg-panel: #0d1117;
+  --bg-surface: #12161c;
+  --bg-elevated: #1a1f26;
+  --text: #e8e4d8;
+  --text-bright: #f6f1e7;
+  --text-muted: #9a9488;
+  --accent: #c9a84c;
+  --accent-hover: #dcc06a;
+  --border: #262b33;
+  --border-strong: #363d47;
+  --success: #6a9a4a;
+  --danger: #b8433a;
+
+  /* Lethality ramp: one colour language shared by armor class and
+     penetration, so a number's meaning reads without the threshold table.
+     Class 1 (light) → class 6 (heavy). */
+  --ac1: #5b6b7a;
+  --ac2: #4f7a6a;
+  --ac3: #7c8a44;
+  --ac4: #a8903f;
+  --ac5: #b5703a;
+  --ac6: #b0463a;
+
+  --badge-task: #7a6b8a;
+  --badge-barter: #5a8a8a;
+  --badge-craft: #6a8a6a;
+  --badge-hideout: #5a7a5a;
+  --badge-currency: #5a7a8a;
+  --badge-offer: #8a8a5a;
+  --trader-prapor: #8a5a3c;
+  --trader-therapist: #7a8a5a;
+  --trader-fence: #9a7a4a;
+  --trader-skier: #5a6a8a;
+  --trader-ragman: #8a6a8a;
+  --trader-mechanic: #5a8a7a;
+  --trader-jaeger: #6a7a4a;
+  --trader-lightkeeper: #4a7a8a;
+  --trader-peacekeeper: #4a6a8a;
+  --trader-ref: #7a7a7a;
+  --trader-btr-driver: #6a6a5a;
+  --font-data: 'bender', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Used by the admin panel only. */
+  --border-faint: rgba(255, 255, 255, 0.06);
+}
+
+/*
+ * Print palette. Unlayered and after the base block above, so it wins while
+ * printing and cannot leak into screen rendering.
+ */
+@media print {
+  :root {
+    --bg-dark: #ffffff;
+    --bg-panel: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f1efe9;
+    --text: #1a1a1a;
+    --text-bright: #000000;
+    --text-muted: #55514a;
+    --border: #b9b4a8;
+    --accent: #6b5312;
+  }
+}

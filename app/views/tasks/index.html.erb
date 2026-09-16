@@ -1,64 +1,106 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between flex-wrap gap-2">
-    <h1 class="text-2xl font-bold text-[var(--text-bright)]">Tasks</h1>
-    <span class="font-data text-sm text-[var(--text-muted)]"><%= @task_count %> total</span>
+<% content_for :title, "Tasks" %>
+
+<div class="space-y-4 sm:space-y-5">
+  <div class="flex items-baseline justify-between gap-3 flex-wrap">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Tasks</h1>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
+        Every trader contract with its unlock path, requirements and rewards — press <kbd>/</kbd> to search.
+      </p>
+    </div>
+    <p class="font-data text-sm text-[var(--text-muted)]">
+      <span class="text-[var(--text)]"><%= number_with_delimiter(@task_count) %></span> quests
+    </p>
   </div>
 
-  <%= form_tag tasks_path, method: :get, class: "mb-4 flex items-center gap-2" do %>
+  <%= form_tag tasks_path, method: :get, class: "flex flex-wrap items-center gap-2" do %>
     <% if params[:trader].present? %>
       <%= hidden_field_tag :trader, params[:trader] %>
     <% end %>
-    <%= text_field_tag :q, params[:q], placeholder: "Search tasks...", class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
-    <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)] min-h-[44px]">
-      Search
-    </button>
+    <% if params[:kappa].present? %>
+      <%= hidden_field_tag :kappa, params[:kappa] %>
+    <% end %>
+    <div class="relative flex-1 min-w-[10rem]"
+         data-controller="search"
+         data-search-url-value="<%= search_tasks_path %>"
+         data-action="keydown->search#keydown">
+      <%= text_field_tag :q, params[:q], type: "search", placeholder: "Search by quest name…",
+            class: "input", "aria-label": "Search tasks",
+            autocomplete: "off",
+            "aria-controls": "search-results",
+            data: { search_target: "input", action: "input->search#query" } %>
+
+      <div
+        id="search-results"
+        class="hidden absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto bg-[var(--bg-surface)] border border-[var(--border)]"
+        data-search-target="results"
+        role="status"
+        aria-live="polite"
+        aria-label="Search results"
+      ></div>
+    </div>
+    <button type="submit" class="btn">Search</button>
+    <% if params[:q].present? %>
+      <%= link_to "Clear", tasks_path(trader: params[:trader]), class: "text-sm text-[var(--danger)] hover:underline px-2" %>
+    <% end %>
   <% end %>
 
-  <nav class="flex flex-wrap gap-2" aria-label="Filter by trader">
-    <%= link_to "All", tasks_path(q: params[:q]),
-          class: "px-3 py-1.5 text-sm border min-h-[36px] flex items-center #{params[:trader].blank? ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]'}" %>
+  <nav class="flex flex-wrap gap-1.5" aria-label="Filter by trader">
+    <%= link_to "All traders", tasks_path(q: params[:q], kappa: params[:kappa].presence),
+          class: "chip chip--tap #{params[:trader].blank? && params[:kappa].blank? ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
+          "aria-current": (params[:trader].blank? ? "true" : nil) %>
+    <%= link_to tasks_path(q: params[:q], trader: params[:trader], kappa: (params[:kappa].present? ? nil : 1)),
+          class: "chip chip--tap #{params[:kappa].present? ? 'chip--strong border-[var(--danger)] text-[var(--danger)]' : 'chip--link'}",
+          "aria-current": (params[:kappa].present? ? "true" : nil) do %>
+      Kappa only <span class="font-data text-[var(--text-muted)]"><%= @kappa_count %></span>
+    <% end %>
     <% @traders.each do |trader| %>
       <% active = params[:trader] == trader %>
-      <%= link_to tasks_path(q: params[:q], trader: trader),
-            class: "inline-flex items-center gap-2 px-3 py-1.5 text-sm border min-h-[36px] #{active ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]'}" do %>
+      <%= link_to tasks_path(q: params[:q], trader: trader, kappa: params[:kappa].presence),
+            class: "chip chip--tap #{active ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
+            "aria-current": (active ? "true" : nil) do %>
         <span class="trader-dot" style="background: var(--trader-<%= trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
         <%= trader.titleize %>
       <% end %>
     <% end %>
   </nav>
 
-  <div id="task-list" class="space-y-2">
-    <% if @tasks.none? %>
-      <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6 text-center">
-        <p class="text-[var(--text-muted)]">No tasks match your search.</p>
-        <%= link_to "Clear search", tasks_path, class: "text-sm text-[var(--accent)] hover:underline mt-2 inline-block" %>
+  <% if @tasks.none? %>
+    <div class="panel">
+      <div class="panel__body text-center py-10">
+        <p class="text-sm text-[var(--text)]">No quests match this search.</p>
+        <p class="mt-1 text-xs text-[var(--text-muted)]">Try a shorter name, or clear the filters.</p>
+        <%= link_to "Show all quests", tasks_path, class: "btn mt-4" %>
       </div>
-    <% end %>
-    <% @tasks.each do |task| %>
-      <%= link_to task_path(task), class: "block bg-[var(--bg-surface)] border border-[var(--border)] border-l-2 border-l-[var(--trader-#{task.given_by.parameterize}, var(--border))] p-4 hover:border-[var(--accent)] hover:border-l-[var(--trader-#{task.given_by.parameterize}, var(--accent))] transition-colors" do %>
-        <div class="flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <h3 class="font-semibold text-[var(--text-bright)] truncate"><%= task.full_name %></h3>
-            <p class="text-sm text-[var(--text-muted)] flex items-center gap-2 flex-wrap">
-              <span><%= task.given_by.titleize %></span>
-              <% if task.kappa_required %>
-                <span class="inline-flex items-center gap-1 text-[var(--danger)]">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 005 19z" />
-                  </svg>
-                  Kappa
-                </span>
+    </div>
+  <% else %>
+    <div id="task-list" class="border border-[var(--border)]">
+      <% @tasks.each do |task| %>
+        <%= link_to task_path(task), class: "task-row" do %>
+          <span class="trader-dot" style="background: var(--trader-<%= task.given_by.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+          <span class="min-w-0 flex-1">
+            <h2 class="text-sm font-bold text-[var(--text-bright)] truncate"><%= task.full_name %></h2>
+            <span class="block text-xs text-[var(--text-muted)]">
+              <%= task.given_by.to_s.titleize %>
+              <% if task.leads_tos_count.to_i.positive? %>
+                · <span class="font-data"><%= task.leads_tos_count %></span> follow<%= "s" if task.leads_tos_count != 1 %>
               <% end %>
-              <% if task.leads_tos_count > 0 %>
-                <span class="font-data text-xs"><%= task.leads_tos_count %> follow<%= 's' if task.leads_tos_count != 1 %></span>
-              <% end %>
-            </p>
-          </div>
-          <svg class="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
+            </span>
+          </span>
+          <% if task.kappa_required %>
+            <span class="chip" style="background: var(--danger); color: var(--text-bright)">Kappa</span>
+          <% end %>
+          <% if task.lightkeeper_required %>
+            <span class="chip" style="background: var(--trader-lightkeeper); color: var(--text-bright)">Lightkeeper</span>
+          <% end %>
+        <% end %>
       <% end %>
-    <% end %>
-  </div>
+    </div>
+
+    <%# 468 rows: after reading to the bottom, getting back to the filters
+        should not be a long fling. %>
+    <div class="mt-3 flex justify-end">
+      <%= link_to "↑ Back to top", "#main", class: "text-xs text-[var(--text-muted)] hover:text-[var(--accent)]" %>
+    </div>
+  <% end %>
 </div>
