@@ -160,7 +160,7 @@ def main():
     p(f"- craft productItem ids not in tarkovdev items: {len({c['productItem']['item'] for c in crafts if c['productItem'].get('item') not in ids_tdev})}")
     stations = {c["station"] for c in crafts}
     p(f"- distinct craft.station ids: {len(stations)}")
-    for s in stations:
+    for s in sorted(stations):
         p(f"    - `{s}` in tarkovdev items? {s in tdev_items}  name={tdev_items.get(s,{}).get('normalizedName')}")
     maps = {t["map"] for t in tasks.values() if t.get("map")}
     p(f"- distinct task.map ids: {len(maps)}")

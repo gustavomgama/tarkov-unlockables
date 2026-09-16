@@ -108,7 +108,7 @@ def main():
         p()
         p(f"- flagged tasks: **{len(flagged)}**; with prerequisite closure: **{len(chain)}**")
         p(f"- total XP from the chain: **{xp:,}**; highest character-level gate: **{level}**")
-        p(f"- traders involved: {dict(Counter(by[i]['trader_slug'] for i in chain).most_common())}")
+        p(f"- traders involved: {dict(sorted(Counter(by[i]['trader_slug'] for i in chain).items(), key=lambda kv: (-kv[1], kv[0])))}")
         roots = [by[i]["name"] for i in chain if not (prereq[i] & chain)]
         p(f"- chain starts at: {', '.join(f'`{r}`' for r in sorted(roots))}")
         p()
