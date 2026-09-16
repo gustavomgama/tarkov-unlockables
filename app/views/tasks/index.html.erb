@@ -96,5 +96,11 @@
         <% end %>
       <% end %>
     </div>
+
+    <%# 468 rows: after reading to the bottom, getting back to the filters
+        should not be a long fling. %>
+    <div class="mt-3 flex justify-end">
+      <%= link_to "↑ Back to top", "#main", class: "text-xs text-[var(--text-muted)] hover:text-[var(--accent)]" %>
+    </div>
   <% end %>
 </div>

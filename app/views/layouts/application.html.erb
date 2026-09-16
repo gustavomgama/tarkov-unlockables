@@ -373,6 +373,11 @@
           padding: 0.625rem 0.75rem;
           border-bottom: 1px solid var(--border);
           text-decoration: none;
+          /* 468 rows: let the browser skip layout and paint for the ones off
+             screen. Ignored by browsers without support, which just render
+             them as before. */
+          content-visibility: auto;
+          contain-intrinsic-size: auto 2.9rem;
         }
         .task-row:last-child { border-bottom: 0; }
         .task-row:hover { background: var(--bg-elevated); text-decoration: none; }
