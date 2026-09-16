@@ -160,14 +160,26 @@
 
     <% if @total_pages > 1 %>
       <% safe_filters = active_filters %>
-      <nav class="no-print flex items-center justify-between gap-3" aria-label="Pagination">
-        <%= link_to "← Previous",
-              items_path(page: @current_page - 1, q: params[:q], per_page: @per_page, filters: safe_filters),
-              class: "btn #{'opacity-40 pointer-events-none' if @current_page == 1}" %>
-        <span class="font-data text-sm text-[var(--text-muted)]">Page <%= @current_page %> of <%= number_with_delimiter(@total_pages) %></span>
-        <%= link_to "Next →",
-              items_path(page: @current_page + 1, q: params[:q], per_page: @per_page, filters: safe_filters),
-              class: "btn #{'opacity-40 pointer-events-none' if @current_page == @total_pages}" %>
+      <%# 170 pages of results: jumping to either end is worth two links, but
+          four buttons plus the counter do not fit a phone, so First/Last are
+          from sm up. %>
+      <% page_link = ->(label, page, disabled, always: true) {
+           link_to label,
+                   items_path(page: page, q: params[:q], per_page: @per_page, filters: safe_filters),
+                   class: [ "btn justify-center flex-1 sm:flex-none",
+                            ("hidden sm:inline-flex" unless always),
+                            ("opacity-40 pointer-events-none" if disabled) ].compact.join(" "),
+                   "aria-disabled": (disabled ? "true" : nil),
+                   tabindex: (disabled ? -1 : nil)
+         } %>
+      <nav class="no-print flex items-center justify-between gap-2" aria-label="Pagination">
+        <%= page_link.call("« First", 1, @current_page == 1, always: false) %>
+        <%= page_link.call("← Previous", @current_page - 1, @current_page == 1) %>
+        <span class="font-data text-sm text-[var(--text-muted)] whitespace-nowrap">
+          Page <%= @current_page %> of <%= number_with_delimiter(@total_pages) %>
+        </span>
+        <%= page_link.call("Next →", @current_page + 1, @current_page == @total_pages) %>
+        <%= page_link.call("Last »", @total_pages, @current_page == @total_pages, always: false) %>
       </nav>
     <% end %>
   <% end %>
