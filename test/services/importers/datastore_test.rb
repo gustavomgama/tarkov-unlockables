@@ -44,7 +44,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         },
         "acquisition" => {
           "buy" => [ { "trader_slug" => "prapor", "currency" => "RUB", "min_trader_level" => 2,
-                       "task_unlock_id" => "t1" } ],
+                       "task_unlock_id" => "t1", "price" => 12_345, "price_rub" => 12_345,
+                       "buy_limit" => 5 } ],
           # Same offer again, plus one the index alone knows — deduped on import.
           "index_offers" => [
             { "trader_slug" => "prapor", "currency" => "RUB", "level" => "2" },
@@ -170,11 +171,16 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                  weapon.item_currencies.map { |c| [ c.trader, c.currency, c.min_trader_level, c.task_unlock ] }
                                      .sort_by { |c| c[2] }
 
-    # The gated offer names its quest; the index-only offer has no task.
+    # The gated offer names its quest and carries its price; the index-only
+    # offer has neither.
     gated = weapon.item_currencies.find_by!(task_unlock: true)
     assert_equal Task.find_by!(bsg_id: "t1").id, gated.task_id
     assert_equal "first-task", gated.task.name
-    assert_nil weapon.item_currencies.find_by!(task_unlock: false).task_id
+    assert_equal [ 12_345, 12_345, 5 ], [ gated.price, gated.price_rub, gated.buy_limit ]
+
+    index_only = weapon.item_currencies.find_by!(task_unlock: false)
+    assert_nil index_only.task_id
+    assert_nil index_only.price
 
     ammo = Item.find_by!(bsg_id: "a1")
     assert_equal [ [ "Prapor", "2", "5.45x39mm PS" ] ],

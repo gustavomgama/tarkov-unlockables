@@ -17,10 +17,15 @@
           <p class="srcrow__title">
             <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= currency.trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
             <%= currency.trader.titleize %> <span class="font-data text-[var(--text-muted)]">LL<%= currency.min_trader_level %></span>
-            <% if currency.currency.present? %>
+            <% if currency.price.present? %>
+              <span class="font-data text-[var(--text-bright)]"><%= number_with_delimiter(currency.price) %> <%= currency.currency %></span>
+            <% elsif currency.currency.present? %>
               <span class="font-data text-[var(--text-muted)]">· <%= currency.currency %></span>
             <% end %>
           </p>
+          <% if currency.buy_limit.present? %>
+            <p class="srcrow__meta"><span class="font-data">Buy limit <%= currency.buy_limit %> per reset</span></p>
+          <% end %>
           <% if currency.task_unlock? %>
             <p class="srcrow__meta">
               <span class="chip" style="--tone: var(--badge-task)">Task-gated</span>

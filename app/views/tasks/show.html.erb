@@ -193,7 +193,9 @@
                 </p>
                 <p class="srcrow__meta">
                   <span class="font-data"><%= "#{currency.trader.to_s.titleize} LL#{currency.min_trader_level}" %></span>
-                  <% if currency.currency.present? %>
+                  <% if currency.price.present? %>
+                    · <span class="font-data"><%= number_with_delimiter(currency.price) %> <%= currency.currency %></span>
+                  <% elsif currency.currency.present? %>
                     · <span class="font-data"><%= currency.currency %></span>
                   <% end %>
                 </p>

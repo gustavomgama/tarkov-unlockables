@@ -13,6 +13,9 @@ require "test_helper"
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  task_id          :bigint
+#  price            :bigint
+#  price_rub        :bigint
+#  buy_limit        :integer
 #
 # Indexes
 #

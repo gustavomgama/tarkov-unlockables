@@ -515,6 +515,21 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show renders the trader offer price and buy limit" do
+    item = Item.create!(bsg_id: "pr-#{SecureRandom.hex(4)}", full_name: "Priced Item", short_name: "PI")
+    item.item_currencies.create!(trader: "Mechanic", currency: "RUB", min_trader_level: 3,
+                                 price: 22_997, price_rub: 22_997, buy_limit: 5)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_match "22,997 RUB", response.body
+    assert_match "Buy limit 5 per reset", response.body
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

@@ -1,7 +1,7 @@
 <%# Nested fields for the 4 obtain tables. Existing rows are editable + removable via _destroy. %>
 <%
   obtain_associations = [
-    { name: :item_currencies,    label: "Currencies",     fields: [:trader, :currency, :min_trader_level, :task_unlock] },
+    { name: :item_currencies,    label: "Currencies",     fields: [:trader, :currency, :min_trader_level, :price, :price_rub, :buy_limit, :task_unlock] },
     { name: :item_task_rewards,  label: "Task Rewards",   fields: [:task_name] },
     { name: :item_hideouts,      label: "Hideouts",       fields: [:station, :level] },
     { name: :item_barters,       label: "Barters",        fields: [:trader, :trader_level, :currency, :cost, :item_name] }
