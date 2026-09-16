@@ -13,8 +13,13 @@ class TasksController < ApplicationController
 
   def show
     @task = Task.includes(
-      requirements: :previous_tasks,
-      rewards: [ { loose_items: :item }, :offer_unlocks, :barter_unlocks, :craft_unlocks ],
+      requirements: { previous_tasks: :task },
+      rewards: [
+        { loose_items: :item },
+        { offer_unlocks: :item },
+        { barter_unlocks: :item },
+        { craft_unlocks: :item }
+      ],
       leads_tos: :follow_up_task
     ).find(params[:id])
     fresh_when(@task, public: true)
