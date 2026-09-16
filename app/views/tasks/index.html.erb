@@ -82,6 +82,9 @@
           <% if task.kappa_required %>
             <span class="chip" style="background: var(--danger); color: var(--text-bright)">Kappa</span>
           <% end %>
+          <% if task.lightkeeper_required %>
+            <span class="chip" style="background: var(--trader-lightkeeper); color: var(--text-bright)">Lightkeeper</span>
+          <% end %>
         <% end %>
       <% end %>
     </div>

@@ -8,4 +8,11 @@ if defined?(Bullet) && Bullet.respond_to?(:add_safelist)
   Bullet.add_safelist type: :unused_eager_loading, class_name: "Task", association: :leads_tos
   Bullet.add_safelist type: :unused_eager_loading, class_name: "Task", association: :requirements
   Bullet.add_safelist type: :unused_eager_loading, class_name: "Requirement", association: :previous_tasks
+  # A quest whose rewards carry no loose items, unlocks or craft outputs leaves
+  # the nested :item preload with nothing to load. 53 of 468 quest pages hit
+  # this and 500'd in development.
+  Bullet.add_safelist type: :unused_eager_loading, class_name: "Reward", association: :loose_items
+  Bullet.add_safelist type: :unused_eager_loading, class_name: "Reward", association: :offer_unlocks
+  Bullet.add_safelist type: :unused_eager_loading, class_name: "Reward", association: :barter_unlocks
+  Bullet.add_safelist type: :unused_eager_loading, class_name: "Reward", association: :craft_unlocks
 end

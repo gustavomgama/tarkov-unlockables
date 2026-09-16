@@ -8,7 +8,9 @@
       <span class="block text-sm font-bold truncate text-[var(--text-bright)]"><%= task.full_name %></span>
       <span class="block text-xs text-[var(--text-muted)] truncate"><%= task.given_by.to_s.titleize %></span>
     </span>
-    <% if task.kappa_required %>
+    <% if task.lightkeeper_required %>
+      <span class="chip shrink-0" style="background: var(--trader-lightkeeper); color: var(--text-bright)">Lighthouse</span>
+    <% elsif task.kappa_required %>
       <span class="chip shrink-0" style="background: var(--danger); color: var(--text-bright)">Kappa</span>
     <% end %>
   <% end %>

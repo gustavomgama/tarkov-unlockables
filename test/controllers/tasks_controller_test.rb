@@ -115,6 +115,23 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
   end
 
+  test "show renders a quest whose rewards carry nothing" do
+    # The controller eager loads the items behind each reward. Empty reward
+    # collections left those preloads unused, which Bullet reports and raises
+    # on in development, 500ing the page.
+    task = Task.create!(bsg_id: "empty-#{SecureRandom.hex(4)}", full_name: "Empty Rewards", name: "empty-rewards", given_by: "Prapor")
+    task.rewards.create!(reward_type: "start_rewards")
+    task.rewards.create!(reward_type: "finish_rewards")
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "h1", text: "Empty Rewards"
+    assert_select "p", text: "No rewards listed."
+  ensure
+    task&.destroy
+  end
+
   test "show returns 404 for a missing task" do
     get task_url(id: 999_999_999)
     assert_response :not_found
