@@ -1,8 +1,6 @@
-require "system_test_helper"
+require "application_system_test_case"
 
-class ItemsIndexTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-
+class ItemsIndexTest < ApplicationSystemTestCase
   def test_items_index_renders_successfully
     visit items_path
     assert_selector "h1", text: /items/i

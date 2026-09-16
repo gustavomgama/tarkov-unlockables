@@ -228,12 +228,17 @@ jobs:
   # Mirrors render.yaml: production Dockerfile, db:migrate preDeployCommand,
   # Puma via dockerCommand + Render env, /up healthCheckPath, direct
   # (non-pooled) DATABASE_URL against postgres:18 like Neon production.
-  # Fully containerized (own pg on a dedicated network) so it exercises the
-  # same container-to-container networking shape as Kamal/Render + Neon.
+  # The rehearsal itself lives in `rake ci:rehearsal`, shared with bin/ci;
+  # only the build stays here so it can use the GitHub Actions layer cache.
   docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby-4.0.6
+          bundler-cache: true
 
       - name: Throwaway secrets (master.key is never committed)
         run: |
@@ -254,52 +259,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Start postgres:18 (Neon production major)
-        run: |
-          docker network create ci-net
-          docker run -d --name pg --network ci-net \
-            -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=tarkov_db_prod \
-            postgres:18
-          for i in $(seq 1 24); do
-            sleep 5
-            docker exec pg pg_isready -U postgres && break
-          done
-          docker exec pg pg_isready -U postgres
-
-      - name: Migrate (mirrors preDeployCommand)
+      - name: Migrate, boot with Render's command, poll /up
         env:
-          RAILS_ENV: production
-          DATABASE_URL: postgres://postgres:postgres@pg:5432/tarkov_db_prod
-          RAILS_LOG_TO_STDOUT: "1"
-        run: |
-          docker run --rm --network ci-net \
-            -e RAILS_ENV -e DATABASE_URL -e SECRET_KEY_BASE -e ADMIN_PASSWORD \
-            -e RAILS_LOG_TO_STDOUT \
-            tarkov-db:${{ github.sha }} bundle exec rails db:migrate
-
-      - name: Boot with Render's command, poll /up (mirrors healthCheckPath)
-        env:
-          RAILS_ENV: production
-          PORT: 3001
-          DATABASE_URL: postgres://postgres:postgres@pg:5432/tarkov_db_prod
-          RAILS_LOG_TO_STDOUT: "1"
-          RAILS_SERVE_STATIC_FILES: "1"
-          RAILS_LOG_LEVEL: info
-          WEB_CONCURRENCY: "1"
-          RAILS_MAX_THREADS: "5"
-        run: |
-          docker run -d --name app --network ci-net -p 3001:3001 \
-            -e RAILS_ENV -e PORT -e DATABASE_URL -e SECRET_KEY_BASE -e ADMIN_PASSWORD \
-            -e RAILS_LOG_TO_STDOUT -e RAILS_SERVE_STATIC_FILES -e RAILS_LOG_LEVEL \
-            -e WEB_CONCURRENCY -e RAILS_MAX_THREADS \
-            tarkov-db:${{ github.sha }} bundle exec puma -C config/puma.rb
-          for i in $(seq 1 24); do
-            sleep 5
-            curl -sf http://localhost:3001/up && break
-          done
-          curl -sf http://localhost:3001/up
-          docker logs --tail 20 app
-          docker stop app
+          CI_IMAGE_TAG: tarkov-db:${{ github.sha }}
+        run: bundle exec rake ci:rehearsal
 
   # ── Merge gate ───────────────────────────────────────────────────────
   gate:

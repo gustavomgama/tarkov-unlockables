@@ -1,4 +1,4 @@
-require "system_test_helper"
+require "application_system_test_case"
 
 # The search field suggests items as you type. Without JavaScript it is still
 # a plain form input, so both paths have to keep working.
@@ -8,11 +8,7 @@ require "system_test_helper"
 # a transaction for more than idle_in_transaction_session_timeout (10s, see
 # config/database.yml) is killed by Postgres, which fails every later query in
 # the run.
-class SearchSuggestionsTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-
-  fixtures :all
-
+class SearchSuggestionsTest < ApplicationSystemTestCase
   TERM = "test item".freeze
 
   test "typing suggests items and Escape dismisses them" do

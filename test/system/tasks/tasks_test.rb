@@ -1,18 +1,13 @@
-require "system_test_helper"
+require "application_system_test_case"
 
-class TasksIndexTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-
+class TasksIndexTest < ApplicationSystemTestCase
   def test_tasks_index_renders_successfully
     visit tasks_path
     assert_selector "h1", text: /tasks/i
   end
 end
 
-class TaskSearchSuggestionsTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-  fixtures :all
-
+class TaskSearchSuggestionsTest < ApplicationSystemTestCase
   test "typing suggests quests" do
     visit tasks_path
 
@@ -25,9 +20,7 @@ class TaskSearchSuggestionsTest < ActionDispatch::SystemTestCase
   end
 end
 
-class TaskChainsTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-
+class TaskChainsTest < ApplicationSystemTestCase
   def test_chains_page_renders_successfully
     visit chains_tasks_path
     assert_selector "h1", text: /chains/i

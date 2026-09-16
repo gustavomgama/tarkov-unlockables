@@ -1,8 +1,6 @@
-require "system_test_helper"
+require "application_system_test_case"
 
-class ConsoleErrorTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-
+class ConsoleErrorTest < ApplicationSystemTestCase
   # The palette is loaded from an external stylesheet. Asking for the computed
   # value is the only check that catches a broken declaration block: the
   # response text can contain a token that the browser never applies.

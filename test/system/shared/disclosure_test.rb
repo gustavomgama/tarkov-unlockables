@@ -1,12 +1,10 @@
-require "system_test_helper"
+require "application_system_test_case"
 
 # The mobile site menu and the index filter groups are native <details>
 # elements, so they open without JavaScript and report their own state. This
 # covers the behaviour the vanilla <details> element does not give us for
 # free: Escape closes and returns focus.
-class DisclosureTest < ActionDispatch::SystemTestCase
-  include SystemTestHelper
-
+class DisclosureTest < ApplicationSystemTestCase
   test "site menu opens on a phone viewport and closes with Escape" do
     visit items_path
     use_viewport(390, 800)
@@ -57,12 +55,15 @@ class DisclosureTest < ActionDispatch::SystemTestCase
   test "view toggle reports which view is active" do
     visit items_path
 
-    assert_equal "true", find("[data-view='grid']")["aria-pressed"]
-    assert_equal "false", find("[data-view='table']")["aria-pressed"]
+    # The markup ships aria-pressed="false" on both buttons and the Stimulus
+    # controller sets the active one on connect. Reading the attribute straight
+    # after visit races that connect, so wait through the retrying matcher.
+    assert_selector "[data-view='grid'][aria-pressed='true']"
+    assert_selector "[data-view='table'][aria-pressed='false']"
 
     click_on "Table"
     assert_selector "[data-view-toggle-target='table']", visible: true
-    assert_equal "true", find("[data-view='table']")["aria-pressed"]
-    assert_equal "false", find("[data-view='grid']")["aria-pressed"]
+    assert_selector "[data-view='table'][aria-pressed='true']"
+    assert_selector "[data-view='grid'][aria-pressed='false']"
   end
 end

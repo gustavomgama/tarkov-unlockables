@@ -1,8 +1,25 @@
 # Run using bin/ci
 #
-# Mirrors the `bundle exec rake ci:all` pipeline (lib/tasks/ci.rake) by
-# delegating each phase to its rake task, so there is a single source of
-# truth for the commands, thresholds, and perf-tooling checks.
+# Local mirror of .github/workflows/ci.yml: every check below runs the same
+# rake task as its CI job, so the commands and thresholds have a single
+# definition (lib/tasks/ci.rake), and CI delegates its docker job back to the
+# same rehearsal task. Step to job, in order:
+#
+#   ci.yml job     step
+#   ───────────    ─────────────────────────────────────────
+#   security       Security: Brakeman + bundler-audit
+#   lint           Lint: RuboCop
+#   lint           Perf: Fasterer
+#   development    Development: Boot + routes + perf tooling
+#   test           Test: Suite + Bullet/Goldiloader
+#   coverage       Coverage: 89% line gate
+#   system         System: Browser tests
+#   audit          Audit: Rubycritic ≥ 75
+#   docker         Docker: Build production image
+#   docker         Deploy rehearsal: migrate, boot, poll /up
+#
+# Two steps have no CI job: Setup primes a freshly cloned checkout, and
+# Signoff is the optional commit status CI uses to allow a merge.
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
@@ -16,6 +33,7 @@ CI.run do
   step "System: Browser tests", "bundle exec rake ci:system"
   step "Audit: Rubycritic ≥ 75", "bundle exec rake ci:audit"
   step "Docker: Build production image", "bundle exec rake ci:docker"
+  step "Deploy rehearsal: migrate, boot, poll /up", "bundle exec rake ci:rehearsal"
 
   # Optional: set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
