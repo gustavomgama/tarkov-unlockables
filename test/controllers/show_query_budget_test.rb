@@ -50,4 +50,39 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_operator queries, :<=, 32, "items#show fired #{queries} queries"
   end
+
+  # The two new browse pages. Both preload their one nested graph, so the
+  # budget is small and flat: it only moves if a list starts querying per row.
+  test "traders#show query budget" do
+    trader = Trader.create!(bsg_id: "qb-#{SecureRandom.hex(4)}", slug: "qb-#{SecureRandom.hex(4)}",
+                            name: "Budget Trader", currency: "RUB")
+    trader.trader_levels.create!(level: 1)
+    item = Item.create!(bsg_id: "qb-i-#{SecureRandom.hex(4)}", full_name: "Budget Item", short_name: "BI")
+    item.item_currencies.create!(trader: "Budget Trader", currency: "RUB", min_trader_level: 1)
+
+    url = trader_url(trader.slug)
+    queries = count_queries { get url }
+    assert_response :success
+    assert_operator queries, :<=, 8, "traders#show fired #{queries} queries"
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+    trader&.destroy
+  end
+
+  test "stations#show query budget" do
+    station = HideoutStation.create!(bsg_id: "qb-#{SecureRandom.hex(4)}", slug: "qb-#{SecureRandom.hex(4)}",
+                                     name: "Budget Station")
+    level = station.hideout_levels.create!(level: 1)
+    item = Item.create!(bsg_id: "qb-s-#{SecureRandom.hex(4)}", full_name: "Budget Input", short_name: "BIn")
+    level.hideout_item_requirements.create!(item: item, item_name: item.full_name, count: 1)
+
+    url = station_url(station.slug)
+    queries = count_queries { get url }
+    assert_response :success
+    assert_operator queries, :<=, 8, "stations#show fired #{queries} queries"
+  ensure
+    station&.destroy
+    item&.destroy
+  end
 end
