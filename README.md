@@ -10,6 +10,16 @@ Answering questions like:
 - What do I need to build the Lavatory, and what does Therapist LL4 cost me?
 - What is the barter recipe for a LEDX, and which quests hand one in?
 
+## Sections
+
+- `/items` — every item: stats, weight, mod slots, recipes, prices, where it
+  comes from and what it is used in.
+- `/tasks` — the quest graph: prerequisites, objectives, needed keys, rewards
+  and the unlock chain that gates trader offers and crafts.
+- `/hideout` — each station's levels, build costs and crafts.
+- `/traders` — loyalty thresholds and what each trader sells.
+- `/maps` — raid length, bosses, extracts and transits.
+
 ## Setup
 
 ```bash
