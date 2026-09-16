@@ -1,10 +1,37 @@
-<%# Site-wide feedback box. utterances renders a public GitHub issue thread, so
-    this needs the utterances app installed on the repo and a pinned issue
-    (https://github.com/apps/utterances). %>
+<%# Site-wide feedback, two channels by design:
+       - the Tally form, embedded inline, for anyone: private, no account
+       - the utterances thread, for public discussion: needs a GitHub login
+     utterances renders a public GitHub issue thread, so it needs the app
+     installed on the repo and a pinned issue
+     (https://github.com/apps/utterances). Tally's embed.js sizes the iframe
+     from the form, so no fixed height here — the height attribute below is
+     only the pre-load placeholder. %>
 <section class="mt-6" aria-labelledby="feedback-heading">
   <h2 id="feedback-heading" class="text-sm font-bold uppercase tracking-wide text-[var(--text-muted)] mb-1">
     Suggestions &amp; feedback
   </h2>
+
+  <p class="text-xs text-[var(--text-muted)] mb-3">
+    Spotted a wrong price, a missing task, or want a feature? Send it over —
+    no account needed, and messages go straight to the maintainer. Prefer to
+    discuss it in the open? Use the thread below.
+  </p>
+
+  <div class="max-w-3xl mb-6">
+    <iframe
+      data-tally-src="https://tally.so/embed/Pd77Md?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+      loading="lazy"
+      width="100%"
+      height="300"
+      style="border:0"
+      title="Private feedback form"
+    ></iframe>
+    <script async src="https://tally.so/widgets/embed.js"></script>
+  </div>
+
+  <h3 class="text-sm font-bold uppercase tracking-wide text-[var(--text-muted)] mb-1">
+    Public thread
+  </h3>
 
   <p class="text-xs text-[var(--text-muted)] mb-3">
     Every message is public and lands in
