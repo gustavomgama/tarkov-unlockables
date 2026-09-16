@@ -12,6 +12,8 @@ class StationsController < ApplicationController
     @station = HideoutStation
                .includes(hideout_levels: :hideout_item_requirements)
                .find_by!(slug: params[:slug])
+    # What the station produces, keyed by level, in one query.
+    @crafts_by_level = ItemHideout.where(station: @station.name).includes(:item).group_by(&:level)
     fresh_when(@station, public: true)
   end
 end

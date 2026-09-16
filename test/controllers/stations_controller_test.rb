@@ -25,6 +25,8 @@ class StationsControllerTest < ActionDispatch::IntegrationTest
       trader_requirements: [ { "name" => "Mechanic", "level" => 2 } ]
     )
     level.hideout_item_requirements.create!(item: item, item_name: item.full_name, count: 3, found_in_raid: true)
+    crafted = Item.create!(bsg_id: "sh-c-#{SecureRandom.hex(4)}", full_name: "Crafted Thing", short_name: "CT")
+    ItemHideout.create!(item: crafted, station: "Build Station", level: 2, count: 1)
 
     get station_url(station.slug)
 
@@ -32,6 +34,8 @@ class StationsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "Build Station"
     assert_select "h2", text: "Level 2"
     assert_select "a[href=?]", item_path(item), text: "Build Widget"
+    assert_select ".srcrow", text: /Crafts/
+    assert_select "a[href=?]", item_path(crafted), text: "Crafted Thing"
     assert_match "found in raid", response.body
     assert_match "Generator", response.body
     assert_match "Mechanic", response.body
@@ -39,6 +43,7 @@ class StationsControllerTest < ActionDispatch::IntegrationTest
   ensure
     station&.destroy
     item&.destroy
+    crafted&.destroy
   end
 
   test "show returns 404 for an unknown station" do
