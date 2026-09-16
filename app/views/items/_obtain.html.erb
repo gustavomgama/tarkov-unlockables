@@ -70,7 +70,7 @@
         <span class="srcbadge" style="--tone: var(--badge-hideout)">Hideout</span>
         <div class="srcrow__body">
           <p class="srcrow__title">
-            <%= hideout.station %>
+            <%= link_to hideout.station, station_path(hideout.station.to_s.parameterize) %>
             <span class="font-data text-[var(--text-muted)]">Level <%= hideout.level %></span>
             <% if hideout.count.to_i > 1 %>
               <span class="font-data text-[var(--text-bright)]">×<%= hideout.count %></span>

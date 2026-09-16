@@ -37,7 +37,7 @@ class StationsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".srcrow", text: /Crafts/
     assert_select "a[href=?]", item_path(crafted), text: "Crafted Thing"
     assert_match "found in raid", response.body
-    assert_match "Generator", response.body
+    assert_select "a[href=?]", station_path("generator"), text: "Generator"
     assert_match "Mechanic", response.body
     assert_match "about 1 hour", response.body
   ensure

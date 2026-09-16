@@ -550,6 +550,7 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "for Input Widget ×4", response.body
     assert_match "Buy limit 3 per reset", response.body
+    assert_select "a[href=?]", station_path("workbench"), text: "Workbench"
     assert_match "tools needed: Input Widget", response.body
     assert_match "about 2 hours", response.body
   ensure

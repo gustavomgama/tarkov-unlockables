@@ -65,7 +65,7 @@
               <ul class="space-y-1">
                 <% station_reqs.each do |req| %>
                   <li class="srcrow__title">
-                    <%= req["station_name"] %>
+                    <%= link_to req["station_name"], station_path(req["station_name"].to_s.parameterize) %>
                     <span class="font-data text-[var(--text-muted)]">Level <%= req["level"] %></span>
                   </li>
                 <% end %>
