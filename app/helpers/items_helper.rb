@@ -30,6 +30,19 @@ module ItemsHelper
     Array(raw[name]).reject(&:blank?)
   end
 
+  # Task-gated flag per item id, batched: the caller primes it with the whole
+  # page collection, then each card reads the memo. One query per page, not
+  # one per card.
+  def task_gated_item_ids(items)
+    @task_gated_item_ids ||= {}
+    missing = Array(items).map(&:id) - @task_gated_item_ids.keys
+    if missing.any?
+      gated = Item.task_gated.where(id: missing).pluck(:id).to_set
+      missing.each { |id| @task_gated_item_ids[id] = gated.include?(id) }
+    end
+    @task_gated_item_ids
+  end
+
   # Player-facing name for a raw category key.
   def category_label(raw)
     CATEGORY_LABELS.fetch(raw.to_s) { raw.to_s.humanize }

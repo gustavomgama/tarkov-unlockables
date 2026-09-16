@@ -21,6 +21,12 @@
       </div>
     <% end %>
 
+    <% if task_gated_item_ids([ card ])[card.id] %>
+      <div class="mt-1.5">
+        <span class="chip" style="--tone: var(--badge-task); background: var(--badge-task); color: var(--text-bright)">Task-gated</span>
+      </div>
+    <% end %>
+
     <% chips = category_chips(card) %>
     <% if chips.any? %>
       <div class="mt-1.5 flex flex-wrap gap-1">

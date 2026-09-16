@@ -911,6 +911,29 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     task&.destroy
   end
 
+  test "index marks task-gated item cards" do
+    gated = Item.create!(bsg_id: "badge-#{SecureRandom.hex(4)}", full_name: "Badge Gated", short_name: "BG")
+    free = Item.create!(bsg_id: "badge2-#{SecureRandom.hex(4)}", full_name: "Badge Free", short_name: "BF")
+    task = Task.create!(bsg_id: "badge-t-#{SecureRandom.hex(4)}", full_name: "Badge Task", name: "badge-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+    reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
+
+    get items_url(q: "Badge")
+
+    assert_response :success
+    assert_select "a.card[href=?]", item_path(gated) do
+      assert_select ".chip", text: "Task-gated"
+    end
+    assert_select "a.card[href=?]", item_path(free) do
+      assert_select ".chip", text: "Task-gated", count: 0
+    end
+  ensure
+    OfferUnlock.where(item_id: gated&.id).destroy_all
+    Reward.where(task_id: task&.id).destroy_all
+    task&.destroy
+    [ gated, free ].each { |i| i&.destroy }
+  end
+
   test "index filters by source trader" do
     trader_item = Item.create!(bsg_id: "src3-#{SecureRandom.hex(4)}", full_name: "Trader Item", short_name: "TI")
     other_item = Item.create!(bsg_id: "src4-#{SecureRandom.hex(4)}", full_name: "Other Item", short_name: "OI")
