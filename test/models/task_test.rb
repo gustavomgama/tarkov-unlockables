@@ -18,6 +18,8 @@ require "test_helper"
 #  search_text          :string           default(""), not null
 #  map_id               :string
 #  map_name             :string
+#  experience           :integer
+#  faction              :string
 #
 # Indexes
 #

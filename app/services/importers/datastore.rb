@@ -149,6 +149,8 @@ module Importers
             given_by:             raw["trader_slug"],
             map_id:               raw["map_id"],
             map_name:             raw["map_name"],
+            experience:           raw["experience"],
+            faction:              raw["faction"],
             kappa_required:       raw["kappa_required"],
             lightkeeper_required: raw["lightkeeper_required"]
           )

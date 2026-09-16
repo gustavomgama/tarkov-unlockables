@@ -89,6 +89,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         "id" => "t1", "slug" => "first-task", "name" => "First Task",
         "wiki_link" => "https://wiki/first-task", "trader_slug" => "prapor",
         "map_id" => "map-customs", "map_name" => "Customs",
+        "experience" => 12_345, "faction" => "BEAR",
         "kappa_required" => true, "lightkeeper_required" => false,
         "min_player_level" => 5,
         "trader_requirements" => [ { "trader_slug" => "prapor", "value" => 2 } ],
@@ -229,6 +230,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal "prapor", first.given_by
     assert_equal "map-customs", first.map_id
     assert_equal "Customs", first.map_name
+    assert_equal 12_345, first.experience
+    assert_equal "BEAR", first.faction
     assert first.kappa_required
     refute first.lightkeeper_required
     assert_equal "https://wiki/first-task", first.wiki_link

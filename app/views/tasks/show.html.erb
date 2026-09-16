@@ -39,6 +39,9 @@
             <% if @task.map_name.present? %>
               <%= link_to "#{@task.map_name} quests", tasks_path(map: @task.map_name), class: "chip chip--link" %>
             <% end %>
+            <% if @task.faction.present? && @task.faction != "Any" %>
+              <span class="chip"><%= @task.faction %> only</span>
+            <% end %>
             <% if @task.wiki_link.present? %>
               <a href="<%= @task.wiki_link %>" target="_blank" rel="noopener" class="chip chip--link">Wiki walkthrough</a>
             <% end %>
@@ -59,6 +62,13 @@
                 <span class="stat__key">Leads to</span>
                 <span class="stat__val"><%= @task.leads_tos.size %></span>
                 <span class="stat__note"><%= "follow-up quest".pluralize(@task.leads_tos.size) %></span>
+              </div>
+            <% end %>
+            <% if @task.experience.to_i.positive? %>
+              <div class="stat">
+                <span class="stat__key">XP</span>
+                <span class="stat__val"><%= number_with_delimiter(@task.experience) %></span>
+                <span class="stat__note">experience</span>
               </div>
             <% end %>
             <% if reward_count.positive? %>

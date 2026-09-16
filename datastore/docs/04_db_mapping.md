@@ -43,7 +43,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | `traders.levels` | — | **no table.** No loyalty thresholds stored, so "can I buy this yet" is unanswerable. |
 | `barters` | `item_barters` (+ nothing) | canonical is a first-class entity with an id. |
 | `crafts` | `item_hideouts` (+ nothing) | same. |
-| `tasks` | `tasks` | 1:1 on `bsg_id`. The DB keeps `full_name`, `slug`, `trader_slug`, `wiki_link` and the kappa/lightkeeper flags. Canonical also has `map_id`, `min_player_level`, `experience`, `faction`, `trader_id`, `name_source`. |
+| `tasks` | `tasks` | 1:1 on `bsg_id`. The DB keeps `full_name`, `slug`, `trader_slug`, `wiki_link`, `map_id`/`map_name`, `experience`, `faction` and the kappa/lightkeeper flags. Canonical also has `min_player_level`, `trader_id`, `name_source`. |
 | `tasks.task_requirements` | `previous_tasks` (via `requirements`) | DB has the chain; canonical also has `status`. |
 | `tasks.trader_requirements` | `requirements.trader_level` (jsonb array) | DB is a loose jsonb array; canonical has requirement type + comparator + value. |
 | `tasks.leads_to` | `leads_tos` | 1:1. |

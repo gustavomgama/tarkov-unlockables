@@ -165,6 +165,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show reads the quest XP and faction" do
+    task = Task.create!(bsg_id: "xp-#{SecureRandom.hex(4)}", full_name: "XP Quest", name: "xp-quest",
+                        given_by: "Prapor", experience: 12_345, faction: "BEAR")
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select ".stat", text: /12,345/
+    assert_select ".chip", text: /BEAR only/
+  ensure
+    task&.destroy
+  end
+
   test "show renders gracefully when a task has no requirements or rewards" do
     bare = Task.create!(bsg_id: "bare_#{SecureRandom.hex(4)}", full_name: "Bare Task", name: "bare-task", given_by: "Jaeger")
 

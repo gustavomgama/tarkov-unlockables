@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -324,6 +324,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000005) do
     t.string "search_text", default: "", null: false
     t.string "map_id"
     t.string "map_name"
+    t.integer "experience"
+    t.string "faction"
     t.index ["full_name"], name: "index_tasks_on_full_name"
     t.index ["given_by"], name: "index_tasks_on_given_by"
     t.index ["map_name"], name: "index_tasks_on_map_name"
