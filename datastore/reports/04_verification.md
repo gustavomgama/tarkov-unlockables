@@ -3,12 +3,12 @@
 | # | check | result |
 | ---: | --- | --- |
 | 1 | PASS | canonical files exist — all present |
-| 2 | PASS | items unique bsg_id — 5480 distinct of 5480 |
-| 3 | PASS | items >= 5000 — 5480 |
+| 2 | PASS | items unique bsg_id — 5481 distinct of 5481 |
+| 3 | PASS | items >= 5000 — 5481 |
 | 4 | PASS | no placeholder display names — 0 placeholders |
-| 5 | PASS | every item has a name — 5480 named |
-| 6 | PASS | every item has a slug — all 5480 |
-| 7 | PASS | name_source recorded for every item — all 5480 |
+| 5 | PASS | every item has a name — 5481 named |
+| 6 | PASS | every item has a slug — all 5481 |
+| 7 | PASS | name_source recorded for every item — all 5481 |
 | 8 | PASS | tasks unique id — 517 distinct of 517 |
 | 9 | PASS | every task has a name + slug — all 517 |
 | 10 | PASS | barter traders resolve — 8 distinct, all resolved |
@@ -36,17 +36,17 @@
 | 32 | PASS | M4A1 resolves with mod slots — Colt M4A1 5.56x45 assault rifle — 6 slots, 1 buy routes |
 | 33 | PASS | 'First in Line' task named — First in Line by therapist (2 objectives) |
 | 34 | PASS | every achievement has a name — all 123 |
-| 35 | PASS | no item name is derived — all official; sources=['tarkovdev:items_en', 'tarkovdev:tasks_en', 'tarkovmarket'] |
+| 35 | PASS | no item name is derived — all official; sources=['officialwiki', 'tarkovdev:items_en', 'tarkovdev:tasks_en', 'tarkovmarket'] |
 | 36 | PASS | index barter unlocks are routable — 45 unlocked items all gated |
 | 37 | PASS | barter unlocks present, none in failure — 457 unlocks (98 barter), 0 in failure |
 | 38 | PASS | unlock sources are tagged — sources=['tarkovdev', 'tarkovunlockables'] |
 | 39 | PASS | objective descriptions localised — 1444 described |
-| 40 | PASS | wiki conflict relations resolve — api=11312, wiki=2246 (2054 corroborated, 192 wiki-only) |
-| 41 | PASS | wiki compatibility relations resolve — 9131 edges over 1645 items |
-| 42 | PASS | wiki trader offers parse and corroborate — 2536 offers over 2371 items, 2490 (98%) corroborated, 2784 internal ids |
+| 40 | PASS | wiki conflict relations resolve — api=11312, wiki=2276 (2081 corroborated, 195 wiki-only) |
+| 41 | PASS | wiki compatibility relations resolve — 10775 edges over 1785 items |
+| 42 | PASS | wiki trader offers parse and corroborate — 2760 offers over 2525 items, 2633 (95%) corroborated, 2954 internal ids |
 | 43 | PASS | wiki trade/craft tables corroborate — trades 379/443 (85%), crafts 199/213 (93%), ballistics 1510/1522 (99%), 12 numeric disagreements |
 | 44 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 13, lightkeeper 7 |
-| 45 | PASS | wiki weapon variants map 1:1 to presets — 102 variants over 51 base weapons, 101 matched 1:1, 1043 attachments |
+| 45 | PASS | wiki weapon variants map 1:1 to presets — 103 variants over 52 base weapons, 101 matched 1:1, 1063 attachments |
 | 46 | PASS | wiki build parts agree with preset parts — 99/101 wiki part lists are a subset of their preset's parts |
 | 47 | PASS | map boss names resolved — 129 entries named |
 | 48 | PASS | map transit names resolved — 33 entries named |
@@ -54,9 +54,9 @@
 | 50 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
 | 51 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
 | 52 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 53 | PASS | sqlite file exists — 51347456 |
+| 53 | PASS | sqlite file exists — 52019200 |
 | 54 | PASS | sqlite integrity_check — ok |
-| 55 | PASS | sqlite item count matches canonical — ==5480 = 5480 |
+| 55 | PASS | sqlite item count matches canonical — ==5481 = 5481 |
 | 56 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
 | 57 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
 | 58 | PASS | view v_item_price returns — 3540 priced items |
@@ -69,7 +69,8 @@
 | 65 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
 | 66 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
 | 67 | PASS | special-slot ids resolve to items or categories — 37 ids = 28 items + 9 categories; 44 items carry the specialSlot type |
-| 68 | PASS | no table is entirely empty — 52 tables all non-empty |
-| 69 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
+| 68 | PASS | every wiki infobox id is attached to its item — 4115/5481 items carry a wiki block; 216 ids filled from 156 multi-id pages; 1 wiki-only item(s) |
+| 69 | PASS | no table is entirely empty — 52 tables all non-empty |
+| 70 | PASS | wiki-derived relations loaded — item_wiki_slots=26786, item_wiki_meta=4115, item_wiki_trader_offers=2760, item_conflicts=13588, item_compatibility=10775, item_grids=903 |
 
-**69/69 checks passed.**
+**70/70 checks passed.**

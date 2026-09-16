@@ -9,8 +9,8 @@
 | tasks | 517 |
 | maps | 17 |
 | hideout_stations | 26 |
-| items | 5480 |
-| weapon_variants | 102 |
+| items | 5481 |
+| weapon_variants | 103 |
 
 ## Item display-name provenance
 
@@ -18,7 +18,8 @@
 | --- | ---: |
 | tarkovdev:items_en | 5312 |
 | tarkovdev:tasks_en | 135 |
-| tarkovmarket | 33 |
+| tarkovmarket | 32 |
+| officialwiki | 2 |
 
 ## File sizes
 
@@ -26,7 +27,7 @@
 - `categories.ndjson` — 0.1 MB
 - `crafts.ndjson` — 0.2 MB
 - `hideout_stations.ndjson` — 0.1 MB
-- `items.ndjson` — 36.0 MB
+- `items.ndjson` — 36.6 MB
 - `maps.ndjson` — 0.1 MB
 - `reference.json` — 0.2 MB
 - `tasks.ndjson` — 3.8 MB

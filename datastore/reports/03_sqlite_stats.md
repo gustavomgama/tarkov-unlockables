@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 51.2 MB
+- `tarkov.sqlite3` — 51.9 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -20,20 +20,20 @@
 | hideout_stations | 26 |
 | item_acquisition | 7903 |
 | item_categories | 35643 |
-| item_compatibility | 9131 |
-| item_conflicts | 13558 |
+| item_compatibility | 10775 |
+| item_conflicts | 13588 |
 | item_contained | 5995 |
 | item_grids | 903 |
 | item_slot_allowed | 39910 |
 | item_slots | 3564 |
-| item_sources | 17148 |
+| item_sources | 17364 |
 | item_trade | 28146 |
 | item_types | 7019 |
 | item_used_in | 17597 |
-| item_wiki_meta | 3899 |
-| item_wiki_slots | 25108 |
-| item_wiki_trader_offers | 2536 |
-| items | 5480 |
+| item_wiki_meta | 4115 |
+| item_wiki_slots | 26786 |
+| item_wiki_trader_offers | 2760 |
+| items | 5481 |
 | maps | 17 |
 | mastery | 82 |
 | player_levels | 79 |
@@ -53,5 +53,5 @@
 | trader_buy_rules | 1116 |
 | trader_levels | 42 |
 | traders | 16 |
-| weapon_variant_attachments | 1043 |
-| weapon_variants | 102 |
+| weapon_variant_attachments | 1063 |
+| weapon_variants | 103 |

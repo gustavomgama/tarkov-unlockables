@@ -27,7 +27,7 @@ datastore/
 
 | file | rows | what it is |
 | --- | ---: | --- |
-| `canonical/items.ndjson` | 5,480 | every item with resolved name, verbatim `properties`, mod slots, grids, flea economy, trader trade, **acquisition routes** and **reverse usage** |
+| `canonical/items.ndjson` | 5,481 | every item with resolved name, verbatim `properties`, mod slots, grids, flea economy, trader trade, **acquisition routes** and **reverse usage** |
 | `canonical/tasks.ndjson` | 517 | full quest graph: gates, typed objectives, rewards, unlocks (incl. task-gated barters the API omits), maps |
 | `canonical/barters.ndjson` | 789 | trader barter offers with full recipes, limits, task gates |
 | `canonical/crafts.ndjson` | 214 | hideout recipes with station/level/duration and tool flags |

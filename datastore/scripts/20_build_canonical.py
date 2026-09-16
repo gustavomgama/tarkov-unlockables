@@ -19,10 +19,13 @@ Run: ~/.pyvenv-tarkov/bin/python datastore/scripts/20_build_canonical.py
 """
 from __future__ import annotations
 
+import glob
 import json
 import os
 import re
 from collections import Counter, defaultdict
+
+import mwparserfromhell
 
 import _common as C
 
@@ -42,6 +45,61 @@ FLAT_STATS = (
 # --------------------------------------------------------------------------- #
 # load + resolve names
 # --------------------------------------------------------------------------- #
+def expand_wiki_items(parsed):
+    """Give every BSG id on a wiki page the page's parsed data.
+
+    156 of the 3,901 item infoboxes list **several** `node` ids — colour
+    variants (Taupe/Red/FDE), "ammo pack (120 pcs)" bundles, and PvE/PvP
+    duplicates of one item. `parsed_items.json` only keeps the page's first
+    node, which leaves 215 canonical items with a wiki page but no wiki block
+    (so they lose the wiki-only joins: mod slots, builds, trader offers,
+    conflicts). Re-parse the raw batches and clone the entry onto every id the
+    infobox names.
+
+    Returns (parsed, added) via a wrapper so the caller keeps a plain dict; the
+    added count is recorded for the build report.
+    """
+    by_title = {v.get("full_name"): v for v in parsed.values() if v.get("full_name")}
+    EXPANSION["pages"] = 0
+    EXPANSION["ids"] = 0
+    batches = sorted(glob.glob(os.path.join(
+        os.path.dirname(_common_dir()), "offlinedata", "officialwiki", "itembatches", "*.json")))
+    added = 0
+    for path in batches:
+        with open(path, encoding="utf-8") as fh:
+            pages = json.load(fh)["query"]["pages"]
+        for pg in pages:
+            revision = (pg.get("revisions") or [{}])[0]
+            content = ((revision.get("slots") or {}).get("main") or {}).get("content")
+            if not content:
+                continue
+            entry = by_title.get(pg.get("title"))
+            if entry is None:
+                continue
+            for tpl in mwparserfromhell.parse(content).filter_templates():
+                if not str(tpl.name).strip().lower().startswith("infobox") or not tpl.has("node"):
+                    continue
+                ids = re.findall(r"\b[0-9a-f]{24}\b", str(tpl.get("node").value))
+                if len(ids) < 2:
+                    continue
+                if any(extra not in parsed for extra in ids):
+                    EXPANSION["pages"] += 1
+                for extra in ids:
+                    if extra not in parsed:
+                        parsed[extra] = dict(entry)
+                        added += 1
+    EXPANSION["ids"] = added
+    return parsed
+
+
+def _common_dir():
+    return C.DS
+
+
+# filled in by expand_wiki_items: how many extra ids a wiki page lent its data to
+EXPANSION = {}
+
+
 def load_all():
     tdev_items = C.load_off("tarkovdev/items.json")["data"]
     raw = {
@@ -70,7 +128,7 @@ def load_all():
         "index_items": C.load_off("tarkovunlockables/items_index.json"),
         "tasks_index": C.load_off("tarkovunlockables/tasks_index.json"),
         "traders_index": C.load_off("tarkovunlockables/traders_index.json")["traders"],
-        "wiki_items": C.load_off("officialwiki/parsed_items.json"),
+        "wiki_items": expand_wiki_items(C.load_off("officialwiki/parsed_items.json")),
         "wiki_barters": C.load_off("officialwiki/barter_list.json"),
         "wiki_crafts": C.load_off("officialwiki/craft_list.json"),
         "task_gated_barters": C.load_off("tarkovunlockables/task_gated_barters.json"),
@@ -1342,6 +1400,7 @@ def build_reference(ctx):
         "mastering": ctx["raw"]["mastering"],
         "special_items": resolve_special_items(ctx),
         "settings": ctx["raw"]["settings"],
+        "wiki_expansion": dict(EXPANSION),
         "prestige": ctx["prestige"],
         "achievements": [
             {

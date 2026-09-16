@@ -11,7 +11,7 @@ Current live shape of `tarkov_db_development` vs this dataset:
 
 | | Postgres (dev) | canonical | why they differ |
 | --- | ---: | ---: | --- |
-| items | 3,399 | 5,480 | the DB only creates rows present in `items_index`; `TarkovDev`/`Wiki` only *enrich* existing rows (`Item.find_by`, never create). ~1,950 mods/presets/ammo-packs and 135 quest items are absent. |
+| items | 3,399 | 5,481 | the DB only creates rows present in `items_index`; `TarkovDev`/`Wiki` only *enrich* existing rows (`Item.find_by`, never create). ~1,950 mods/presets/ammo-packs and 135 quest items are absent. |
 | tasks | 468 | 517 | `TaskGraph` skips the 52 blank-`bsg_id` rows in `tasks_index`; the other gap is the canonical task set being the tarkovdev one. |
 | item_currencies | 3,351 | 2,965 buy routes | both derived, different sources (`obtain_from.currency` vs `buyFromTrader`). |
 | item_barters | 305 | 713 barter items / 789 barters | `items_index.obtain_from.barter` records *that* an item is barterable; the canonical barters carry the full recipe. |
@@ -64,7 +64,7 @@ queries the Postgres schema cannot express:
    gates on each route.
 2. **"What is item X used for?"** — nothing in the DB tracks reverse usage
    (craft inputs, barter requirements, hideout build costs, objective
-   hand-ins). 3,878 of the 5,480 items have at least one `used_in` route here.
+   hand-ins). 3,878 of the 5,481 items have at least one `used_in` route here.
 3. **"Can this weapon build work?"** — no slot graph, no allowed-items edges.
 4. **"What are the requirements of task T?"** — objectives, needed keys and
    trader-loyalty requirements are all absent; only level + previous tasks

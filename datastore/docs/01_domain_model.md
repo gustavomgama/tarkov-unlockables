@@ -43,7 +43,7 @@ the canonical dataset is keyed by it.
 
 ## 2. Items — the atom
 
-5,480 distinct item records (`canonical/items.ndjson`). The universe is the
+5,481 distinct item records (`canonical/items.ndjson`). The universe is the
 union of four sets: 5,312 from `tarkovdev/items.json`, 43 only in
 tarkov-market, 4 only in the wiki, and 121 quest items that appear in no other
 source (the other 14 of the 135 quest items overlap the main sets). 135 items
@@ -123,6 +123,20 @@ those are exposed as a separate entity: 102 named builds over 51 base weapons
 with their exact attachment lists (1,043 parts), 101 of which map 1:1 onto a
 tarkovdev preset. That gives each build both a human name and a resolvable
 parts list.
+
+Wiki pages are not one page per item. 156 of the 3,901 item infoboxes name
+**several** `node` ids — colour variants ("(Taupe)", "(FDE)"), "ammo pack
+(120 pcs)" bundles, and PvE/PvP twins of one item. `parsed_items.json` keys the
+page by its first node only, so those siblings had a wiki page but no wiki
+data. The builder re-parses the raw `itembatches/` wikitext and clones the page
+onto every id it names: 216 ids gained a wiki block (3,899 to 4,115 items), and
+with it the wiki-only joins — 1,678 more mod slots, 224 more trader offers and
+1,644 more compatibility edges. Sibling ids are the same item, so sharing the
+page is correct rather than an approximation.
+
+One of those siblings is not in the tarkovdev dump at all: `614451b71e5874611e2c7ae5`,
+the quest variant of the Tarkovskaya vodka bottle, so the dataset carries one
+item whose only source is the wiki (`sources: ["officialwiki"]`).
 
 The two sources agree closely and their disagreement is systematic: for 99 of
 101 matched builds the wiki's attachment list is a **subset** of the preset's
@@ -442,7 +456,7 @@ complete, and the richest one has no strings at all.**
 | `tarkovdev/tasks.json` (517) | full task graph, typed objectives, rewards, unlocks | display names (same placeholders) |
 | `tarkovdev/barters.json` (789) / `crafts.json` (214) | live offers and recipes | names |
 | `tarkovunlockables/items_index.json` (3,399) | ready-made per-item `obtain_from` summary, real names | coverage — 40% of items are missing |
-| `officialwiki/parsed_items.json` (3,899) | wiki titles + parsed infoboxes (raw game stat sheet), mod slots | coverage, structure is wiki-text |
+| `officialwiki/parsed_items.json` (3,899 keys, 4,115 items covered) | wiki titles + parsed infoboxes (raw game stat sheet), mod slots | coverage, structure is wiki-text |
 | `tarkovmarket/items_all.json` (4,403 usable) | real names, market tags, market urls | prices in the bulk file (only the single-item example has them) |
 | `fetched/items_en|tasks_en|traders_en|maps_en` | **all** display strings, official | nothing else |
 | `fetched/maps`, `fetched/hideout` | map + hideout-station entities | names (separate `_en`) |
@@ -454,7 +468,7 @@ Consequences that shape the pipeline:
    export would be full of `<id> Name`. Two different endpoints are needed:
    `items_en` for the 5,312 main items, `tasks_en` for the 135 quest items,
    which `/items` does not return at all. See `docs/02_sources.md`.
-2. **Only 3,399 of 5,480 items have the unlockables `obtain_from` summary**,
+2. **Only 3,399 of 5,481 items have the unlockables `obtain_from` summary**,
    so the acquisition graph is rebuilt from the raw sources (barters, crafts,
    task rewards, hideout) rather than trusted from that index — and the index
    is kept only as a cross-check. Currency purchases are deliberately *not*

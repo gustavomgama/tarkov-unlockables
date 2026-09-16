@@ -7,7 +7,7 @@ denormalized convenience — the `bsg_id` is the join key.
 
 ---
 
-## `items.ndjson` — 5,480 rows
+## `items.ndjson` — 5,481 rows
 
 | field | type | notes |
 | --- | --- | --- |

@@ -151,6 +151,7 @@ def main():
     check("all analysis steps have run", lambda: _analysis_tables(con))
     check("armor materials join to items", lambda: _armor_view(con))
     check("special-slot ids resolve to items or categories", lambda: _special_items())
+    check("every wiki infobox id is attached to its item", lambda: _wiki_page_coverage())
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -483,6 +484,24 @@ def _special_items():
     assert not untyped, f"{len(untyped)} special_items ids are not typed specialSlot"
     return (f"{len(rows)} ids = {kinds['item']} items + {kinds['category']} categories; "
             f"{len(typed)} items carry the specialSlot type")
+
+
+def _wiki_page_coverage():
+    """156 wiki pages list several `node` ids in one infobox; the parser kept
+    only the first, so the sibling ids had a wiki page but no wiki data. The
+    builder now clones the page onto every id it names."""
+    ref = json.load(open(os.path.join(C.CANON, "reference.json"), encoding="utf-8"))
+    exp = ref.get("wiki_expansion") or {}
+    assert exp.get("ids", 0) >= 200, f"wiki expansion added only {exp.get('ids')} ids"
+    assert exp.get("pages", 0) >= 100, f"only {exp.get('pages')} multi-id wiki pages seen"
+    items = list(C.load_jsonl(os.path.join(C.CANON, "items.ndjson")))
+    covered = sum(1 for i in items if i.get("wiki"))
+    assert covered >= 4100, f"only {covered} items carry a wiki block"
+    wiki_only = [i for i in items if i["sources"] == ["officialwiki"]]
+    assert len(wiki_only) <= 5, f"{len(wiki_only)} items come from the wiki alone"
+    return (f"{covered}/{len(items)} items carry a wiki block; "
+            f"{exp['ids']} ids filled from {exp['pages']} multi-id pages; "
+            f"{len(wiki_only)} wiki-only item(s)")
 
 
 def _build_parts_agree():

@@ -1843,6 +1843,10 @@
   "globalMaxTraders": false,
   "gpCoinValue": 12306
  },
+ "wiki_expansion": {
+  "pages": 156,
+  "ids": 216
+ },
  "prestige": [
   {
    "id": "672df12f97f0469cea52f55e",
