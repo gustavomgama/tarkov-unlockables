@@ -163,6 +163,47 @@ jobs:
           path: coverage/
           retention-days: 14
 
+  # ── Browser tests (rake ci:system) ───────────────────────────────────
+  # ubuntu-latest ships Google Chrome; the helper uses it, falling back to
+  # a local chromium binary only when Chrome is absent.
+  system:
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/tarkov_db_system
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tarkov_db_system
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby-4.0.6
+          bundler-cache: true
+
+      - name: System tests
+        run: bundle exec rake ci:system
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: system-test-failures
+          path: tmp/capybara/
+          retention-days: 7
+
   # ── Code quality (rake ci:audit) ─────────────────────────────────────
   audit:
     runs-on: ubuntu-latest
@@ -263,7 +304,7 @@ jobs:
   # ── Merge gate ───────────────────────────────────────────────────────
   gate:
     if: always()
-    needs: [security, lint, development, test, coverage, audit, docker]
+    needs: [security, lint, development, test, coverage, system, audit, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Check all jobs
@@ -275,6 +316,7 @@ jobs:
             "development:${{ needs.development.result }}" \
             "test:${{ needs.test.result }}" \
             "coverage:${{ needs.coverage.result }}" \
+            "system:${{ needs.system.result }}" \
             "audit:${{ needs.audit.result }}" \
             "docker:${{ needs.docker.result }}"; do
             name="${result%%:*}"
@@ -292,6 +334,7 @@ jobs:
             echo "  development: ${{ needs.development.result }}"
             echo "  test:        ${{ needs.test.result }}"
             echo "  coverage:    ${{ needs.coverage.result }}"
+            echo "  system:      ${{ needs.system.result }}"
             echo "  audit:       ${{ needs.audit.result }}"
             echo "  docker:      ${{ needs.docker.result }}"
             exit 1

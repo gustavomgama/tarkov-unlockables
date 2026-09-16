@@ -16,8 +16,11 @@ Capybara.register_driver :selenium_chrome_headless do |app|
   options.add_argument("--disable-blink-features=AutomationControlled")
   options.add_preference("download.prompt_for_download", false)
   options.add_preference("browser.cache.disk.enable", false)
-  # Servers without Google Chrome ship Chromium under a different name.
-  options.binary = "/usr/bin/chromium" if File.executable?("/usr/bin/chromium") && !ENV["CHROME_BIN"]
+  # Distros that ship Chromium instead of Google Chrome need the binary named.
+  chrome_installed = Dir.glob("{/usr/bin,/opt/google/chrome}/google-chrome*").any?
+  if !ENV["CHROME_BIN"] && !chrome_installed && File.executable?("/usr/bin/chromium")
+    options.binary = "/usr/bin/chromium"
+  end
 
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end

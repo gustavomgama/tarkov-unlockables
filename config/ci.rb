@@ -13,6 +13,7 @@ CI.run do
   step "Development: Boot + routes + perf tooling", "bundle exec rake ci:development"
   step "Test: Suite + Bullet/Goldiloader", "bundle exec rake ci:test"
   step "Coverage: 89% line gate", "bundle exec rake ci:coverage"
+  step "System: Browser tests", "bundle exec rake ci:system"
   step "Audit: Rubycritic ≥ 75", "bundle exec rake ci:audit"
   step "Docker: Build production image", "bundle exec rake ci:docker"
 

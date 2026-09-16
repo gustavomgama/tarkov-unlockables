@@ -1,6 +1,6 @@
 namespace :ci do
   desc "Run full CI pipeline locally (mirrors .github/workflows/ci.yml)"
-  task all: %i[security lint fasterer development test coverage audit docker] do
+  task all: %i[security lint fasterer development test coverage system audit docker] do
     puts "\n✅ All CI checks passed."
   end
 
@@ -49,6 +49,12 @@ namespace :ci do
     score = coverage_percent
     puts "Line coverage: #{score}%"
     abort "❌ Coverage is #{score}% — requires 89%" if score < 89
+  end
+
+  desc "Browser (system) tests"
+  task :system do
+    puts "── System ──"
+    run "RAILS_ENV=test bundle exec rails test:system", clean_env: true
   end
 
   desc "Rubycritic score (≥ 75 threshold)"
