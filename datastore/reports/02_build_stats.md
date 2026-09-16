@@ -28,5 +28,5 @@
 - `items.ndjson` — 36.0 MB
 - `maps.ndjson` — 0.1 MB
 - `reference.json` — 0.2 MB
-- `tasks.ndjson` — 3.7 MB
+- `tasks.ndjson` — 3.8 MB
 - `traders.ndjson` — 0.1 MB

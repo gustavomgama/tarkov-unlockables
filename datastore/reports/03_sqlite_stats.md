@@ -1,6 +1,6 @@
 # SQLite build
 
-- `tarkov.sqlite3` — 50.9 MB
+- `tarkov.sqlite3` — 51.0 MB
 - integrity_check: `ok`
 
 ## Row counts
@@ -39,6 +39,7 @@
 | player_levels | 79 |
 | settings | 4 |
 | skills | 49 |
+| task_graph | 517 |
 | task_leads_to | 209 |
 | task_needed_keys | 70 |
 | task_objective_items | 15203 |

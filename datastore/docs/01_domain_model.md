@@ -335,14 +335,25 @@ records acquisition routes *and* the task that unlocks them
 `v_task_chain` flattens the forward edges. The chain is the backbone of every
 playthrough order.
 
+The canonical build materialises the graph on every task (`graph`:
+`depth`, `prerequisites`, `dependents`, `root`, `kappa_chain`,
+`lightkeeper_chain`, and a `task_graph` table in SQLite). It is **acyclic**,
+has 255 prerequisite edges, and its longest dependency chain is 19 tasks deep
+(Burning Rubber → … → Postponed Reward, entirely in the Ref/PVP-ZONE line).
+Two `leads_to` edges are not mirrored by a prerequisite on the target — a
+genuine upstream inconsistency, reported in `reports/05_task_graph.md`.
+
 ---
 
 ## 7. Endgame gates
 
-- **Kappa**: 13 tasks flagged `kappa_required` must all be completed to
-  obtain the Kappa secure container.
-- **Lightkeeper**: 7 tasks flagged `lightkeeper_required`; the Lightkeeper
-  trader and his task line are the late-game content gate.
+- **Kappa**: 13 tasks flagged `kappa_required`, forming a prerequisite-closed
+  set of 13 across five chains (Chemical, The Tarkov Shooter, Postman Pat,
+  Sew it Good, Collector, Shooter Born in Heaven) — 155,000 XP, highest
+  character-level gate 42.
+- **Lightkeeper**: 7 tasks flagged `lightkeeper_required`, all from Mechanic
+  (Network Provider → Assessment → Key to the Tower → Knock-Knock) — 172,000
+  XP with **no character-level gate at all**; the chain itself is the gate.
 
 Both flags are on the task row, so "what do I still need for Kappa" is a
 single filtered query joined through `task_leads_to`.

@@ -375,6 +375,58 @@ def task_req_ref(ctx, req):
     return {}
 
 
+def annotate_task_graph(rows):
+    """Add `graph` to every task row: prerequisite depth, in/out degree and
+    membership of the Kappa / Lightkeeper prerequisite closures.
+
+    The graph is the union of `task_requirements` and `previous_tasks`, both of
+    which point at prerequisites. Verified acyclic in 99_verify.py.
+    """
+    ids = {r["id"] for r in rows}
+    prereq = {r["id"]: {x["bsg_id"] for x in r["task_requirements"] if x.get("bsg_id") in ids}
+              | {p for p in r["previous_tasks"] if p in ids} for r in rows}
+    follow = {r["id"]: {x["task_id"] for x in r["leads_to"] if x["task_id"] in ids} for r in rows}
+
+    depth = {}
+
+    def d(tid, guard):
+        if tid in depth:
+            return depth[tid]
+        if tid in guard:
+            return 0                      # cycle guard; asserted acyclic elsewhere
+        guard.add(tid)
+        depth[tid] = 0 if not prereq[tid] else 1 + max(d(p, guard) for p in prereq[tid])
+        guard.discard(tid)
+        return depth[tid]
+
+    for tid in ids:
+        d(tid, set())
+
+    def closure(seed):
+        seen, stack = set(), list(seed)
+        while stack:
+            for v in prereq[stack.pop()]:
+                if v not in seen:
+                    seen.add(v)
+                    stack.append(v)
+        return seen
+
+    kappa = {r["id"] for r in rows if r["kappa_required"]} | closure({r["id"] for r in rows if r["kappa_required"]})
+    light = {r["id"] for r in rows if r["lightkeeper_required"]} | closure({r["id"] for r in rows if r["lightkeeper_required"]})
+
+    for r in rows:
+        tid = r["id"]
+        r["graph"] = {
+            "depth": depth[tid],
+            "prerequisites": len(prereq[tid]),
+            "dependents": len(follow[tid]),
+            "kappa_chain": tid in kappa,
+            "lightkeeper_chain": tid in light,
+            "root": not prereq[tid],
+        }
+    return rows
+
+
 def build_tasks(ctx):
     rows = []
     for tid, t in ctx["tasks"].items():
@@ -1212,7 +1264,7 @@ def main():
     stats["traders"] = C.write_jsonl(os.path.join(C.CANON, "traders.ndjson"), build_traders(ctx))
     stats["barters"] = C.write_jsonl(os.path.join(C.CANON, "barters.ndjson"), build_barters(ctx))
     stats["crafts"] = C.write_jsonl(os.path.join(C.CANON, "crafts.ndjson"), build_crafts(ctx))
-    tasks = build_tasks(ctx)
+    tasks = annotate_task_graph(build_tasks(ctx))
     stats["tasks"] = C.write_jsonl(os.path.join(C.CANON, "tasks.ndjson"), tasks)
     stats["maps"] = C.write_jsonl(os.path.join(C.CANON, "maps.ndjson"), build_maps(ctx))
     stats["hideout_stations"] = C.write_jsonl(os.path.join(C.CANON, "hideout_stations.ndjson"), build_hideout(ctx))

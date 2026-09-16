@@ -43,23 +43,24 @@
 | 39 | PASS | wiki conflict relations resolve — api=11312, wiki=2246 (2054 corroborated, 192 wiki-only) |
 | 40 | PASS | wiki compatibility relations resolve — 9131 edges over 1645 items |
 | 41 | PASS | wiki trader offers parse and corroborate — 2536 offers over 2371 items, 2490 (98%) corroborated, 2784 internal ids |
-| 42 | PASS | map boss names resolved — 129 entries named |
-| 43 | PASS | map transit names resolved — 33 entries named |
-| 44 | PASS | map extract names resolved — 152 entries named |
-| 45 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
-| 46 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
-| 47 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 48 | PASS | sqlite file exists — 50946048 |
-| 49 | PASS | sqlite integrity_check — ok |
-| 50 | PASS | sqlite item count matches canonical — ==5480 = 5480 |
-| 51 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
-| 52 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
-| 53 | PASS | view v_item_price returns — 3540 priced items |
-| 54 | PASS | sqlite trader levels — ==42 = 42 |
-| 55 | PASS | sqlite slot graph present — 39910 allowed-item edges |
-| 56 | PASS | sqlite acquisition present — 7903 routes |
-| 57 | PASS | category paths backfilled — 35643/35643 populated |
-| 58 | PASS | no table is entirely empty — 47 tables all non-empty |
-| 59 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
+| 42 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 13, lightkeeper 7 |
+| 43 | PASS | map boss names resolved — 129 entries named |
+| 44 | PASS | map transit names resolved — 33 entries named |
+| 45 | PASS | map extract names resolved — 152 entries named |
+| 46 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
+| 47 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
+| 48 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
+| 49 | PASS | sqlite file exists — 51007488 |
+| 50 | PASS | sqlite integrity_check — ok |
+| 51 | PASS | sqlite item count matches canonical — ==5480 = 5480 |
+| 52 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
+| 53 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
+| 54 | PASS | view v_item_price returns — 3540 priced items |
+| 55 | PASS | sqlite trader levels — ==42 = 42 |
+| 56 | PASS | sqlite slot graph present — 39910 allowed-item edges |
+| 57 | PASS | sqlite acquisition present — 7903 routes |
+| 58 | PASS | category paths backfilled — 35643/35643 populated |
+| 59 | PASS | no table is entirely empty — 48 tables all non-empty |
+| 60 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
 
-**59/59 checks passed.**
+**60/60 checks passed.**

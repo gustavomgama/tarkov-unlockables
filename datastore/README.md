@@ -122,7 +122,8 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
 - `reports/01_coverage.md` — source sizes, pairwise overlap, name resolution, cross-reference integrity.
 - `reports/02_build_stats.md` — canonical row counts, name provenance, file sizes.
 - `reports/03_sqlite_stats.md` — table row counts + `integrity_check`.
-- `reports/04_verification.md` — the 40 checks and their results.
+- `reports/04_verification.md` — every check and its result.
+- `reports/05_task_graph.md` — quest-graph shape: depth, chain, Kappa/Lightkeeper closures, workload per trader and map.
 
 ## Known limits
 

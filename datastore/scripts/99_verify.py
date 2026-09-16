@@ -116,6 +116,7 @@ def main():
     check("wiki conflict relations resolve", lambda: _wiki_conflicts(items))
     check("wiki compatibility relations resolve", lambda: _compat(items))
     check("wiki trader offers parse and corroborate", lambda: _wiki_offers(items, trader_slugs))
+    check("task graph is a well-formed DAG", lambda: _task_graph(tasks))
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -272,6 +273,37 @@ def _wiki_conflicts(items):
     assert not unresolved, f"{len(unresolved)} conflicts with no item name"
     agreed = len(wiki_ids & api)
     return f"api={len(api)}, wiki={len(wiki_ids)} ({agreed} corroborated, {added} wiki-only)"
+
+
+def _task_graph(tasks):
+    """Acyclic, closed prerequisite ids, and the Kappa/Lightkeeper closures
+    materialised on every task."""
+    ids = {t["id"] for t in tasks}
+    prereq = {t["id"]: {x["bsg_id"] for x in t["task_requirements"] if x.get("bsg_id") in ids}
+              | {x for x in t["previous_tasks"] if x in ids} for t in tasks}
+    color = {}
+
+    def dfs(u):
+        color[u] = 1
+        for v in prereq[u]:
+            if color.get(v, 0) == 1:
+                return True
+            if color.get(v, 0) == 0 and dfs(v):
+                return True
+        color[u] = 2
+        return False
+
+    assert not any(dfs(t) for t in ids if color.get(t, 0) == 0), "quest graph has a cycle"
+    orphans = {x for t in tasks for x in prereq[t["id"]] if x not in ids}
+    assert not orphans, f"{len(orphans)} prerequisite ids not in the dataset"
+    kappa = sum(1 for t in tasks if t["graph"]["kappa_chain"])
+    light = sum(1 for t in tasks if t["graph"]["lightkeeper_chain"])
+    assert kappa == 13, f"kappa chain changed: {kappa}"
+    assert light == 7, f"lightkeeper chain changed: {light}"
+    deep = max(t["graph"]["depth"] for t in tasks)
+    assert deep >= 10, f"max chain depth only {deep}"
+    assert all(t["graph"]["prerequisites"] == len(prereq[t["id"]]) for t in tasks), "prerequisites count drifted"
+    return f"acyclic, depth {deep}, kappa {kappa}, lightkeeper {light}"
 
 
 def _wiki_offers(items, trader_slugs):

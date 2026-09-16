@@ -106,6 +106,10 @@ CREATE TABLE tasks (
   kappa_required INTEGER, lightkeeper_required INTEGER, restartable INTEGER,
   required_prestige TEXT, game_mode TEXT, objective_count INTEGER, task_image_url TEXT
 );
+CREATE TABLE task_graph (
+  task_id TEXT PRIMARY KEY, depth INTEGER, prerequisites INTEGER, dependents INTEGER,
+  kappa_chain INTEGER, lightkeeper_chain INTEGER, root INTEGER
+);
 CREATE TABLE task_objectives (
   id TEXT, task_id TEXT, type TEXT, description TEXT, optional INTEGER, count INTEGER,
   PRIMARY KEY (task_id, id)
@@ -186,6 +190,7 @@ CREATE INDEX idx_craft_req ON craft_required(bsg_id);
 CREATE INDEX idx_task_trader ON tasks(trader_slug);
 CREATE INDEX idx_task_map ON tasks(map_id);
 CREATE INDEX idx_task_obj ON task_objectives(task_id);
+CREATE INDEX idx_task_graph ON task_graph(depth);
 CREATE INDEX idx_obj_items ON task_objective_items(bsg_id);
 CREATE INDEX idx_rewards_item ON task_rewards(bsg_id);
 CREATE INDEX idx_rewards_task ON task_rewards(task_id, phase);
@@ -285,6 +290,10 @@ def main():
                       json.dumps(r["game_mode"]), len(r["objectives"]), r["task_image_url"]) for r in rows])
     for r in rows:
         tid = r["id"]
+        g = r.get("graph") or {}
+        cur.execute("INSERT OR REPLACE INTO task_graph VALUES (?,?,?,?,?,?,?)",
+                    (tid, g.get("depth"), g.get("prerequisites"), g.get("dependents"),
+                     int(bool(g.get("kappa_chain"))), int(bool(g.get("lightkeeper_chain"))), int(bool(g.get("root")))))
         for o in r["objectives"]:
             cur.execute("INSERT OR REPLACE INTO task_objectives VALUES (?,?,?,?,?,?)",
                         (o["id"], tid, o["type"], o["description"], int(bool(o["optional"])), o["count"]))
