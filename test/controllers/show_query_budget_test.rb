@@ -22,12 +22,16 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
     ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 
+  # Budget history:
+  #   15 → 18  the layout states when the data last changed, which costs two
+  #            MAX() scans on a cache miss. Cached for an hour, so a real
+  #            request pays nothing.
   test "tasks#show query budget" do
     # Resolve route + fixtures before counting.
     url = task_url(tasks(:one))
     queries = count_queries { get url }
     assert_response :success
-    assert_operator queries, :<=, 15, "tasks#show fired #{queries} queries"
+    assert_operator queries, :<=, 18, "tasks#show fired #{queries} queries"
   end
 
   # Budget history:
@@ -35,10 +39,12 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
   #            feeds), which preloads two more nested graphs. Flat, not an
   #            N+1: an item with one requirement row costs 18 queries, one
   #            with three costs 17, because the preloads batch.
+  #   28 → 30  two MAX() scans for the layout's data-freshness line, cached
+  #            hourly (see ApplicationHelper#data_freshness).
   test "items#show query budget" do
     url = item_url(items(:one))
     queries = count_queries { get url }
     assert_response :success
-    assert_operator queries, :<=, 28, "items#show fired #{queries} queries"
+    assert_operator queries, :<=, 30, "items#show fired #{queries} queries"
   end
 end

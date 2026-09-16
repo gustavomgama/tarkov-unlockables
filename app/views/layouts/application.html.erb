@@ -693,7 +693,10 @@
         <%= render "shared/feedback" %>
 
         <div class="text-xs text-[var(--text-muted)] mt-3">
-          data:
+          <% if (freshness = data_freshness) %>
+            data updated <time datetime="<%= freshness.to_date.iso8601 %>"><%= freshness.to_date.to_fs(:long) %></time> ·
+          <% end %>
+          source:
           <%= link_to "tarkov.dev", "https://tarkov.dev", target: "_blank", rel: "noopener" %> ·
           <%= link_to "Escape from Tarkov Wiki", "https://escapefromtarkov.fandom.com", target: "_blank", rel: "noopener" %> ·
           <%= link_to "tarkov-market.com", "https://tarkov-market.com", target: "_blank", rel: "noopener" %>

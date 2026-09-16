@@ -37,6 +37,14 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.site-menu a[href=?]", favorites_path
   end
 
+  test "the layout states when the reference data last changed" do
+    get items_url
+
+    assert_response :success
+    assert_select "time[datetime]", minimum: 1
+    assert_match(/data updated/, response.body)
+  end
+
   test "should get show" do
     get item_url(@item)
     assert_response :success

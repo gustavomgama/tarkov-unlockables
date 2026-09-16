@@ -17,6 +17,9 @@
     <% if params[:trader].present? %>
       <%= hidden_field_tag :trader, params[:trader] %>
     <% end %>
+    <% if params[:kappa].present? %>
+      <%= hidden_field_tag :kappa, params[:kappa] %>
+    <% end %>
     <div class="relative flex-1 min-w-[10rem]"
          data-controller="search"
          data-search-url-value="<%= search_tasks_path %>"
@@ -43,12 +46,17 @@
   <% end %>
 
   <nav class="flex flex-wrap gap-1.5" aria-label="Filter by trader">
-    <%= link_to "All traders", tasks_path(q: params[:q]),
-          class: "chip chip--tap #{params[:trader].blank? ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
+    <%= link_to "All traders", tasks_path(q: params[:q], kappa: params[:kappa].presence),
+          class: "chip chip--tap #{params[:trader].blank? && params[:kappa].blank? ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
           "aria-current": (params[:trader].blank? ? "true" : nil) %>
+    <%= link_to tasks_path(q: params[:q], trader: params[:trader], kappa: (params[:kappa].present? ? nil : 1)),
+          class: "chip chip--tap #{params[:kappa].present? ? 'chip--strong border-[var(--danger)] text-[var(--danger)]' : 'chip--link'}",
+          "aria-current": (params[:kappa].present? ? "true" : nil) do %>
+      Kappa only <span class="font-data text-[var(--text-muted)]"><%= @kappa_count %></span>
+    <% end %>
     <% @traders.each do |trader| %>
       <% active = params[:trader] == trader %>
-      <%= link_to tasks_path(q: params[:q], trader: trader),
+      <%= link_to tasks_path(q: params[:q], trader: trader, kappa: params[:kappa].presence),
             class: "chip chip--tap #{active ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
             "aria-current": (active ? "true" : nil) do %>
         <span class="trader-dot" style="background: var(--trader-<%= trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>

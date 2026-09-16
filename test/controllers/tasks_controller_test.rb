@@ -29,6 +29,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_no_match(/Task Two/, response.body)
   end
 
+  test "index can narrow to the Kappa set" do
+    kappa = Task.create!(bsg_id: "k+#{SecureRandom.hex(4)}", full_name: "Kappa Quest", name: "kappa-quest", given_by: "Prapor", kappa_required: true)
+    other = Task.create!(bsg_id: "n+#{SecureRandom.hex(4)}", full_name: "Not Kappa Quest", name: "not-kappa-quest", given_by: "Prapor", kappa_required: false)
+
+    get tasks_url(kappa: "1")
+
+    assert_response :success
+    assert_match "Kappa Quest", response.body
+    assert_no_match(/Not Kappa Quest/, response.body)
+    # The chip keeps the selection visible and reversible.
+    assert_select "a[aria-current=?]", "true", text: /Kappa only/
+  ensure
+    Task.where(id: [ kappa&.id, other&.id ]).delete_all
+  end
+
   test "show renders task header and unlock path from the prerequisite graph" do
     get task_url(tasks(:one))
 
