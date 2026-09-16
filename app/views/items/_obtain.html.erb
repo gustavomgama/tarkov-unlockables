@@ -24,7 +24,11 @@
           <% if currency.task_unlock? %>
             <p class="srcrow__meta">
               <span class="chip" style="--tone: var(--badge-task)">Task-gated</span>
-              unlocked by a task — see the unlock path on this page
+              <% if currency.task %>
+                unlocked by <%= link_to currency.task.full_name, task_path(currency.task) %>
+              <% else %>
+                unlocked by a task — see the unlock path on this page
+              <% end %>
             </p>
           <% end %>
         </div>

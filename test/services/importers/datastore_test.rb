@@ -169,6 +169,12 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                  weapon.item_currencies.map { |c| [ c.trader, c.currency, c.min_trader_level, c.task_unlock ] }
                                      .sort_by { |c| c[2] }
 
+    # The gated offer names its quest; the index-only offer has no task.
+    gated = weapon.item_currencies.find_by!(task_unlock: true)
+    assert_equal Task.find_by!(bsg_id: "t1").id, gated.task_id
+    assert_equal "first-task", gated.task.name
+    assert_nil weapon.item_currencies.find_by!(task_unlock: false).task_id
+
     ammo = Item.find_by!(bsg_id: "a1")
     assert_equal [ [ "Prapor", "2", "5.45x39mm PS" ] ],
                  ammo.item_barters.map { |b| [ b.trader, b.trader_level, b.item_name ] }

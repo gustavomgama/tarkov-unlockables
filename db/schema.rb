@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -138,8 +138,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
     t.boolean "task_unlock", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "task_id"
     t.index ["currency"], name: "index_item_currencies_on_currency"
     t.index ["item_id"], name: "index_item_currencies_on_item_id"
+    t.index ["task_id"], name: "index_item_currencies_on_task_id"
     t.index ["trader"], name: "index_item_currencies_on_trader"
   end
 
@@ -283,6 +285,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
   add_foreign_key "favorite_items", "items", on_delete: :restrict
   add_foreign_key "item_barters", "items"
   add_foreign_key "item_currencies", "items"
+  add_foreign_key "item_currencies", "tasks"
   add_foreign_key "item_hideouts", "items"
   add_foreign_key "item_task_rewards", "items"
   add_foreign_key "item_task_rewards", "tasks"

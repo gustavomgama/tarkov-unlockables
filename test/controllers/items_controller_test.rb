@@ -475,6 +475,46 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show names the gating quest when a task-gated currency carries its task" do
+    item = Item.create!(bsg_id: "tc-#{SecureRandom.hex(4)}", full_name: "Task Currency", short_name: "TC")
+    prereq = Task.create!(bsg_id: "tcp-#{SecureRandom.hex(4)}", full_name: "Prereq Quest", name: "prereq-quest", given_by: "Prapor")
+    gating = Task.create!(bsg_id: "tcg-#{SecureRandom.hex(4)}", full_name: "Gating Quest", name: "gating-quest", given_by: "Therapist")
+    requirement = gating.requirements.create!(player_level: 0, trader_level: [])
+    requirement.previous_tasks.create!(task: prereq, task_name: prereq.name)
+
+    item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 2,
+                                 task_unlock: true, task: gating)
+
+    get item_url(item)
+
+    assert_response :success
+    # The unlock panel names the quest and draws its chain...
+    assert_select ".srcrow__title a", text: /Gating Quest/
+    assert_select ".timeline-node", text: /Prereq Quest/
+    # ...instead of the "quest not recorded" fallback.
+    assert_no_match "not recorded", response.body
+  ensure
+    item&.item_currencies&.destroy_all
+    PreviousTask.where(task_id: [ prereq&.id, gating&.id ]).update_all(task_id: nil)
+    gating&.requirements&.destroy_all
+    [ prereq, gating ].each { |t| t&.destroy }
+    item&.destroy
+  end
+
+  test "show falls back to 'not recorded' when a task-gated currency has no task" do
+    item = Item.create!(bsg_id: "tu-#{SecureRandom.hex(4)}", full_name: "Unknown Gate", short_name: "UG")
+    item.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 3, task_unlock: true)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_select ".srcrow__title", text: /Task-gated trader offer/
+    assert_match "the quest is not recorded", response.body
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

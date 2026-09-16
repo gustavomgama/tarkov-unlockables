@@ -283,20 +283,24 @@ module Importers
           # `buy` is tarkov.dev's priced purchase; `index_offers` is the
           # derived index's trader/loyalty claim. They describe the same
           # offers, and only `buy` knows about the task gate, so key on
-          # (trader, currency, level) and let `buy` win.
+          # (trader, currency, level) and let `buy` win. The value is
+          # [gated?, resolved task id] — the id is nil when the route is
+          # gated but canonical did not carry a task, or the index alone
+          # knows the offer.
           currencies = {}
           Array(acquisition["buy"]).each do |entry|
-            currencies[currency_key(entry["trader_slug"], entry["currency"], entry["min_trader_level"])] =
-              entry["task_unlock_id"].present?
+            key = currency_key(entry["trader_slug"], entry["currency"], entry["min_trader_level"])
+            currencies[key] = [ entry["task_unlock_id"].present?,
+                                @task_id_by_bsg[entry["task_unlock_id"]] ]
           end
           Array(acquisition["index_offers"]).each do |entry|
             key = currency_key(entry["trader_slug"], entry["currency"], entry["level"])
-            currencies[key] = false unless currencies.key?(key)
+            currencies[key] ||= [ false, nil ]
           end
-          currencies.each do |(trader, currency, level), task_unlock|
+          currencies.each do |(trader, currency, level), (task_unlock, task_id)|
             item.item_currencies.create!(
               trader: trader, currency: currency,
-              min_trader_level: level, task_unlock: task_unlock
+              min_trader_level: level, task_unlock: task_unlock, task_id: task_id
             )
           end
 
