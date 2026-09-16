@@ -92,6 +92,7 @@ def main():
         item_ids, "hideout.items"))
     check("task leads_to resolve", lambda: _subset(
         {lt["task_id"] for t in tasks for lt in t["leads_to"] if lt["task_id"]}, task_ids, "task.leads_to"))
+    check("every required slot is fillable", lambda: _slots_fillable(items))
     check("slot allowed items resolve", lambda: _subset(
         {a for i in items for s in (i.get("slots") or []) for a in s["filters"]["allowed_items"]}, item_ids, "slot.allowed"))
 
@@ -143,6 +144,7 @@ def main():
     check("sqlite acquisition present", lambda: f"{con.execute('SELECT COUNT(*) FROM item_acquisition').fetchone()[0]} routes")
     check("category paths backfilled", lambda: _cat_paths(con))
     check("route costs are complete or null, never faked", lambda: _route_costs(con))
+    check("weapon build stats present", lambda: _build_stats(con))
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -420,6 +422,27 @@ def _route_costs(con):
     cheaper = con.execute("SELECT COUNT(*) FROM v_item_acquisition_cost WHERE vs_flea_rub > 0").fetchone()[0]
     return (f"{n} rows, {priced} priced, {n - priced} incomplete (null cost), "
             f"{zeros} legitimately zero-cost (no inputs), {cheaper} cheaper than flea")
+
+
+def _slots_fillable(items):
+    """A required slot that no existing item can fill would make the weapon
+    unbuildable from this dataset."""
+    known = {i["bsg_id"] for i in items}
+    bad = []
+    for i in items:
+        for s in i.get("slots") or []:
+            if s.get("required") and not [a for a in s["filters"]["allowed_items"] if a in known]:
+                bad.append((i["name"], s.get("name_id")))
+    assert not bad, f"{len(bad)} unfillable required slots, e.g. {bad[:3]}"
+    n = sum(1 for i in items for s in i.get("slots") or [] if s.get("required"))
+    return f"{n} required slots, all fillable"
+
+
+def _build_stats(con):
+    n, capped = con.execute("SELECT COUNT(*), SUM(combinations_capped) FROM weapon_build_stats").fetchone()
+    assert n == 171, f"{n} weapon build rows"
+    assert capped >= 100, f"only {capped} capped combinations"
+    return f"{n} weapons, {capped} with capped combinatorial counts"
 
 
 def _cat_paths(con):

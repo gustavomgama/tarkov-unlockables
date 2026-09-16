@@ -111,6 +111,14 @@ allowed item per required slot. Compats come with `conflictingItems` /
 they are built on, `properties.default` marks the factory preset, and the
 preset appears in the base weapon's `properties.presets`. 484 presets.
 
+The graph is complete enough to be assembled: all **624 required slots across
+162 weapons have at least one item that exists in the dataset**, and the number
+of distinct configurations is astronomical for most guns (109 of 171 weapons
+exceed 10¹²; the M4A1 alone has 4 required and 2 optional slots over a large
+mod pool). `60_builds.py` computes those counts (capped) into
+`weapon_build_stats`, cutting cycles where a mod's slot accepts its own
+ancestors.
+
 Compatibility has a second, independent view from the wiki: its page sections
 list, per item, the exact items a slot accepts (1,068 items), a "Compatibility"
 field naming the base weapon a mod belongs to (`compatibility`, 9,131

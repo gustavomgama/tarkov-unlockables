@@ -130,7 +130,8 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
 - `reports/03_sqlite_stats.md` — table row counts + `integrity_check`.
 - `reports/04_verification.md` — every check and its result.
 - `reports/05_task_graph.md` — quest-graph shape: depth, chain, Kappa/Lightkeeper closures, workload per trader and map.
-- `reports/06_route_economics.md` — barter/craft recipes priced with snapshot flea prices; 134 barters beat the flea price outright.
+- `reports/06_route_economics.md` — barter/craft recipes priced with snapshot flea prices; 146 routes beat the flea price outright.
+- `reports/07_weapon_builds.md` — how many distinct configurations each weapon has; 109 of 171 weapons exceed 10¹² builds, 624 required slots, none unfillable.
 
 ## Known limits
 
