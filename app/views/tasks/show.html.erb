@@ -4,7 +4,7 @@
 <% requirements = @task.requirements.select { |r|
      r.player_level.to_i.positive? || r.previous_tasks.any? || trader_requirements(r).any?
    } %>
-<% reward_count = @task.rewards.sum { |r| r.loose_items.size + r.offer_unlocks.size + r.barter_unlocks.size + r.craft_unlocks.size } %>
+<% reward_total = reward_count(@task) %>
 
 <div class="space-y-4 sm:space-y-6">
   <nav class="crumbs no-print" aria-label="Breadcrumb">
@@ -71,11 +71,11 @@
                 <span class="stat__note">experience</span>
               </div>
             <% end %>
-            <% if reward_count.positive? %>
+            <% if reward_total.positive? %>
               <div class="stat">
                 <span class="stat__key">Rewards</span>
-                <span class="stat__val"><%= reward_count %></span>
-                <span class="stat__note"><%= "item or unlock".pluralize(reward_count) %></span>
+                <span class="stat__val"><%= reward_total %></span>
+                <span class="stat__note"><%= "item or unlock".pluralize(reward_total) %></span>
               </div>
             <% end %>
           </div>
@@ -202,14 +202,15 @@
       <div class="panel__head">
         <h2 id="rewards-head" class="panel__title">Rewards</h2>
       </div>
-      <% if reward_count.zero? %>
+      <% if reward_total.zero? %>
         <div class="panel__body">
           <p class="text-sm text-[var(--text-muted)]">No rewards listed.</p>
         </div>
       <% else %>
         <% @task.rewards.each do |reward| %>
           <% groups = reward_groups(reward) %>
-          <% next if groups.empty? %>
+          <% data_groups = reward_data_groups(reward) %>
+          <% next if groups.empty? && data_groups.empty? %>
           <div class="panel__body panel__body--flush">
             <p class="px-4 pt-3 pb-1 text-[0.625rem] uppercase tracking-widest text-[var(--text-muted)]">
               <%= reward.reward_type == "start_rewards" ? "On accepting" : "On completion" %>
@@ -241,6 +242,14 @@
                   </div>
                 </div>
               <% end %>
+            <% end %>
+            <% data_groups.each do |label, badge, lines| %>
+              <div class="srcrow">
+                <span class="srcbadge" style="--tone: var(--<%= badge %>)"><%= label %></span>
+                <div class="srcrow__body">
+                  <p class="srcrow__title"><%= lines.to_sentence %></p>
+                </div>
+              </div>
             <% end %>
           </div>
         <% end %>

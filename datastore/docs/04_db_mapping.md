@@ -15,7 +15,7 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | buy routes | 2,658 `buy` + 3,202 `index_offers` | 3,248 `item_currencies` | one row per `(trader, currency, level)`, the two sources deduped; price, `price_rub` and buy limit stored. |
 | barter offers | 789 | 840 `item_barters` | one row per offer; inputs in `item_barter_requirements`, plus limit, restock and the task gate. |
 | crafts | 214 | 214 `item_hideouts` | one row per craft; inputs and tools in `item_hideout_requirements`, plus duration and yield. |
-| task rewards | 1,964 reward rows | 1,034 `rewards` (989 loose items, 288 offers, 98 barters, 71 crafts) | the kinds without a DB column are dropped: 362 `trader_standing`, 136 `skill_level_reward`, 13 `customization`, 4 `achievement`, 2 `trader_unlock`, 1 `trader_dialogue_unlock`. |
+| task rewards | 1,964 reward rows | 1,034 `rewards` (989 loose items, 288 offers, 98 barters, 71 crafts) | the kinds without a table ride along in `rewards.data`: 362 `trader_standing`, 136 `skill_level_reward`, 13 `customization`, 4 `achievement`, 2 `trader_unlock`, 1 `trader_dialogue_unlock`. |
 | task objectives | 1,457 | 1,457 `task_objectives` (+ 1,467 `task_objective_items`) | 1:1 per objective: type, description, count, optional, source order. Accepted items live in `task_objective_items`; catch-alls with 100+ ids ("sell any items") are skipped. |
 | traders | 16 | — | no table: trader names are strings (`given_by`, `trader`, …). |
 | maps | 17 | — | no table: a task's map is `tasks.map_name` (13 values). |
@@ -48,8 +48,8 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 | `tasks.trader_requirements` | `requirements.trader_level` (jsonb array) | DB is a loose jsonb array; canonical has requirement type + comparator + value. |
 | `tasks.leads_to` | `leads_tos` | 1:1. |
 | `tasks.objectives` | `task_objectives` + `task_objective_items` | 1:1 per objective (type, description, count, optional, position) and its accepted items; catch-alls (100+ ids) are skipped. |
-| `tasks.start_rewards` | `rewards` (`reward_type='start_rewards'`) | 1:1, plus the kinds the DB drops (trader unlocks, skills, achievements, dialogue, customization). |
-| `tasks.finish_rewards` | `rewards` | 1:1. |
+| `tasks.start_rewards` | `rewards` (`reward_type='start_rewards'`) + `rewards.data` | 1:1; modelled kinds get tables, the rest (trader standing, skills, achievements, dialogue, customization) go to `data`. |
+| `tasks.finish_rewards` | `rewards` + `rewards.data` | 1:1, same split. |
 | `tasks.needed_keys` | `tasks.needed_keys` | jsonb: a flat array of `{map_name, item_id, item_name}`, grouped by map in the view. |
 | `hideout_stations` + levels | `hideout_stations` + `hideout_levels` + `hideout_item_requirements` | Stations, levels, construction time and build costs. Station and trader prerequisites are jsonb on the level. |
 | `maps` | `tasks.map_name` | Denormalized: only the task's map name, not extracts, bosses or transits. |

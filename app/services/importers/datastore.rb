@@ -248,10 +248,20 @@ module Importers
       end
     end
 
+    # The four reward kinds with a table get modelled; the rest (trader
+    # standing, skill levels, achievements, customizations, trader and
+    # dialogue unlocks) are display-only and ride along as jsonb.
+    MODELLED_REWARD_KINDS = %w[items offer_unlock barter_unlock craft_unlock].freeze
+
     def import_rewards(task, rewards, reward_type)
       return unless rewards.is_a?(Hash)
 
-      reward = task.rewards.create!(reward_type: reward_type)
+      reward = task.rewards.create!(
+        reward_type: reward_type,
+        data: rewards.except(*MODELLED_REWARD_KINDS).each_with_object({}) do |(kind, entries), out|
+          out[kind] = entries if Array(entries).any?
+        end
+      )
 
       Array(rewards["items"]).each do |entry|
         reward.loose_items.create!(

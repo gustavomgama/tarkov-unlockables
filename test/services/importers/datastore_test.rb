@@ -119,7 +119,9 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                                  "offered" => { "bsg_id" => "a1", "name" => "5.45x39mm PS" },
                                  "required" => [ { "bsg_id" => "w1", "name" => "AK-74", "count" => 1 } ] } ],
           "craft_unlock" => [ { "bsg_id" => "a1", "name" => "5.45x39mm PS",
-                                "station_name" => "Workbench", "level" => 3 } ]
+                                "station_name" => "Workbench", "level" => 3 } ],
+          "trader_standing" => [ { "trader_slug" => "prapor", "standing" => 0.15 } ],
+          "skill_level_reward" => [ { "skill" => "Strength", "level" => 2 } ]
         }
       },
       {
@@ -328,6 +330,11 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     craft = finish.craft_unlocks.first
     assert_equal [ "5.45x39mm PS", "Workbench", 3 ],
                  [ craft.item_name, craft.hideout_station, craft.station_level ]
+
+    # Unmodelled kinds ride along in jsonb; the modelled ones do not.
+    assert_equal [ { "trader_slug" => "prapor", "standing" => 0.15 } ], finish.data["trader_standing"]
+    assert_equal [ { "skill" => "Strength", "level" => 2 } ], finish.data["skill_level_reward"]
+    refute finish.data.key?("items")
 
     assert_equal 2, Task.find_by!(bsg_id: "t1").rewards.count
   end

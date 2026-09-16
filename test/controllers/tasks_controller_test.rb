@@ -196,6 +196,23 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     task&.destroy
   end
 
+  test "show renders standing and skill rewards" do
+    task = Task.create!(bsg_id: "std-#{SecureRandom.hex(4)}", full_name: "Standing Quest", name: "standing-quest",
+                        given_by: "Prapor")
+    task.rewards.create!(reward_type: "finish_rewards",
+                         data: { "trader_standing" => [ { "trader_slug" => "therapist", "standing" => 0.15 } ],
+                                 "skill_level_reward" => [ { "skill" => "Strength", "level" => 2 } ] })
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select ".srcrow", text: /Standing/
+    assert_select ".srcrow", text: /Therapist \+0.15 rep/
+    assert_select ".srcrow", text: /Strength level 2/
+  ensure
+    task&.destroy
+  end
+
   test "show renders gracefully when a task has no requirements or rewards" do
     bare = Task.create!(bsg_id: "bare_#{SecureRandom.hex(4)}", full_name: "Bare Task", name: "bare-task", given_by: "Jaeger")
 
