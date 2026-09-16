@@ -162,6 +162,16 @@ class ItemTest < ActiveSupport::TestCase
     assert_includes gated.map(&:id), items(:two).id
   end
 
+  test "a task-gated trader offer alone makes an item task-gated" do
+    item = Item.create!(bsg_id: "gate-#{SecureRandom.hex(4)}", full_name: "Gated Only", short_name: "GO")
+    item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 3, task_unlock: true)
+
+    assert item.requires_task?
+    assert_includes Item.task_gated.map(&:id), item.id
+  ensure
+    item&.destroy
+  end
+
   test "how_to_unlock returns unlock paths" do
     paths = items(:one).how_to_unlock
     assert paths.any?

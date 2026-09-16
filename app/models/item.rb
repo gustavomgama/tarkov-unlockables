@@ -314,13 +314,14 @@ class Item < ApplicationRecord
   def requires_task?
     %w[OfferUnlock BarterUnlock CraftUnlock].any? do |model_name|
       model_name.constantize.exists?(item_id: id)
-    end
+    end || item_currencies.where(task_unlock: true).exists?
   end
 
   scope :task_gated, -> {
     where(id: OfferUnlock.select(:item_id))
       .or(where(id: BarterUnlock.select(:item_id)))
       .or(where(id: CraftUnlock.select(:item_id)))
+      .or(where(id: ItemCurrency.where(task_unlock: true).select(:item_id)))
   }
 
   def self.ransackable_attributes(auth_object = nil)
