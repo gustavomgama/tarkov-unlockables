@@ -135,7 +135,7 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
 - `reports/05_task_graph.md` — quest-graph shape: depth, chain, Kappa/Lightkeeper closures, workload per trader and map.
 - `reports/06_route_economics.md` — barter/craft recipes priced with snapshot flea prices; 146 routes beat the flea price outright.
 - `reports/07_weapon_builds.md` — how many distinct configurations each weapon has; 109 of 171 weapons exceed 10¹² builds, 624 required slots, none unfillable; the wiki's build parts are a subset of the matching preset's in 99/101 cases.
-- `reports/08_wiki_crosscheck.md` — the wiki's 443 trade rows and 213 craft outputs matched against the dataset (85% and 93%), with every residual listed.
+- `reports/08_wiki_crosscheck.md` — cross-source validation. The wiki's 443 trade rows and 213 craft outputs matched against the dataset (85%, 93%), and 1,522 ammo ballistics values (damage, penetration, velocity, recoil...) compared against the API's ammo properties: 99% agree, and the 12 that do not are listed individually.
 
 ## Known limits
 

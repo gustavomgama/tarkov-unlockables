@@ -443,9 +443,13 @@ def _wiki_crosscheck():
     assert craft_pct >= 85, f"wiki crafts only {craft_pct}% corroborated"
     assert s["wiki_only_crafts"] <= 30, f"{s['wiki_only_crafts']} unmatched wiki crafts"
     assert s["unresolved_wiki_names"] <= 40, f"{s['unresolved_wiki_names']} wiki names with no item"
+    b_pct = s["ballistics_agreed"] * 100 // s["ballistics_compared"]
+    assert b_pct >= 95, f"wiki ballistics only {b_pct}% equal to the API"
+    assert s["ballistics_compared"] >= 1400, f"only {s['ballistics_compared']} ballistics values compared"
     return (f"trades {s['trades_matched']}/{s['wiki_trades']} ({trade_pct}%), "
             f"crafts {s['crafts_matched']}/{s['wiki_crafts']} ({craft_pct}%), "
-            f"{s['wiki_only_trades']} wiki-only trades")
+            f"ballistics {s['ballistics_agreed']}/{s['ballistics_compared']} ({b_pct}%), "
+            f"{s['ballistics_disagreements']} numeric disagreements")
 
 
 def _weapon_variants():

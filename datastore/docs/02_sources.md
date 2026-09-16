@@ -60,6 +60,17 @@ its 443 trade rows and 93% of its 213 craft outputs match a canonical route,
 matching by (normalized trader, normalized item name). The wiki-only residuals
 are listed in `reports/08_wiki_crosscheck.md` rather than dropped.
 
+The wiki is also the dataset's only **numeric** cross-check. Its item infoboxes
+carry ballistics in the same units as the game (`damage`, `penetration`,
+`armor_damage`, `velocity`, `ricochet`, `accuracy`, `recoil`,
+`durability_burn`, `heat`), which the API exposes as `item.properties`. After
+unit conversion (the API stores accuracy/recoil as fractions and
+durability/heat as `1+factor`) and the wiki's 1-decimal rounding, **1,510 of
+1,522 values agree (99%)**. The 12 that do not are listed in
+`reports/08_wiki_crosscheck.md`; they are mostly stale wiki rows (M61 ricochet
+30% vs 25%) plus a cluster on 20/70 shells where the wiki's heat and damage are
+systematically higher.
+
 `obtain_from` per item is `{task_rewards, hideout, barter, currency}`. Useful
 as a ready-made summary and as a **cross-check**, but it only covers 3,399
 items (62% of the universe) and its `hideout` entries are crafts, so the

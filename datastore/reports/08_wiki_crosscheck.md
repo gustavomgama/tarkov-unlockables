@@ -56,6 +56,41 @@ they are used as corroboration, not as a source.
 - Prapor → Tokarev AVT-40 7.62x54R automatic rifle
 - Prapor → TOZ KS-23M 23x75mm pump-action shotgun
 
+## Ammo ballistics
+
+- ammo types with both a wiki infobox and API properties: **198**
+- field values compared: **1522**; equal after unit conversion and the
+  wiki's 1-decimal rounding: **1510** (99%)
+
+| field | compared | equal |
+| --- | ---: | ---: |
+| damage | 198 | 197 |
+| penetration | 198 | 197 |
+| armor_damage | 198 | 198 |
+| velocity | 198 | 198 |
+| ricochet | 188 | 186 |
+| accuracy | 114 | 113 |
+| recoil | 117 | 115 |
+| durability_burn | 135 | 134 |
+| heat | 176 | 172 |
+
+### Substantive disagreements
+
+| item | field | wiki | api |
+| --- | --- | ---: | ---: |
+| 20/70 Poleva-3 slug | damage | 140 | 120 |
+| 40mm VOG-25 grenade | penetration | 1 | 0 |
+| 7.62x51mm M61 | ricochet | 30% | 0.25 |
+| 7.62x51mm M80A1 | ricochet | 25% | 0.3 |
+| 9x21mm PS gzh | accuracy | +1 | 0 |
+| 7.62x54mm R PS gzh | recoil | +10 | 0.08 |
+| 9x21mm PS gzh | recoil | -3 | 0 |
+| 7.62x25mm TT M856A1 | durability_burn | +6 | 1.8 |
+| 20/70 TSS Armor Piercing Slug | heat | +144 | 2.4371 |
+| 20/70 Dangerous Game Slug | heat | +134 | 2.3416 |
+| 20/70 flechette | heat | +113 | 2.1349 |
+| 7.62x25mm TT M856A1 | heat | +80 | 1.06 |
+
 ## Crafts
 
 - wiki outputs: **213**

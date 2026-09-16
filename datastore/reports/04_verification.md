@@ -44,7 +44,7 @@
 | 40 | PASS | wiki conflict relations resolve — api=11312, wiki=2246 (2054 corroborated, 192 wiki-only) |
 | 41 | PASS | wiki compatibility relations resolve — 9131 edges over 1645 items |
 | 42 | PASS | wiki trader offers parse and corroborate — 2536 offers over 2371 items, 2490 (98%) corroborated, 2784 internal ids |
-| 43 | PASS | wiki trade/craft tables corroborate — trades 379/443 (85%), crafts 199/213 (93%), 62 wiki-only trades |
+| 43 | PASS | wiki trade/craft tables corroborate — trades 379/443 (85%), crafts 199/213 (93%), ballistics 1510/1522 (99%), 12 numeric disagreements |
 | 44 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 13, lightkeeper 7 |
 | 45 | PASS | wiki weapon variants map 1:1 to presets — 102 variants over 51 base weapons, 101 matched 1:1, 1043 attachments |
 | 46 | PASS | wiki build parts agree with preset parts — 99/101 wiki part lists are a subset of their preset's parts |

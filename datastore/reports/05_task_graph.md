@@ -22,7 +22,7 @@
 
 - flagged tasks: **13**; with prerequisite closure: **13**
 - total XP from the chain: **155,000**; highest character-level gate: **42**
-- traders involved: {'jaeger': 4, 'skier': 3, 'ragman': 2, 'fence': 1, 'prapor': 1, 'mechanic': 1, 'therapist': 1}
+- traders involved: {'jaeger': 4, 'skier': 3, 'ragman': 2, 'mechanic': 1, 'therapist': 1, 'prapor': 1, 'fence': 1}
 - chain starts at: `Chemical - Part 1`, `Postman Pat - Part 1`, `Sew it Good - Part 1`, `Shooter Born in Heaven`, `The Tarkov Shooter - Part 1`
 
 ### Lightkeeper
