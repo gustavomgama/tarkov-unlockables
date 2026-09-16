@@ -190,6 +190,11 @@ def main():
     p()
     p(f"- questItems: {len(quest_items)} (ids not all in items dict: {len(ids_quest - ids_tdev)})")
     p(f"- achievements: {len(achieves)}")
+    if ids_special:
+        n_sp_item = len(ids_special & ids_tdev)
+        p(f"- specialItems: {len(ids_special)} ids — {n_sp_item} item ids, "
+          f"{len(ids_special) - n_sp_item} *category* ids (compass, range finder, map, multitools...); "
+          f"joining this list to items silently drops the category rows")
     p(f"- wiki barter_list rows: {len(wiki_barters)}; wiki craft stations: {len(wiki_crafts)}")
     p(f"- tarkovmarket single-item example carries price fields: {sorted(k for k in market_item_example[0] if 'rice' in k or k in ('bannedOnFlea','haveMarketData','updated','slots','traderName','traderPriceRub','isFunctional'))}")
     p()

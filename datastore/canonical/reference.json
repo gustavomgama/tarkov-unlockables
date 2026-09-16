@@ -1652,43 +1652,191 @@
   }
  ],
  "special_items": [
-  "5f4fbaaca5573a5ac31db429",
-  "61605ddea09d851a0a0c1bbc",
-  "62e9103049c018f425059f38",
-  "5991b51486f77447b112d44f",
-  "5ac78a9b86f7741cca0bbd8d",
-  "5b4391a586f7745321235ab2",
-  "64b69b0c8f3be32ed22682f8",
-  "65ddcc7aef36f6413d0829b9",
-  "6655e35b6bc645cb7b059912",
-  "620109578d82e67e7911abf2",
-  "66d9f1abb16d9aacf5068468",
-  "624c0b3340357b5f566e8766",
-  "62178be9d0050232da3485d9",
-  "62178c4d4ecf221597654e3d",
-  "675ea3d6312c0a5c4e04e317",
-  "6217726288ed9f0845317459",
-  "66d98233302686954b0c6f81",
-  "5c12688486f77426843c7d32",
-  "68f213f8ea61d1803707cf7a",
-  "6819f8df28294ec0730db6b4",
-  "68e63a53371639e1e4004b6e",
-  "66abb0743f4d8b145b1612c1",
-  "6672e40ebb23210ae87d39eb",
-  "567849dd4bdc2d150f8b456e",
-  "67ab3d4b83869afd170fdd3f",
-  "678fa929819ddc4c350c0317",
-  "67bdea8667098e658f064695",
-  "67c033fd0610e91bea056998",
-  "67bdf04d66ca1d79a2024637",
-  "67c04a6f9152fbdfa306cc66",
-  "68cc09872bdcc15c010c2668",
-  "67c04dac9320f644db06f45c",
-  "5d02778e86f774203e7dedbe",
-  "5d02797c86f774203f38e30a",
-  "68fa8e253666e2fd5b00a626",
-  "650afb5c1b1a473fcb3a7d55",
-  "69a0174087a75d2cbd0842e8"
+  {
+   "id": "5f4fbaaca5573a5ac31db429",
+   "kind": "category",
+   "name": "Compass"
+  },
+  {
+   "id": "61605ddea09d851a0a0c1bbc",
+   "kind": "category",
+   "name": "Portable range finder"
+  },
+  {
+   "id": "62e9103049c018f425059f38",
+   "kind": "category",
+   "name": "Radio transmitter"
+  },
+  {
+   "id": "5991b51486f77447b112d44f",
+   "kind": "item",
+   "name": "MS2000 Marker"
+  },
+  {
+   "id": "5ac78a9b86f7741cca0bbd8d",
+   "kind": "item",
+   "name": "Signal Jammer"
+  },
+  {
+   "id": "5b4391a586f7745321235ab2",
+   "kind": "item",
+   "name": "WI-FI Camera"
+  },
+  {
+   "id": "64b69b0c8f3be32ed22682f8",
+   "kind": "category",
+   "name": "Cultist amulet"
+  },
+  {
+   "id": "65ddcc7aef36f6413d0829b9",
+   "kind": "category",
+   "name": "Mark of the unheard"
+  },
+  {
+   "id": "6655e35b6bc645cb7b059912",
+   "kind": "item",
+   "name": "\"The Eye\" mortar strike signaling device"
+  },
+  {
+   "id": "620109578d82e67e7911abf2",
+   "kind": "item",
+   "name": "ZiD SP-81 26x75 signal pistol"
+  },
+  {
+   "id": "66d9f1abb16d9aacf5068468",
+   "kind": "item",
+   "name": "RSP-30 reactive signal cartridge (Special Yellow)"
+  },
+  {
+   "id": "624c0b3340357b5f566e8766",
+   "kind": "item",
+   "name": "RSP-30 reactive signal cartridge (Yellow)"
+  },
+  {
+   "id": "62178be9d0050232da3485d9",
+   "kind": "item",
+   "name": "ROP-30 reactive flare cartridge (White)"
+  },
+  {
+   "id": "62178c4d4ecf221597654e3d",
+   "kind": "item",
+   "name": "RSP-30 reactive signal cartridge (Red)"
+  },
+  {
+   "id": "675ea3d6312c0a5c4e04e317",
+   "kind": "item",
+   "name": "RSP-30 reactive signal cartridge (Firework)"
+  },
+  {
+   "id": "6217726288ed9f0845317459",
+   "kind": "item",
+   "name": "RSP-30 reactive signal cartridge (Green)"
+  },
+  {
+   "id": "66d98233302686954b0c6f81",
+   "kind": "item",
+   "name": "RSP-30 reactive signal cartridge (Blue)"
+  },
+  {
+   "id": "5c12688486f77426843c7d32",
+   "kind": "item",
+   "name": "Paracord"
+  },
+  {
+   "id": "68f213f8ea61d1803707cf7a",
+   "kind": "item",
+   "name": "Prapor's letter for the port checkpoint"
+  },
+  {
+   "id": "6819f8df28294ec0730db6b4",
+   "kind": "item",
+   "name": "SZ-1 explosive charge"
+  },
+  {
+   "id": "68e63a53371639e1e4004b6e",
+   "kind": "item",
+   "name": "Local network hacking device"
+  },
+  {
+   "id": "66abb0743f4d8b145b1612c1",
+   "kind": "category",
+   "name": "Multitools"
+  },
+  {
+   "id": "6672e40ebb23210ae87d39eb",
+   "kind": "category",
+   "name": "Planting kits"
+  },
+  {
+   "id": "567849dd4bdc2d150f8b456e",
+   "kind": "category",
+   "name": "Map"
+  },
+  {
+   "id": "67ab3d4b83869afd170fdd3f",
+   "kind": "item",
+   "name": "BBQ-S43 gas torch"
+  },
+  {
+   "id": "678fa929819ddc4c350c0317",
+   "kind": "item",
+   "name": "Valve handwheel"
+  },
+  {
+   "id": "67bdea8667098e658f064695",
+   "kind": "item",
+   "name": "Kruglov's RFID keycard"
+  },
+  {
+   "id": "67c033fd0610e91bea056998",
+   "kind": "item",
+   "name": "Reprogrammed RFID keycard with Mr. Kerman's hash codes"
+  },
+  {
+   "id": "67bdf04d66ca1d79a2024637",
+   "kind": "item",
+   "name": "Activated Kruglov's RFID keycard"
+  },
+  {
+   "id": "67c04a6f9152fbdfa306cc66",
+   "kind": "item",
+   "name": "Reprogrammed RFID keycard with Prapor's hash codes"
+  },
+  {
+   "id": "68cc09872bdcc15c010c2668",
+   "kind": "item",
+   "name": "Station 14-4 KORD Arshavin K. pass (Restored)"
+  },
+  {
+   "id": "67c04dac9320f644db06f45c",
+   "kind": "item",
+   "name": "RFID keycard with unknown name"
+  },
+  {
+   "id": "5d02778e86f774203e7dedbe",
+   "kind": "item",
+   "name": "CMS surgical kit"
+  },
+  {
+   "id": "5d02797c86f774203f38e30a",
+   "kind": "item",
+   "name": "Surv12 field surgical kit"
+  },
+  {
+   "id": "68fa8e253666e2fd5b00a626",
+   "kind": "item",
+   "name": "Armored case"
+  },
+  {
+   "id": "650afb5c1b1a473fcb3a7d55",
+   "kind": "category",
+   "name": "Recorder"
+  },
+  {
+   "id": "69a0174087a75d2cbd0842e8",
+   "kind": "item",
+   "name": "SZ-1 explosive charge"
+  }
  ],
  "settings": {
   "scavCooldownSeconds": 1500,

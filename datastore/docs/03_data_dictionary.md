@@ -58,6 +58,10 @@ barter[]       {barter_id, trader_slug, min_trader_level, buy_limit, restock_amo
                 required:[{bsg_id,name,count}], source}
                 source = tarkovdev (789) | tarkovunlockables (51 task-gated recipes
                 that /regular/tasks does not expose at all)
+
+`used_in.barters[]` carries the same rows **from both sources**, so 86 of 1,148
+have `barter_id: null` (the index-sourced ones). Filter on `source` or on a
+non-null `barter_id` when joining back to `barters.ndjson`.
 craft[]        {craft_id, station_id, station_name, level, duration, task_unlock_id,
                 task_name, product:{bsg_id,name,count},
                 required:[{bsg_id,name,count,is_tool}], source: "tarkovdev"}
@@ -189,6 +193,18 @@ min_level_for_flea, image_url`. `path` is the full slug chain from the root.
 
 `flea_market, armor_materials, player_levels, skills, mastering, special_items,
 settings, prestige, achievements[], generated_from`.
+
+`special_items` entries are `{id, kind, name}` with `kind = item | category`.
+The API's raw `specialItems` mixes the two: 28 item ids plus the 9 categories
+that group special-slot items (compass, portable range finder, radio
+transmitter, map, multitools, planting kits, recorder, cultist amulet, mark of
+the unheard). Joining the raw id list to `items` silently drops the 9 category
+rows. The authoritative signal for "this item fits the special slot" is
+`types` containing `specialSlot` (44 items) — every category member is already
+typed that way.
+
+`mastering[]` holds `{id, weapons[], level2, level3}`; all 159 referenced
+weapon ids resolve to items.
 
 ---
 

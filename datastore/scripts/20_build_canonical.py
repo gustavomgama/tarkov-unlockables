@@ -1303,6 +1303,32 @@ def build_weapon_variants(ctx):
     return rows
 
 
+def resolve_special_items(ctx):
+    """`specialItems` is a mixed id list, not an item list.
+
+    It holds 28 item ids plus the **category** ids of the special-slot item
+    groups (compass, portable range finder, radio transmitter, map, multitools,
+    planting kits, recorder, cultist amulet, mark of the unheard). Joining the
+    raw list to `items` silently drops those 9 rows, so each entry is resolved
+    to its kind and display name here.
+
+    `types` containing `specialSlot` is the authoritative signal for "can go in
+    the special slot" (44 items); every category member is already typed that
+    way, so this resolution is for explanation, not for completeness.
+    """
+    items = {i["bsg_id"]: i for i in ctx.get("items") or []}
+    cats = {c["id"]: c["slug"] for c in build_categories(ctx)}
+    out = []
+    for sid in ctx["raw"]["special_items"] or []:
+        if sid in items:
+            out.append({"id": sid, "kind": "item", "name": items[sid]["name"]})
+        elif sid in cats:
+            out.append({"id": sid, "kind": "category", "name": C.humanize(cats[sid])})
+        else:
+            out.append({"id": sid, "kind": "unknown", "name": None})
+    return out
+
+
 def build_reference(ctx):
     return {
         "generated_from": {
@@ -1314,7 +1340,7 @@ def build_reference(ctx):
         "player_levels": ctx["raw"]["player_levels"],
         "skills": ctx["raw"]["skills"],
         "mastering": ctx["raw"]["mastering"],
-        "special_items": ctx["raw"]["special_items"],
+        "special_items": resolve_special_items(ctx),
         "settings": ctx["raw"]["settings"],
         "prestige": ctx["prestige"],
         "achievements": [
@@ -1346,7 +1372,8 @@ def main():
     stats["tasks"] = C.write_jsonl(os.path.join(C.CANON, "tasks.ndjson"), tasks)
     stats["maps"] = C.write_jsonl(os.path.join(C.CANON, "maps.ndjson"), build_maps(ctx))
     stats["hideout_stations"] = C.write_jsonl(os.path.join(C.CANON, "hideout_stations.ndjson"), build_hideout(ctx))
-    stats["items"] = C.write_jsonl(os.path.join(C.CANON, "items.ndjson"), build_items(ctx))
+    ctx["items"] = list(build_items(ctx))
+    stats["items"] = C.write_jsonl(os.path.join(C.CANON, "items.ndjson"), ctx["items"])
     stats["weapon_variants"] = C.write_jsonl(os.path.join(C.CANON, "weapon_variants.ndjson"), build_weapon_variants(ctx))
 
     with open(os.path.join(C.CANON, "reference.json"), "w", encoding="utf-8") as fh:

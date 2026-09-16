@@ -54,7 +54,7 @@
 | 50 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
 | 51 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
 | 52 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 53 | PASS | sqlite file exists — 51339264 |
+| 53 | PASS | sqlite file exists — 51347456 |
 | 54 | PASS | sqlite integrity_check — ok |
 | 55 | PASS | sqlite item count matches canonical — ==5480 = 5480 |
 | 56 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
@@ -68,7 +68,8 @@
 | 64 | PASS | weapon build stats present — 171 weapons, 109 with capped combinatorial counts |
 | 65 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
 | 66 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
-| 67 | PASS | no table is entirely empty — 52 tables all non-empty |
-| 68 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
+| 67 | PASS | special-slot ids resolve to items or categories — 37 ids = 28 items + 9 categories; 44 items carry the specialSlot type |
+| 68 | PASS | no table is entirely empty — 52 tables all non-empty |
+| 69 | PASS | wiki-derived relations loaded — item_wiki_slots=25108, item_wiki_meta=3899, item_wiki_trader_offers=2536, item_conflicts=13558, item_compatibility=9131, item_grids=903 |
 
-**68/68 checks passed.**
+**69/69 checks passed.**

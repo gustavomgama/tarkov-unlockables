@@ -150,6 +150,7 @@ def main():
     check("weapon build stats present", lambda: _build_stats(con))
     check("all analysis steps have run", lambda: _analysis_tables(con))
     check("armor materials join to items", lambda: _armor_view(con))
+    check("special-slot ids resolve to items or categories", lambda: _special_items())
     check("no table is entirely empty", lambda: _no_empty_tables(con))
     check("wiki-derived relations loaded", lambda: _wiki_tables(con))
     con.close()
@@ -458,6 +459,26 @@ def _weapon_variants():
     assert not unresolved, f"{len(unresolved)} variant attachments without a name"
     n_att = sum(len(r["attachments"]) for r in rows)
     return f"{len(rows)} variants over {len({r['base_bsg_id'] for r in rows})} base weapons, {len(matched)} matched 1:1, {n_att} attachments"
+
+
+def _special_items():
+    """`reference.special_items` mixes item ids with special-slot *category* ids;
+    an item-only join silently drops the 9 category rows, so every entry must
+    carry a kind and a name."""
+    ref = json.load(open(os.path.join(C.CANON, "reference.json"), encoding="utf-8"))
+    rows = ref["special_items"]
+    kinds = Counter(r["kind"] for r in rows)
+    assert kinds.get("unknown", 0) == 0, f"{kinds['unknown']} unresolved special_items ids"
+    assert all(r.get("name") for r in rows), "special_items entry has no name"
+    assert kinds.get("item", 0) >= 20, f"only {kinds.get('item', 0)} item ids in special_items"
+    assert kinds.get("category", 0) >= 5, f"only {kinds.get('category', 0)} category ids in special_items"
+    items = {i["bsg_id"]: i for i in C.load_jsonl(os.path.join(C.CANON, "items.ndjson"))}
+    typed = {b for b, i in items.items() if "specialSlot" in (i["types"] or [])}
+    assert len(typed) >= 40, f"only {len(typed)} items carry the specialSlot type"
+    untyped = [r["id"] for r in rows if r["kind"] == "item" and r["id"] not in typed]
+    assert not untyped, f"{len(untyped)} special_items ids are not typed specialSlot"
+    return (f"{len(rows)} ids = {kinds['item']} items + {kinds['category']} categories; "
+            f"{len(typed)} items carry the specialSlot type")
 
 
 def _build_parts_agree():
