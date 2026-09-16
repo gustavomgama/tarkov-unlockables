@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   resources :tasks, only: [ :index, :show ] do
     collection do
       get :chains
+      # Typeahead for the quest search field, same shape as items#search.
+      get :search
     end
   end
 

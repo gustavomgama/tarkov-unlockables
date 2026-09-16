@@ -82,6 +82,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     bare&.destroy
   end
 
+  test "search suggests quests as rows" do
+    get search_tasks_url(q: "task one")
+
+    assert_response :success
+    assert_select "a[href=?]", task_path(tasks(:one))
+  end
+
+  test "search ignores a short query and returns nothing when unmatched" do
+    get search_tasks_url(q: "a")
+    assert_response :no_content
+
+    get search_tasks_url(q: "zzzzzzzzzzzz")
+    assert_response :no_content
+  end
+
   test "show returns 404 for a missing task" do
     get task_url(id: 999_999_999)
     assert_response :not_found

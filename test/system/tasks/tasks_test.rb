@@ -9,6 +9,22 @@ class TasksIndexTest < ActionDispatch::SystemTestCase
   end
 end
 
+class TaskSearchSuggestionsTest < ActionDispatch::SystemTestCase
+  include SystemTestHelper
+  fixtures :all
+
+  test "typing suggests quests" do
+    visit tasks_path
+
+    fill_in "q", with: "task one"
+    assert_selector "#search-results a", minimum: 1, wait: 5
+    assert_selector "#search-results a", text: /Task One/
+
+    find("#q").send_keys(:escape)
+    assert_no_selector "#search-results a"
+  end
+end
+
 class TaskChainsTest < ActionDispatch::SystemTestCase
   include SystemTestHelper
 

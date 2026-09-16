@@ -13,12 +13,26 @@ export default class extends Controller {
       if (this.element.contains(event.target) && !this.resultsTarget.contains(event.target)) return
       if (!this.element.contains(event.target)) this.hide()
     }
+    this._hotkey = (event) => this.focusOnSlash(event)
     document.addEventListener("click", this._outside)
+    document.addEventListener("keydown", this._hotkey)
   }
 
   disconnect() {
     document.removeEventListener("click", this._outside)
+    document.removeEventListener("keydown", this._hotkey)
     clearTimeout(this.timer)
+  }
+
+  // "/" jumps to the search field, the way a docs site does it. Skipped while
+  // the user is already typing somewhere.
+  focusOnSlash(event) {
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return
+    const active = document.activeElement
+    if (active && (active.isContentEditable || [ "INPUT", "TEXTAREA", "SELECT" ].includes(active.tagName))) return
+
+    event.preventDefault()
+    this.inputTarget.focus()
   }
 
   query() {

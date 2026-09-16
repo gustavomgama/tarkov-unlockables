@@ -178,12 +178,6 @@ module ItemsHelper
     url
   end
 
-  def format_number(value)    number = value.to_s.tr(",", "").strip
-    return value if number.match?(/\A\d+\z/)
-
-    number_with_delimiter(number.to_i)
-  end
-
   # Compact per-card readout: the one or two numbers a browser scans for.
   # Reads only columns the index already loaded, so a card costs no extra
   # query. Returns [[label, value, tone], …].

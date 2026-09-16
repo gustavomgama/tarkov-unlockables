@@ -43,6 +43,23 @@ class SearchSuggestionsTest < ActionDispatch::SystemTestCase
     assert_selector "#search-results", text: /No matches for/, wait: 5
   end
 
+  # Element#send_keys does not reach a document-level listener, so drive the
+  # real key event with the action builder.
+  test "slash focuses the search field" do
+    visit items_path
+
+    page.driver.browser.action.send_keys("/").perform
+    assert_equal "q", page.evaluate_script("document.activeElement.id")
+  end
+
+  test "slash is typed, not treated as a shortcut, while already typing" do
+    visit items_path
+
+    fill_in "q", with: "m85"
+    page.driver.browser.action.send_keys("/").perform
+    assert_equal "m85/", find("#q").value
+  end
+
   test "Enter still submits the search with JavaScript on" do
     visit items_path
 

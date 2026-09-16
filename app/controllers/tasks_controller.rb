@@ -11,6 +11,21 @@ class TasksController < ApplicationController
     end
   end
 
+  # Typeahead for the quest search field. Mirrors ItemsController#search.
+  def search
+    query = params[:q].to_s.strip
+    return head :no_content if query.length < ItemsController::AUTOCOMPLETE_MIN_QUERY
+
+    @tasks = Task.all
+                 .loose_search(query, columns: %w[full_name name])
+                 .order(full_name: :asc)
+                 .limit(ItemsController::AUTOCOMPLETE_LIMIT)
+    return head :no_content if @tasks.empty?
+
+    expires_in 10.minutes, public: true
+    render partial: "tasks/autocomplete_results", locals: { tasks: @tasks }, layout: false
+  end
+
   def show
     @task = Task.includes(
       requirements: { previous_tasks: :task },

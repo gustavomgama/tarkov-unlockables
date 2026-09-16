@@ -5,7 +5,7 @@
     <div>
       <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Tasks</h1>
       <p class="mt-1 text-sm text-[var(--text-muted)]">
-        Every trader contract with its unlock path, requirements and rewards.
+        Every trader contract with its unlock path, requirements and rewards — press <kbd>/</kbd> to search.
       </p>
     </div>
     <p class="font-data text-sm text-[var(--text-muted)]">
@@ -17,8 +17,27 @@
     <% if params[:trader].present? %>
       <%= hidden_field_tag :trader, params[:trader] %>
     <% end %>
-    <div class="relative flex-1 min-w-[10rem]">
-      <%= text_field_tag :q, params[:q], type: "search", placeholder: "Search by quest name…", class: "input", "aria-label": "Search tasks" %>
+    <div class="relative flex-1 min-w-[10rem]"
+         data-controller="search"
+         data-search-url-value="<%= search_tasks_path %>"
+         data-action="keydown->search#keydown">
+      <%= text_field_tag :q, params[:q], type: "search", placeholder: "Search by quest name…",
+            class: "input", "aria-label": "Search tasks",
+            autocomplete: "off",
+            role: "combobox",
+            "aria-expanded": "false",
+            "aria-controls": "search-results",
+            "aria-autocomplete": "list",
+            data: { search_target: "input", action: "input->search#query" } %>
+
+      <div
+        id="search-results"
+        class="hidden absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto bg-[var(--bg-surface)] border border-[var(--border)]"
+        data-search-target="results"
+        role="status"
+        aria-live="polite"
+        aria-label="Search results"
+      ></div>
     </div>
     <button type="submit" class="btn">Search</button>
     <% if params[:q].present? %>
