@@ -52,6 +52,14 @@
 
 - 9 entries typed as weapons have no mod slots at all (signal cartridges, launchers): one configuration each, listed in `weapon_build_stats`.
 
+## Wiki build vs preset part list
+
+- wiki builds matched to a preset: **101**
+- wiki attachment list is a subset of the preset's contained items: **99**
+- API-only parts per build: {1: 9, 2: 82, 3: 7, 4: 2, 5: 1} — the preset
+  list additionally carries the base weapon itself and a loaded magazine,
+  which the wiki's attachment table does not list.
+
 ## Required slots no item can fill
 
 - none: every required slot has at least one item that exists in the dataset.

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from collections import Counter
 
 import _common as C
 
@@ -115,6 +116,36 @@ def main():
     zero = [r for r in rows if r[1] + r[2] == 0]
     p(f"- {len(zero)} entries typed as weapons have no mod slots at all (signal "
       "cartridges, launchers): one configuration each, listed in `weapon_build_stats`.")
+    p()
+
+    # ---- wiki builds vs preset part lists --------------------------------
+    variants = []
+    vpath = os.path.join(C.CANON, "weapon_variants.ndjson")
+    if os.path.exists(vpath):
+        variants = list(C.load_jsonl(vpath))
+    by_id = {i["bsg_id"]: i for i in items}
+    subset = matched = 0
+    extras = []
+    for v in variants:
+        pid = v.get("preset_bsg_id")
+        if not pid or pid not in by_id:
+            continue
+        matched += 1
+        wiki = {a["bsg_id"] for a in v["attachments"]}
+        api = {c["bsg_id"] for c in by_id[pid]["contains_items"]}
+        if wiki <= api:
+            subset += 1
+        extras.append(len(api - wiki))
+    p("## Wiki build vs preset part list")
+    p()
+    if matched:
+        p(f"- wiki builds matched to a preset: **{matched}**")
+        p(f"- wiki attachment list is a subset of the preset's contained items: **{subset}**")
+        p(f"- API-only parts per build: {dict(sorted(Counter(extras).items()))} — the preset")
+        p("  list additionally carries the base weapon itself and a loaded magazine,")
+        p("  which the wiki's attachment table does not list.")
+    else:
+        p("- no matched builds to compare")
     p()
 
     p("## Required slots no item can fill")

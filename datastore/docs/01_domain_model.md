@@ -124,6 +124,12 @@ with their exact attachment lists (1,043 parts), 101 of which map 1:1 onto a
 tarkovdev preset. That gives each build both a human name and a resolvable
 parts list.
 
+The two sources agree closely and their disagreement is systematic: for 99 of
+101 matched builds the wiki's attachment list is a **subset** of the preset's
+`containsItems`, and the extra entries are the base weapon itself plus a loaded
+magazine (82 builds differ by exactly those two). So the wiki lists mods, while
+a preset describes the whole spawnable assembly.
+
 The graph is complete enough to be assembled: all **624 required slots across
 162 weapons have at least one item that exists in the dataset**, and the number
 of distinct configurations is astronomical for most guns (109 of 171 weapons

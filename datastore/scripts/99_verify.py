@@ -120,6 +120,7 @@ def main():
     check("wiki trade/craft tables corroborate", lambda: _wiki_crosscheck())
     check("task graph is a well-formed DAG", lambda: _task_graph(tasks))
     check("wiki weapon variants map 1:1 to presets", lambda: _weapon_variants())
+    check("wiki build parts agree with preset parts", lambda: _build_parts_agree())
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -457,6 +458,26 @@ def _weapon_variants():
     assert not unresolved, f"{len(unresolved)} variant attachments without a name"
     n_att = sum(len(r["attachments"]) for r in rows)
     return f"{len(rows)} variants over {len({r['base_bsg_id'] for r in rows})} base weapons, {len(matched)} matched 1:1, {n_att} attachments"
+
+
+def _build_parts_agree():
+    """The wiki lists mods; the preset's contained list also carries the base
+    weapon and a magazine. Every wiki part must still be present in the preset."""
+    items = {i["bsg_id"]: i for i in C.load_jsonl(os.path.join(C.CANON, "items.ndjson"))}
+    variants = list(C.load_jsonl(os.path.join(C.CANON, "weapon_variants.ndjson")))
+    matched = subset = 0
+    for v in variants:
+        pid = v.get("preset_bsg_id")
+        if not pid or pid not in items:
+            continue
+        matched += 1
+        wiki = {a["bsg_id"] for a in v["attachments"]}
+        api = {c["bsg_id"] for c in items[pid]["contains_items"]}
+        if wiki <= api:
+            subset += 1
+    assert matched >= 90, f"only {matched} wiki builds matched a preset"
+    assert subset / matched >= 0.90, f"only {subset}/{matched} wiki part lists are a subset of the preset"
+    return f"{subset}/{matched} wiki part lists are a subset of their preset's parts"
 
 
 def _armor_view(con):
