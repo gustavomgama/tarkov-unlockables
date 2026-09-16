@@ -1,14 +1,23 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.full_name.present? %>
-    <div class="col-span-2 md:col-span-4">
-      <dt class="text-[var(--text-muted)]">Full Name</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.full_name %></dd>
+<% part_type = item.data["type"].presence %>
+<% ergonomics = item.data["ergonomics"].presence %>
+<%# The BSG type ("Mount", "Handguard", "Stock") is the most useful fact an
+    attachment has, so it leads. Skip it when it just repeats the class. %>
+<% part_type = nil if part_type == item.class.name.demodulize %>
+
+<% if part_type.present? %>
+  <dl class="stats">
+    <div class="stat <%= stat_scale(part_type) %>">
+      <dt class="stat__key">Part Type</dt>
+      <dd class="stat__val"><%= part_type.titleize %></dd>
     </div>
-  <% end %>
-  <% if item.short_name.present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Short Name</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.short_name %></dd>
+  </dl>
+<% end %>
+
+<% if ergonomics.present? && ergonomics.to_f.nonzero? %>
+  <dl class="specs">
+    <div class="spec">
+      <dt class="spec__key">Ergonomics</dt>
+      <dd class="spec__val"><%= ergonomics.to_f.positive? ? "+#{ergonomics}" : ergonomics %></dd>
     </div>
-  <% end %>
-</dl>
+  </dl>
+<% end %>

@@ -1,0 +1,59 @@
+<%# How to unlock: the quest chain that makes this item purchasable or
+    craftable. Unlocks that share one task are merged, so a quest chain is
+    never drawn twice on the same page. %>
+<% unlocks = item.offer_unlocks + item.barter_unlocks + item.craft_unlocks %>
+<% gated_currency = item.item_currencies.find(&:task_unlock?) %>
+<% by_task = unlocks.group_by { |unlock| unlock.reward&.task } %>
+
+<div class="panel__body panel__body--flush">
+  <% if by_task.any? %>
+    <% by_task.each do |task, group| %>
+      <% types = group.map { |u| u.class.name.demodulize.sub("Unlock", "").titleize }.uniq %>
+      <div class="srcrow">
+        <span class="srcbadge" style="--tone: var(--badge-offer)"><%= types.join(" + ") %></span>
+        <div class="srcrow__body">
+          <% if task %>
+            <% chain = task.prerequisite_chain([], task_map) %>
+            <p class="srcrow__title">
+              <%= link_to task.full_name, task_path(task) %>
+              <% if task.given_by.present? %>
+                <span class="srcrow__meta inline">· <%= task.given_by.titleize %></span>
+              <% end %>
+            </p>
+            <% if chain.length > 1 %>
+              <div class="mt-3">
+                <%= render "shared/raid_timeline", chain: chain, current_name: task.name %>
+              </div>
+            <% else %>
+              <p class="srcrow__meta">No prerequisites — available as soon as the quest is offered.</p>
+            <% end %>
+            <% if task.wiki_link.present? %>
+              <p class="mt-2">
+                <%= link_to "Quest walkthrough on the wiki", task.wiki_link, class: "text-xs", target: "_blank", rel: "noopener" %>
+              </p>
+            <% end %>
+          <% else %>
+            <p class="srcrow__title">Unlocking quest not recorded</p>
+            <p class="srcrow__meta">The unlock exists in the game data but its quest could not be matched.</p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% elsif gated_currency %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-task)">Task</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title">Task-gated trader offer</p>
+        <p class="srcrow__meta">This offer unlocks through a quest, but the quest is not recorded in the data.</p>
+      </div>
+    </div>
+  <% else %>
+    <div class="srcrow">
+      <span class="srcbadge">Direct</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title">No quest required</p>
+        <p class="srcrow__meta">Obtainable from the sources above without clearing a quest first.</p>
+      </div>
+    </div>
+  <% end %>
+</div>

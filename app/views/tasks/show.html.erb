@@ -1,154 +1,176 @@
-<div class="space-y-6">
-  <div>
-    <div class="flex items-center gap-3 mb-2 flex-wrap">
-      <h1 class="text-3xl font-bold text-[var(--text-bright)]"><%= @task.full_name %></h1>
-      <% if @task.kappa_required %>
-        <span class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-[var(--danger)] text-[var(--text-bright)]">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 005 19z" />
-          </svg>
-          Kappa Required
-        </span>
-      <% end %>
-    </div>
-    <p class="flex items-center gap-2 text-[var(--text-muted)]">
-      <span class="trader-dot" style="background: var(--trader-<%= @task.given_by.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-      <%= @task.given_by.titleize %>
-    </p>
-  </div>
+<% content_for :title, @task.full_name %>
+<% chain = @task.prerequisite_chain([], task_map) %>
+<% prerequisites = chain.length - 1 %>
+<% requirements = @task.requirements.select { |r| r.player_level.to_i.positive? || r.previous_tasks.any? } %>
+<% reward_count = @task.rewards.sum { |r| r.loose_items.size + r.offer_unlocks.size + r.barter_unlocks.size + r.craft_unlocks.size } %>
 
-  <% chain = @task.prerequisite_chain([], task_map) %>
-  <% if chain.length > 1 %>
-    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Unlock Path</h2>
-      <p class="text-sm text-[var(--text-muted)] mb-4">
-        Complete <%= chain.length - 1 %> prerequisite <%= 'task'.pluralize(chain.length - 1) %> to unlock this task.
-      </p>
-      <%= render "shared/raid_timeline", chain: chain %>
-    </div>
-  <% end %>
+<div class="space-y-4 sm:space-y-6">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <%= link_to "Tasks", tasks_path %>
+    <span aria-hidden="true">/</span>
+    <span class="text-[var(--text)]"><%= @task.given_by.presence&.titleize || "Unassigned" %></span>
+  </nav>
 
-  <div class="grid md:grid-cols-2 gap-6">
-    <% if @task.requirements.any? %>
-      <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-        <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Requirements</h2>
-        <dl class="space-y-3 text-sm">
-          <% @task.requirements.each do |req| %>
-            <% if req.player_level.to_i > 0 %>
-              <div class="flex items-baseline gap-2">
-                <dt class="text-[var(--text-muted)] w-32 flex-shrink-0">Player level</dt>
-                <dd class="font-data text-[var(--text)]"><%= req.player_level %></dd>
+  <%# Hero: which quest this is and what it takes to reach it. %>
+  <section class="panel">
+    <div class="panel__body">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div class="min-w-0">
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-bright)] leading-tight break-words"><%= @task.full_name %></h1>
+          <p class="mt-2 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
+            <span class="inline-flex items-center gap-2">
+              <span class="trader-dot" style="background: var(--trader-<%= @task.given_by.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+              <%= @task.given_by.to_s.titleize %>
+            </span>
+            <% if @task.kappa_required %>
+              <span class="chip" style="--tone: var(--danger); background: var(--danger); color: var(--text-bright)">Kappa required</span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-4 sm:mt-5">
+        <div class="readout">
+          <div class="stats">
+            <div class="stat stat--xl">
+              <span class="stat__key">Prerequisites</span>
+              <span class="stat__val"><%= prerequisites %></span>
+              <span class="stat__note"><%= prerequisites.zero? ? "no earlier quest" : "quests to clear first" %></span>
+            </div>
+            <% if @task.leads_tos.any? %>
+              <div class="stat">
+                <span class="stat__key">Leads to</span>
+                <span class="stat__val"><%= @task.leads_tos.size %></span>
+                <span class="stat__note"><%= "follow-up quest".pluralize(@task.leads_tos.size) %></span>
+              </div>
+            <% end %>
+            <% if reward_count.positive? %>
+              <div class="stat">
+                <span class="stat__key">Rewards</span>
+                <span class="stat__val"><%= reward_count %></span>
+                <span class="stat__note"><%= "item or unlock".pluralize(reward_count) %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid gap-4 sm:gap-5 lg:grid-cols-2 lg:items-start">
+    <%# Unlock path: the reason to read this page. %>
+    <% if chain.length > 1 %>
+      <section class="panel lg:col-span-2" aria-labelledby="path-head">
+        <div class="panel__head">
+          <h2 id="path-head" class="panel__title">Unlock path</h2>
+          <span class="panel__note"><%= prerequisites %> prerequisite <%= "quest".pluralize(prerequisites) %> before this one</span>
+        </div>
+        <div class="panel__body">
+          <%= render "shared/raid_timeline", chain: chain, current_name: @task.name %>
+        </div>
+      </section>
+    <% end %>
+
+    <% if requirements.any? %>
+      <section class="panel" aria-labelledby="requirements-head">
+        <div class="panel__head">
+          <h2 id="requirements-head" class="panel__title">Requirements</h2>
+        </div>
+        <dl class="specs">
+          <% requirements.each do |req| %>
+            <% if req.player_level.to_i.positive? %>
+              <div class="spec">
+                <dt class="spec__key">Player level</dt>
+                <dd class="spec__val"><%= req.player_level %></dd>
               </div>
             <% end %>
             <% if req.previous_tasks.any? %>
-              <div>
-                <dt class="text-[var(--text-muted)] mb-2">Previous tasks</dt>
-                <dd class="flex flex-wrap gap-2">
+              <div class="spec">
+                <dt class="spec__key">Previous tasks</dt>
+                <dd class="spec__val flex flex-wrap justify-end gap-1">
                   <% req.previous_tasks.each do |pt| %>
-                    <span class="px-2 py-1 text-xs bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)]">
-                      <% if pt.task %>
-                        <%= link_to pt.task_name, task_path(pt.task), class: "text-[var(--accent)] hover:underline" %>
-                      <% else %>
-                        <%= pt.task_name %>
-                      <% end %>
-                    </span>
+                    <% task = pt.task %>
+                    <% if task %>
+                      <%= link_to task_display_name(pt.task_name), task_path(task), class: "chip chip--link" %>
+                    <% else %>
+                      <span class="chip"><%= task_display_name(pt.task_name) %></span>
+                    <% end %>
                   <% end %>
                 </dd>
               </div>
             <% end %>
           <% end %>
         </dl>
-      </div>
+      </section>
     <% end %>
 
-    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Rewards</h2>
-      <% if @task.rewards.none? %>
-        <p class="text-[var(--text-muted)] text-sm">No rewards listed.</p>
-      <% end %>
-      <% @task.rewards.each do |reward| %>
-        <div class="mb-4 last:mb-0">
-          <h3 class="text-xs font-medium text-[var(--text-muted)] mb-2 uppercase tracking-wide">
-            <%= reward.reward_type == "start_rewards" ? "Start rewards" : "Finish rewards" %>
-          </h3>
-          <% if reward.loose_items.any? || reward.offer_unlocks.any? || reward.barter_unlocks.any? || reward.craft_unlocks.any? %>
-            <div class="space-y-2">
-              <% reward.loose_items.each do |li| %>
-                <div class="flex items-baseline gap-2 text-sm">
-                  <span class="text-[var(--text-muted)] text-xs w-14 flex-shrink-0">Items</span>
-                  <span class="text-[var(--text)]">
-                    <% if li.item %>
-                      <%= link_to li.item_name, item_path(li.item), class: "text-[var(--accent)] hover:underline" %>
-                    <% else %>
-                      <%= li.item_name %>
-                    <% end %>
-                    <span class="font-data text-[var(--text-muted)]">×<%= li.count %></span>
-                  </span>
-                </div>
-              <% end %>
-              <% reward.offer_unlocks.each do |ou| %>
-                <div class="flex items-baseline gap-2 text-sm">
-                  <span class="text-[var(--badge-offer)] text-xs w-14 flex-shrink-0">Offer</span>
-                  <span class="text-[var(--text)]">
-                    <% if ou.item %>
-                      <%= link_to ou.item_name, item_path(ou.item), class: "text-[var(--accent)] hover:underline" %>
-                    <% else %>
-                      <%= ou.item_name %>
-                    <% end %>
-                    <span class="font-data text-[var(--text-muted)]"><%= ou.trader_name %> LL<%= ou.trader_level %></span>
-                  </span>
-                </div>
-              <% end %>
-              <% reward.barter_unlocks.each do |bu| %>
-                <div class="flex items-baseline gap-2 text-sm">
-                  <span class="text-[var(--badge-barter)] text-xs w-14 flex-shrink-0">Barter</span>
-                  <span class="text-[var(--text)]">
-                    <% if bu.item %>
-                      <%= link_to bu.item_name, item_path(bu.item), class: "text-[var(--accent)] hover:underline" %>
-                    <% else %>
-                      <%= bu.item_name %>
-                    <% end %>
-                  </span>
-                </div>
-              <% end %>
-              <% reward.craft_unlocks.each do |cu| %>
-                <div class="flex items-baseline gap-2 text-sm">
-                  <span class="text-[var(--badge-craft)] text-xs w-14 flex-shrink-0">Craft</span>
-                  <span class="text-[var(--text)]">
-                    <% if cu.item %>
-                      <%= link_to cu.item_name, item_path(cu.item), class: "text-[var(--accent)] hover:underline" %>
-                    <% else %>
-                      <%= cu.item_name %>
-                    <% end %>
-                    <span class="font-data text-[var(--text-muted)]"><%= cu.hideout_station %> Lv.<%= cu.station_level %></span>
-                  </span>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <p class="text-[var(--text-muted)] text-sm">No rewards listed.</p>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-
-  <% if @task.leads_tos.any? %>
-    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Leads To</h2>
-      <div class="flex flex-wrap gap-2">
-        <% @task.leads_tos.each do |lt| %>
-          <% if lt.follow_up_task %>
-            <%= link_to task_path(lt.follow_up_task), class: "px-3 py-1.5 text-sm bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)] hover:border-[var(--accent)] min-h-[36px] flex items-center" do %>
-              <%= lt.follow_up_task.full_name %>
-            <% end %>
-          <% else %>
-            <span class="px-3 py-1.5 text-sm bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)] flex items-center">
-              <%= lt.follow_up_task_name %>
-            </span>
-          <% end %>
-        <% end %>
+    <section class="panel <%= "lg:col-span-2" unless requirements.any? %>" aria-labelledby="rewards-head">
+      <div class="panel__head">
+        <h2 id="rewards-head" class="panel__title">Rewards</h2>
       </div>
-    </div>
-  <% end %>
+      <% if reward_count.zero? %>
+        <div class="panel__body">
+          <p class="text-sm text-[var(--text-muted)]">No rewards listed.</p>
+        </div>
+      <% else %>
+        <% @task.rewards.each do |reward| %>
+          <% groups = reward_groups(reward) %>
+          <% next if groups.empty? %>
+          <div class="panel__body panel__body--flush">
+            <p class="px-4 pt-3 pb-1 text-[0.625rem] uppercase tracking-widest text-[var(--text-muted)]">
+              <%= reward.reward_type == "start_rewards" ? "On accepting" : "On completion" %>
+            </p>
+            <% groups.each do |label, rows, badge| %>
+              <% rows.each do |row| %>
+                <div class="srcrow">
+                  <span class="srcbadge" style="--tone: var(--<%= badge %>)"><%= reward_label(label, row) %></span>
+                  <div class="srcrow__body">
+                    <p class="srcrow__title">
+                      <% if row.item %>
+                        <%= link_to row.item_name, item_path(row.item) %>
+                      <% else %>
+                        <%= row.item_name %>
+                      <% end %>
+                      <% if row.respond_to?(:count) && row.count.to_i > 1 %>
+                        <span class="font-data text-[var(--text-muted)]">×<%= row.count %></span>
+                      <% end %>
+                    </p>
+                    <p class="srcrow__meta">
+                      <% if row.respond_to?(:trader_name) && row.trader_name.present? %>
+                        <span class="font-data"><%= "#{row.trader_name} LL#{row.trader_level}" %></span>
+                      <% elsif row.respond_to?(:hideout_station) && row.hideout_station.present? %>
+                        <span class="font-data"><%= "#{row.hideout_station} Lv.#{row.station_level}" %></span>
+                      <% else %>
+                        granted for completing the quest
+                      <% end %>
+                    </p>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </section>
+
+    <% if @task.leads_tos.any? %>
+      <section class="panel lg:col-span-2" aria-labelledby="leads-head">
+        <div class="panel__head">
+          <h2 id="leads-head" class="panel__title">Leads to</h2>
+          <span class="panel__note">unlocked after this quest</span>
+        </div>
+        <div class="panel__body">
+          <div class="flex flex-wrap gap-1.5">
+            <% @task.leads_tos.each do |lead| %>
+              <% if lead.follow_up_task %>
+                <%= link_to lead.follow_up_task.full_name, task_path(lead.follow_up_task), class: "chip chip--link" %>
+              <% else %>
+                <span class="chip"><%= task_display_name(lead.follow_up_task_name) %></span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </section>
+    <% end %>
+  </div>
 </div>

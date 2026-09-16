@@ -220,6 +220,27 @@ class Item < ApplicationRecord
         .where("data->'containsItems' @> ?", [ { "item" => bsg_id } ].to_json)
   end
 
+  # Guarded casts for the comparison ordering. A plain ::int raises on any
+  # non-integer value the import might store ("31.5", "n/a"), which would
+  # take the whole caliber listing down with it.
+  PEN_ORDER = "CASE WHEN data->>'penetration_power' ~ '^[0-9]+$' " \
+              "THEN (data->>'penetration_power')::int END DESC NULLS LAST".freeze
+  DMG_ORDER = "CASE WHEN data->>'damage' ~ '^[0-9]+$' " \
+              "THEN (data->>'damage')::int END DESC NULLS LAST".freeze
+
+  # Every other round in the same caliber, hardest-hitting first. A round's
+  # penetration number only means something next to its siblings, so the
+  # ammo page leads with this comparison.
+  def caliber_ammo(limit: 14)
+    raw = data["caliber"]
+    return Item.none if raw.blank?
+
+    Item::Ammo.where("data->>'caliber' = ?", raw)
+              .where.not(id: id)
+              .order(Arel.sql(PEN_ORDER), Arel.sql(DMG_ORDER))
+              .limit(limit)
+  end
+
   def self.type_for(properties_type, wiki_infobox = nil)
     # source uses "ItemPropertiesWeapon" — strip the prefix; wiki infobox wins
     base = wiki_infobox.to_s.camelize

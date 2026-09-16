@@ -1,14 +1,70 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.data["class"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Armor Class</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["class"] %></dd>
+<% armor_class = item.data["class"] %>
+<% armor_type = item.data["armor_type"].presence %>
+<%# armor_slots is an array of hashes in real data; tolerate anything else. %>
+<% slots = Array(item.data["armor_slots"]).select { |s| s.is_a?(Hash) }
+                                         .map { |s| s["name"].to_s }
+                                         .reject { |n| n.match?(/\A[0-9a-f]{20,}/) }
+                                         .map { |n| n.sub(/_(plate|mount|slot)\z/i, "").tr("_", " ").titleize }
+                                         .uniq %>
+<% zones = Array(item.data["zones"]) %>
+<% durability = item.data["max_uses"].presence %>
+
+<dl class="stats">
+  <% if armor_class.present? %>
+    <div class="stat stat--xl stat--tone" style="--tone: <%= armor_class_tone(armor_class) %>">
+      <dt class="stat__key">Armor Class</dt>
+      <dd class="stat__val"><%= armor_class %></dd>
+      <dd class="stat__note">out of 6</dd>
     </div>
   <% end %>
-  <% if item.data["max_uses"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Durability</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["max_uses"] %></dd>
+
+  <% if durability.present? %>
+    <div class="stat">
+      <dt class="stat__key">Durability</dt>
+      <dd class="stat__val"><%= durability %></dd>
+    </div>
+  <% end %>
+
+  <% if item.data["slot"].present? %>
+    <div class="stat">
+      <dt class="stat__key">Slot</dt>
+      <dd class="stat__val"><%= item.data["slot"].titleize %></dd>
+    </div>
+  <% end %>
+
+  <% if zones.any? %>
+    <div class="stat">
+      <dt class="stat__key">Zones covered</dt>
+      <dd class="stat__val"><%= zones.size %></dd>
     </div>
   <% end %>
 </dl>
+
+<% if armor_class.present? %>
+  <div class="stat stat--wide">
+    <span class="stat__key">Protection by armor class</span>
+    <%= render "items/armor_scale", scale: armor_scale(armor_class), tone: armor_class_tone(armor_class),
+            label: "Protects against armor classes 1 through #{armor_class.to_i.clamp(1, 6)}" %>
+  </div>
+<% end %>
+
+<% if armor_type.present? || slots.any? %>
+  <dl class="specs">
+    <% if armor_type.present? %>
+      <div class="spec">
+        <dt class="spec__key">Armor Type</dt>
+        <dd class="spec__val"><%= armor_type %></dd>
+      </div>
+    <% end %>
+    <% if slots.any? %>
+    <div class="spec">
+      <dt class="spec__key">Plate slots</dt>
+      <dd class="spec__val flex flex-wrap justify-end gap-1">
+        <% slots.each do |slot| %>
+          <span class="chip chip--strong"><%= slot %></span>
+        <% end %>
+      </dd>
+    </div>
+    <% end %>
+  </dl>
+<% end %>

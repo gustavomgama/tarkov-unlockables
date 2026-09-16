@@ -1,20 +1,20 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.data["default"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Default Container</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["default"] %></dd>
-    </div>
+<% effect = clean_wiki_text(item.data["effect"]) %>
+<% default = item.data["default"].presence %>
+<% if effect.present? || default.present? %>
+  <% if default.present? %>
+    <dl class="stats">
+      <div class="stat stat--xl">
+        <dt class="stat__key">Default Container</dt>
+        <dd class="stat__val"><%= default == true ? "Yes" : default %></dd>
+      </div>
+    </dl>
   <% end %>
-  <% if item.data["size_width"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Width</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["size_width"] %></dd>
-    </div>
+  <% if effect.present? %>
+    <dl class="stats">
+      <div class="stat stat--wide">
+        <dt class="stat__key">Effect</dt>
+        <dd class="stat__val text-sm font-normal leading-relaxed whitespace-pre-line"><%= effect %></dd>
+      </div>
+    </dl>
   <% end %>
-  <% if item.data["size_height"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Height</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["size_height"] %></dd>
-    </div>
-  <% end %>
-</dl>
+<% end %>

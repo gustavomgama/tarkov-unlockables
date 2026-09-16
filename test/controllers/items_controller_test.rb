@@ -39,13 +39,16 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     )
     get item_url(weapon)
     assert_response :success
-    assert_select "h2", text: /Details/
+    # Stats live in a readout directly under the item name, with no heading.
+    assert_select ".readout"
     assert_select "dt", text: "Caliber"
     assert_select "dd", text: "5.45x39mm"
     assert_select "dt", text: "Default Ammo"
-    assert_select "dt", text: "Fire Modes"
     assert_select "dt", text: "Ergonomics"
     assert_select "dt", text: "Recoil"
+    # fire_modes / sightrange / effective_distance are not in the imported
+    # weapon data, so the readout no longer claims to show them.
+    assert_select "dt", text: "Fire Modes", count: 0
   ensure
     weapon&.destroy
   end
@@ -93,10 +96,10 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
     assert_select "dt", text: "Durability"
-    # armor type / slots / zones are intentionally not shown
-    assert_select "dt", text: "Armor Type", count: 0
-    assert_select "dt", text: "Armor Slots", count: 0
-    assert_select "dt", text: "Zones", count: 0
+    # Zone coverage is surfaced now; a legacy `armor_slots` integer must not
+    # be mistaken for the real array-of-hashes structure.
+    assert_select "dt", text: "Zones covered"
+    assert_select "dt", text: "Plate slots", count: 0
   ensure
     armor&.destroy
   end
@@ -205,6 +208,32 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     gen&.destroy
   end
 
+  test "show draws no stats frame when the stats partial has nothing to render" do
+    # A key carries only type/categories in the imported data, and a bare item
+    # carries nothing. The frame must not be drawn around an empty partial.
+    # Annotations are on in development, so they are on here too — they are
+    # what made an empty partial look like it had content.
+    bare = Item.create!(bsg_id: "bare-#{SecureRandom.hex(4)}", full_name: "Bare", short_name: "B")
+    key = Item::Key.create!(
+      bsg_id: "ktype-#{SecureRandom.hex(4)}",
+      full_name: "Key With Type Only",
+      short_name: "KTO",
+      data: { "type" => "Key", "types" => [ "keys" ] }
+    )
+
+    annotations = ActionView::Base.annotate_rendered_view_with_filenames
+    ActionView::Base.annotate_rendered_view_with_filenames = true
+    [ bare, key ].each do |item|
+      get item_url(item)
+      assert_response :success
+      assert_select ".readout", count: 0
+      assert_select "dt", count: 0
+    end
+  ensure
+    ActionView::Base.annotate_rendered_view_with_filenames = annotations
+    Item.where(id: [ bare&.id, key&.id ]).delete_all
+  end
+
   test "show handles item with no data without error" do
     bare = Item.create!(
       bsg_id: "bare-#{SecureRandom.hex(4)}",
@@ -238,16 +267,16 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Timeline nodes include each task name (in reverse order, root first)
-    assert_select ".timeline-node", text: /wet-job-part-1/
-    assert_select ".timeline-node", text: /the-guide/
-    assert_select ".timeline-node", text: /the-cleaner/
+    assert_select ".timeline-node", text: /Wet Job Part 1/
+    assert_select ".timeline-node", text: /The Guide/
+    assert_select ".timeline-node", text: /The Cleaner/
 
     # Per-node requirements rendered
     assert_select ".timeline-node .font-data", minimum: 1, text: /lvl 14/
     assert_select ".timeline-node .font-data", text: /LL4/
     assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
 
-    assert_select "h2", text: /How to Unlock/
+    assert_select "h2", text: /How to unlock/
   ensure
     OfferUnlock.where(item_id: item&.id).destroy_all
     PreviousTask.where(task_id: [ wet1&.id, guide&.id, cleaner&.id ]).update_all(task_id: nil)
@@ -275,8 +304,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
 
     # Inline timeline rendered under the Where to Get sub-block
     assert_select ".timeline-node", minimum: 1
-    assert_select ".timeline-node", text: /wet-job-part-1/
-    assert_select ".timeline-node", text: /the-cleaner/
+    assert_select ".timeline-node", text: /Wet Job Part 1/
+    assert_select ".timeline-node", text: /The Cleaner/
     # Inline Task-gated indicator
     assert_select ".timeline-node .font-data", text: /lvl 14/
     assert_select ".timeline-node .font-data", text: /Peacekeeper LL3/
@@ -326,7 +355,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     get item_url(item)
     assert_response :success
 
-    assert_select "p", text: /unlocking task not found/
+    assert_select "p", text: /Task-gated trader offer/
+    assert_select "p", text: /quest is not recorded/
   ensure
     item&.item_currencies&.destroy_all
     item&.destroy

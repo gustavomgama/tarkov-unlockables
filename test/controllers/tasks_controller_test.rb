@@ -43,7 +43,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", task_path(tasks(:two)), text: "Task Two"
 
     # unlock timeline renders each node in the chain
-    assert_select "h2", text: "Unlock Path"
+    assert_select "h2", text: "Unlock path"
     assert_select ".timeline-node", text: /Task Two/
     assert_select ".timeline-node", text: /Task One/
   end
@@ -58,7 +58,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", text: /Prapor LL2/        # offer unlock
     assert_select "span", text: /Workbench Lv\.1/   # craft unlock
 
-    assert_select "h2", text: "Leads To"
+    assert_select "h2", text: "Leads to"
     assert_select "a[href=?]", task_path(tasks(:two)), text: "Task Two"
   end
 
@@ -69,7 +69,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: "Bare Task"
     assert_select "p", text: "No rewards listed."
-    assert_select "h2", text: "Unlock Path", count: 0
+    assert_select "h2", text: "Unlock path", count: 0
   ensure
     bare&.destroy
   end
@@ -84,7 +84,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get chains_tasks_url
 
     assert_response :success
-    assert_select "h1", text: "Task Chains"
+    assert_select "h1", text: "Task chains"
     # fixture graph: Task One (Prapor) <-> Task Two (Therapist), both 2-deep
     assert_select "h2", text: "Prapor"
     assert_select "h2", text: "Therapist"

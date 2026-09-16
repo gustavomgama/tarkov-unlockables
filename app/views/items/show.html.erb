@@ -1,153 +1,121 @@
-<div class="space-y-6">
-  <div class="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-6 lg:items-start">
-    <div class="lg:sticky lg:top-20">
-      <div class="w-full max-w-48 lg:max-w-none aspect-square bg-[var(--bg-surface)] overflow-hidden border border-[var(--border)]">
-        <% largest_img = @item.images.find { |img| img.include?('512') } || @item.images.find { |img| img.include?('8x') } || @item.images.last %>
-        <img
-          src="<%= largest_img %>"
-          alt="<%= @item.full_name %>"
-          class="w-full h-full object-contain"
-          width="192"
-          height="192"
-        >
-      </div>
-    </div>
-    <div>
-      <h1 class="text-3xl font-bold mb-2 text-[var(--text-bright)] tracking-tight"><%= @item.full_name %></h1>
-      <p class="text-[var(--text-muted)] mb-4"><%= @item.short_name %></p>
-      <div class="flex flex-wrap gap-2 mb-4">
-        <% @item.categories.each do |cat| %>
-          <span class="inline-block px-2 py-1 text-xs bg-[var(--bg-surface)] text-[var(--text)] border border-[var(--border)]">
-            <%= cat.humanize %>
-          </span>
-        <% end %>
-      </div>
-      <div class="flex flex-wrap gap-3 mb-4">
-        <%= render "favorites/favorite", item: @item %>
-      </div>
-      <div class="flex flex-wrap gap-3">
-        <% @item.links.each do |link| %>
-          <%= link_to link, link, class: "text-[var(--accent)] hover:text-[var(--accent-hover)] hover:underline text-sm", target: "_blank", rel: "noopener" %>
-        <% end %>
+<% content_for :title, @item.full_name %>
+<% content_for :description, "#{@item.full_name} — Escape from Tarkov stats, acquisition routes and unlock chain." %>
+
+<% kind = @item.class.name.demodulize.titleize %>
+<% packs = @item.ammo_packs.to_a %>
+<% caliber = item_caliber(@item) %>
+<% accepted = compatible_ammo(@item) %>
+<%# A weapon or magazine declares the rounds it takes; an ammo item does
+    not, so it gets the rest of its caliber. Never both — same table. %>
+<% siblings = accepted.empty? && @item.data["caliber"].present? ? @item.caliber_ammo.to_a : [] %>
+<% has_main = siblings.size > 1 || accepted.any? || packs.any? %>
+
+<div class="space-y-4 sm:space-y-6">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <%= link_to "Items", items_path %>
+    <span aria-hidden="true">/</span>
+    <span class="text-[var(--text)]"><%= kind %></span>
+  </nav>
+
+  <%# Hero: who this item is and the numbers that decide it. %>
+  <section class="panel">
+    <div class="panel__body">
+      <div class="flex gap-4 sm:gap-6">
+        <div class="w-20 sm:w-28 lg:w-32 shrink-0 aspect-square bg-[var(--bg-panel)] border border-[var(--border)]">
+          <% largest_img = @item.images.find { |img| img.include?("512") } || @item.images.find { |img| img.include?("8x") } || @item.images.last %>
+          <% if largest_img.present? %>
+            <img
+              src="<%= largest_img %>"
+              alt="<%= @item.full_name %>"
+              class="w-full h-full object-contain"
+              width="128"
+              height="128"
+            >
+          <% end %>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div class="min-w-0">
+              <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-bright)] leading-tight break-words"><%= @item.full_name %></h1>
+
+              <% if @item.short_name.present? && !@item.full_name.to_s.downcase.include?(@item.short_name.to_s.downcase) %>
+                <p class="mt-1 font-data text-sm text-[var(--text-muted)]"><%= @item.short_name %></p>
+              <% end %>
+
+              <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+                <% category_chips(@item).each do |label| %>
+                  <span class="chip chip--strong"><%= label %></span>
+                <% end %>
+                <% @item.links.each do |url| %>
+                  <%= link_to external_link_label(url), url, class: "chip chip--link", target: "_blank", rel: "noopener" %>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="shrink-0">
+              <%= render "favorites/favorite", item: @item %>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <% if @item.data.present? %>
-        <div class="mt-6 bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-          <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Details</h2>
-          <%= render @item.stats_partial, item: @item %>
+      <%# The stats partial decides what it has to say; the frame is drawn
+          only when it produced something, so a bare item gets no empty box. %>
+      <% stats = render(@item.stats_partial, item: @item) %>
+      <% if rendered_content?(stats) %>
+        <div class="mt-4 sm:mt-5">
+          <div class="readout"><%= stats %></div>
         </div>
       <% end %>
     </div>
-  </div>
+  </section>
 
-  <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-    <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">Where to Get</h2>
-    <% if @item.item_task_rewards.any? || @item.item_hideouts.any? || @item.item_barters.any? || @item.item_currencies.any? %>
-      <div class="space-y-3">
-        <% @item.item_task_rewards.each do |r| %>
-          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)] flex-shrink-0">Task Reward</span>
-            <span class="text-sm text-[var(--text)]">
-              <% task = r.task || Task.find_by(name: r.task_name) %>
-              <% if task %>
-                <%= link_to r.task_name, task_path(task), class: "text-[var(--accent)] hover:underline" %>
-              <% else %>
-                <%= r.task_name %>
-              <% end %>
-            </span>
-          </div>
+  <div class="grid gap-4 sm:gap-5 <%= "lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start" if has_main %>">
+    <% if has_main %>
+      <div class="min-w-0 space-y-4 sm:space-y-5">
+        <% if siblings.size > 1 %>
+          <%= render "items/ammo_table",
+                ammo: siblings,
+                current: @item,
+                title: "Rounds in #{caliber}",
+                note: "Sorted by penetration. Class is the heaviest armor this round reliably defeats." %>
         <% end %>
-        <% @item.item_hideouts.each do |h| %>
-          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-hideout)] text-[var(--text)] flex-shrink-0">Hideout</span>
-            <span class="font-data text-sm text-[var(--text)]"><%= h.station %> Level <%= h.level %></span>
-          </div>
+
+        <% if accepted.any? %>
+          <%= render "items/ammo_table",
+                ammo: accepted,
+                current: nil,
+                title: "Ammunition accepted",
+                note: "Every round this can chamber, hardest-hitting first." %>
         <% end %>
-        <% @item.item_barters.each do |b| %>
-          <div class="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-barter)] text-[var(--text)] flex-shrink-0">Barter</span>
-            <span class="font-data text-sm text-[var(--text)]"><%= b.trader %> LL<%= b.trader_level %> - <%= b.currency %> <%= b.cost %></span>
-          </div>
-        <% end %>
-        <% @item.item_currencies.each do |c| %>
-          <div class="py-2 border-b border-[var(--border)] last:border-0">
-            <div class="flex items-center gap-3 flex-wrap">
-              <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-currency)] text-[var(--text)] flex-shrink-0">Trader</span>
-              <span class="font-data text-sm text-[var(--text)]"><%= c.trader %> LL<%= c.min_trader_level %> - <%= c.currency %></span>
-              <% if c.task_unlock? %>
-                <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-task)] text-[var(--text)]">Task-gated</span>
-              <% end %>
+
+        <% if packs.any? %>
+          <section class="panel" aria-labelledby="part-of-head">
+            <div class="panel__head">
+              <h2 id="part-of-head" class="panel__title">Packs &amp; presets</h2>
+              <span class="panel__note"><%= packs.size %> <%= "entry".pluralize(packs.size) %></span>
             </div>
-            <% if c.task_unlock? %>
-              <% unlocking_task = @item.offer_unlocks.first&.reward&.task %>
-              <% if unlocking_task %>
-                <%= render "shared/raid_timeline", chain: unlocking_task.prerequisite_chain([], task_map), current_name: unlocking_task.name %>
-              <% else %>
-                <p class="text-xs text-[var(--text-muted)] mt-2 ml-1">unlocking task not found</p>
-              <% end %>
-            <% end %>
-          </div>
+            <%= render "items/part_of", item: @item, packs: packs %>
+          </section>
         <% end %>
       </div>
-    <% else %>
-      <p class="text-[var(--text-muted)]">No obtain methods found.</p>
     <% end %>
+
+    <aside class="min-w-0 space-y-4 sm:space-y-5 <%= "lg:sticky lg:top-20" if has_main %>">
+      <section class="panel" aria-labelledby="where-head">
+        <div class="panel__head">
+          <h2 id="where-head" class="panel__title">Where to get</h2>
+        </div>
+        <%= render "items/obtain", item: @item %>
+      </section>
+
+      <section class="panel" aria-labelledby="unlock-head">
+        <div class="panel__head">
+          <h2 id="unlock-head" class="panel__title">How to unlock</h2>
+        </div>
+        <%= render "items/unlock_paths", item: @item %>
+      </section>
+    </aside>
   </div>
-
-  <% unlocks = @item.offer_unlocks + @item.barter_unlocks + @item.craft_unlocks %>
-  <% if unlocks.any? %>
-    <div class="bg-[var(--bg-surface)] border border-[var(--border)] p-6">
-      <h2 class="text-lg font-bold mb-4 text-[var(--text-bright)]">How to Unlock</h2>
-      <div class="space-y-6">
-        <% unlocks.each do |unlock| %>
-          <div class="border border-[var(--border)] p-4">
-            <div class="flex items-center gap-2 mb-3 flex-wrap">
-              <span class="px-2 py-1 text-xs font-medium bg-[var(--badge-offer)] text-[var(--text)]"><%= unlock.class.name.demodulize.titleize %></span>
-              <span class="font-medium text-[var(--text-bright)]">
-                <% if unlock.reward&.task %>
-                  <%= link_to unlock.reward.task.full_name, task_path(unlock.reward.task), class: "text-[var(--text-bright)] hover:underline" %>
-                <% end %>
-              </span>
-              <span class="text-sm text-[var(--text-muted)]">· <%= unlock.reward&.task&.given_by&.titleize %></span>
-            </div>
-
-            <% if unlock.reward&.task %>
-              <%= render "shared/raid_timeline", chain: unlock.reward.task.prerequisite_chain([], task_map), current_name: unlock.reward.task.name %>
-            <% end %>
-
-            <% if unlock.reward&.task&.wiki_link.present? %>
-              <div class="mt-2">
-                <%= link_to unlock.reward.task.wiki_link, unlock.reward.task.wiki_link, class: "text-xs text-[var(--accent)] hover:text-[var(--accent-hover)]", target: "_blank", rel: "noopener" %>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
-  <% packs = @item.ammo_packs %>
-  <% if packs.any? %>
-    <div>
-      <h2 class="text-lg font-bold text-[var(--text-bright)] mb-3">Ammo Packs</h2>
-      <div class="space-y-2">
-        <% packs.each do |pack| %>
-          <%= link_to item_path(pack), class: "block bg-[var(--bg-surface)] border border-[var(--border)] p-4 hover:border-[var(--accent)] transition-colors" do %>
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-semibold text-[var(--text-bright)]"><%= pack.full_name %></h3>
-                <% pack_contains = pack.data&.dig("containsItems")&.find { |ci| ci["item"] == @item.bsg_id } %>
-                <p class="font-data text-sm text-[var(--text-muted)]">
-                  Contains <%= pack_contains&.dig("count") %> × <%= @item.short_name %>
-                </p>
-              </div>
-              <svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
 </div>

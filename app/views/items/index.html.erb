@@ -1,182 +1,152 @@
-<div class="space-y-6" data-controller="view-toggle">
-  <div class="flex items-center justify-between flex-wrap gap-2">
-    <h1 class="text-2xl font-bold text-[var(--text-bright)]">Items</h1>
-    <div class="flex items-center gap-4">
-      <span class="font-data text-sm text-[var(--text-muted)]"><%= @item_count %> total</span>
-      <%= form_tag items_path, method: :get do %>
-        <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
-        <% if params[:filters].present? %>
-          <% params[:filters].to_unsafe_h.each do |filter_type, values| %>
-            <% Array(values).each do |value| %>
-              <%= hidden_field_tag "filters[#{filter_type}][]", value %>
-            <% end %>
-          <% end %>
-        <% end %>
-        <%= select_tag :per_page, options_for_select([20, 50, 100], @per_page || 20),
-              class: "text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] px-2 py-1",
-              onchange: "this.form.requestSubmit()" %>
-      <% end %>
-      <div class="flex gap-1 bg-[var(--bg-surface)] p-1">
-        <button
-          type="button"
-          data-action="view-toggle#toggle"
-          data-view="grid"
-          class="px-3 py-1 text-sm text-[var(--text)] hover:text-[var(--accent)] transition-colors min-h-[36px]"
-        >
-          Grid
-        </button>
-        <button
-          type="button"
-          data-action="view-toggle#toggle"
-          data-view="table"
-          class="px-3 py-1 text-sm text-[var(--text)] hover:text-[var(--accent)] transition-colors min-h-[36px]"
-        >
-          Table
-        </button>
-      </div>
-    </div>
+<% content_for :title, "Items" %>
+<% active_filters = params[:filters].to_unsafe_h.deep_symbolize_keys rescue {} %>
+<% has_filters = active_filters.present? %>
+
+<div class="space-y-4 sm:space-y-5" data-controller="view-toggle">
+  <div class="flex items-baseline justify-between gap-3 flex-wrap">
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Items</h1>
+    <p class="font-data text-sm text-[var(--text-muted)]">
+      <span class="text-[var(--text)]"><%= number_with_delimiter(@item_count) %></span> items
+      <% if @total_pages > 1 %>· page <%= @current_page %>/<%= @total_pages %><% end %>
+    </p>
   </div>
 
-  <div class="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-6 lg:items-start">
-    <aside class="lg:sticky lg:top-20">
-      <form id="filter-form" action="<%= items_path %>" method="get">
-        <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
-        <%= hidden_field_tag :per_page, @per_page || 20 %>
-        <% active_filters = params[:filters].to_unsafe_h.deep_symbolize_keys rescue {} %>
-
-        <div class="mb-4 lg:hidden">
-          <%= text_field_tag :q, params[:q], placeholder: "Search items...", form: "filter-form", class: "w-full px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
-        </div>
-
-        <% if active_filters.present? %>
-          <div class="flex flex-wrap items-center gap-2 mb-4">
-            <span class="text-sm text-[var(--text-muted)]">Active:</span>
-            <% active_filters.each do |filter_type, values| %>
-              <% Array(values).each do |value| %>
-                <span class="inline-flex items-center gap-1 px-2 py-1 text-sm bg-[var(--bg-surface)] text-[var(--text)]">
-                  <%= filter_type.to_s.humanize %>: <%= value %>
-                  <%= link_to "×", items_path(q: params[:q], filters: active_filters.except(filter_type).merge(filter_type => Array(values) - [value])), class: "ml-1 hover:text-[var(--text-bright)]", "aria-label": "Remove filter #{filter_type} #{value}" %>
-                </span>
-              <% end %>
-            <% end %>
-            <%= link_to "Clear all", items_path, class: "text-sm text-[var(--danger)] hover:underline" %>
-          </div>
-        <% end %>
-
-        <div class="space-y-1">
-          <%= render FilterComponent::GroupComponent.new(
-            title: "Currency",
-            name: "currency",
-            options: @filter_options[:currency],
-            selected: Array(params.dig(:filters, :currency))
-          ) %>
-
-          <%= render FilterComponent::GroupComponent.new(
-            title: "Category",
-            name: "category",
-            options: @filter_options[:category],
-            selected: Array(params.dig(:filters, :category))
-          ) %>
-
-          <%= render FilterComponent::GroupComponent.new(
-            title: "Armor Class",
-            name: "armor_class",
-            options: @filter_options[:armor_class],
-            selected: Array(params.dig(:filters, :armor_class))
-          ) %>
-
-          <%= render FilterComponent::GroupComponent.new(
-            title: "Caliber",
-            name: "caliber",
-            options: @filter_options[:caliber],
-            selected: Array(params.dig(:filters, :caliber))
-          ) %>
-
-          <%= render FilterComponent::GroupComponent.new(
-            title: "Source",
-            name: "source",
-            options: @filter_options[:source],
-            selected: Array(params.dig(:filters, :source))
-          ) %>
-
-          <% if params[:filters].present? %>
-            <%= link_to items_path(q: params[:q]), class: "block px-3 py-2 text-sm text-[var(--danger)] border border-[var(--border)]" do %>
-              Clear filters
-            <% end %>
-          <% end %>
-
-          <label class="flex items-center gap-2 px-3 py-2 text-sm text-[var(--text)] hover:bg-[var(--bg-elevated)] cursor-pointer border border-[var(--border)]">
-            <input
-              type="checkbox"
-              name="filters[exclude_ref][]"
-              value="1"
-              <%= 'checked' if Array(params.dig(:filters, :exclude_ref)).include?("1") %>
-              class="filter-checkbox border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
-            >
-            <span>Exclude Ref items</span>
-          </label>
-        </div>
-      </form>
-
-      <div class="mt-4 hidden lg:block">
-        <%= form_tag items_path, method: :get do %>
-          <%= hidden_field_tag :per_page, @per_page || 20 %>
-          <% if params[:filters].present? %>
-            <% params[:filters].to_unsafe_h.each do |filter_type, values| %>
-              <% Array(values).each do |value| %>
-                <%= hidden_field_tag "filters[#{filter_type}][]", value %>
-              <% end %>
-            <% end %>
-          <% end %>
-          <%= text_field_tag :q, params[:q], placeholder: "Search items...", class: "w-full px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
-        <% end %>
-      </div>
-    </aside>
-
-    <div>
-      <div data-view-toggle-target="grid" class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2.5">
-        <%= render partial: "items/item_card", collection: @items, as: :card %>
+  <%= form_tag items_path, method: :get, id: "filter-form", class: "space-y-3" do %>
+    <%# Toolbar: search, page size, view. %>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="relative flex-1 min-w-[10rem]">
+        <%= text_field_tag :q, params[:q], type: "search", placeholder: "Search by name…",
+              class: "input", "aria-label": "Search items" %>
       </div>
 
-      <div data-view-toggle-target="table" class="hidden overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-[var(--bg-surface)]">
-            <tr>
-              <th class="px-3 py-2 text-left font-medium text-[var(--text-muted)]">Name</th>
-              <th class="px-3 py-2 text-left font-medium text-[var(--text-muted)]">Short Name</th>
-              <th class="px-3 py-2 text-left font-medium text-[var(--text-muted)]">Categories</th>
+      <%= select_tag :per_page, options_for_select([ 20, 50, 100 ], @per_page || 20),
+            class: "input w-auto", "aria-label": "Items per page",
+            onchange: "this.form.requestSubmit()" %>
+
+      <div class="flex gap-px bg-[var(--border)] border border-[var(--border)] p-px">
+        <button type="button" data-action="view-toggle#toggle" data-view="grid"
+                class="px-3 min-h-[2.5rem] text-xs font-bold text-[var(--text-muted)] hover:text-[var(--accent)]">Grid</button>
+        <button type="button" data-action="view-toggle#toggle" data-view="table"
+                class="px-3 min-h-[2.5rem] text-xs font-bold text-[var(--text-muted)] hover:text-[var(--accent)]">Table</button>
+      </div>
+    </div>
+
+    <%# Filters: one row of dropdowns, thumb-sized targets. %>
+    <div class="flex flex-wrap items-center gap-2">
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Currency", name: "currency",
+        options: @filter_options[:currency],
+        selected: Array(params.dig(:filters, :currency))
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Category", name: "category",
+        options: @filter_options[:category],
+        selected: Array(params.dig(:filters, :category))
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Armor class", name: "armor_class",
+        options: @filter_options[:armor_class],
+        selected: Array(params.dig(:filters, :armor_class))
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Caliber", name: "caliber",
+        options: @filter_options[:caliber],
+        selected: Array(params.dig(:filters, :caliber))
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Source", name: "source",
+        options: @filter_options[:source],
+        selected: Array(params.dig(:filters, :source))
+      ) %>
+
+      <label class="flex items-center gap-2 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] hover:border-[var(--accent)] cursor-pointer">
+        <input
+          type="checkbox"
+          name="filters[exclude_ref][]"
+          value="1"
+          <%= "checked" if Array(params.dig(:filters, :exclude_ref)).include?("1") %>
+          class="filter-checkbox border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
+        >
+        <span class="text-[var(--text)]">Exclude Ref</span>
+      </label>
+
+      <% if has_filters || params[:q].present? %>
+        <%= link_to "Clear all", items_path(per_page: @per_page), class: "text-sm text-[var(--danger)] hover:underline px-2 py-2" %>
+      <% end %>
+    </div>
+
+    <%# Active filter pills, each removable in one tap. %>
+    <% if has_filters %>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <% active_filters.each do |filter_type, values| %>
+          <% Array(values).each do |value| %>
+            <% next if filter_type.to_s == "exclude_ref" %>
+            <span class="chip chip--strong">
+              <%= filter_type.to_s.humanize %>: <%= value %>
+              <%= link_to "×", items_path(q: params[:q], per_page: @per_page, filters: active_filters.except(filter_type).merge(filter_type => Array(values) - [ value ])),
+                    class: "ml-1 text-[var(--text-muted)] hover:text-[var(--danger)] no-underline",
+                    "aria-label": "Remove filter #{filter_type} #{value}" %>
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if @items.none? %>
+    <% reason = if @item_count.positive? then :page elsif has_filters then :filters else :search end %>
+    <%= render "items/empty_state", reason: reason, total_pages: @total_pages %>
+  <% else %>
+    <div data-view-toggle-target="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-3">
+      <%= render partial: "items/item_card", collection: @items, as: :card %>
+    </div>
+
+    <div data-view-toggle-target="table" class="hidden overflow-x-auto border border-[var(--border)]">
+      <table class="w-full text-sm">
+        <thead class="bg-[var(--bg-panel)]">
+          <tr class="text-left text-[0.625rem] uppercase tracking-widest text-[var(--text-muted)]">
+            <th class="px-3 py-2 font-normal">Name</th>
+            <th class="px-3 py-2 font-normal">Short name</th>
+            <th class="px-3 py-2 font-normal">Type</th>
+            <th class="px-3 py-2 font-normal">Categories</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @items.each do |item| %>
+            <tr class="border-t border-[var(--border)] hover:bg-[var(--bg-elevated)]">
+              <td class="px-3 py-2"><%= link_to item.full_name, item_path(item) %></td>
+              <td class="px-3 py-2 font-data text-[var(--text-muted)]"><%= item.short_name %></td>
+              <td class="px-3 py-2 text-[var(--text-muted)]"><%= item.class.name.demodulize.titleize %></td>
+              <td class="px-3 py-2 text-[var(--text-muted)]"><%= category_labels(item, limit: 3).join(", ") %></td>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--border)]">
-            <% @items.each do |item| %>
-              <tr class="hover:bg-[var(--bg-surface)]">
-                <td class="px-3 py-2">
-                  <%= link_to item.full_name, item_path(item), class: "text-[var(--accent)] hover:text-[var(--accent-hover)]" %>
-                </td>
-                <td class="px-3 py-2 text-[var(--text)]"><%= item.short_name %></td>
-                <td class="px-3 py-2 text-[var(--text)]"><%= item.categories.join(", ") %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-
-      <% if @total_pages > 1 %>
-        <% safe_filters = params[:filters].to_unsafe_h.deep_symbolize_keys rescue {} %>
-        <nav class="flex items-center justify-center gap-2 mt-6" aria-label="Pagination">
-          <%= link_to "Previous", items_path(page: @current_page - 1, q: params[:q], per_page: @per_page, filters: safe_filters), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] min-h-[44px] flex items-center #{@current_page == 1 ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
-          <span class="font-data px-3 py-2 text-sm text-[var(--text-muted)]">Page <%= @current_page %> of <%= @total_pages %></span>
-          <%= link_to "Next", items_path(page: @current_page + 1, q: params[:q], per_page: @per_page, filters: safe_filters), class: "px-3 py-2 text-sm border border-[var(--border)] text-[var(--text)] min-h-[44px] flex items-center #{@current_page == @total_pages ? 'opacity-50 pointer-events-none' : 'hover:border-[var(--accent)]'}" %>
-        </nav>
-      <% end %>
+          <% end %>
+        </tbody>
+      </table>
     </div>
-  </div>
+
+    <% if @total_pages > 1 %>
+      <% safe_filters = active_filters %>
+      <nav class="flex items-center justify-between gap-3" aria-label="Pagination">
+        <%= link_to "← Previous",
+              items_path(page: @current_page - 1, q: params[:q], per_page: @per_page, filters: safe_filters),
+              class: "btn #{'opacity-40 pointer-events-none' if @current_page == 1}" %>
+        <span class="font-data text-sm text-[var(--text-muted)]">Page <%= @current_page %> of <%= number_with_delimiter(@total_pages) %></span>
+        <%= link_to "Next →",
+              items_path(page: @current_page + 1, q: params[:q], per_page: @per_page, filters: safe_filters),
+              class: "btn #{'opacity-40 pointer-events-none' if @current_page == @total_pages}" %>
+      </nav>
+    <% end %>
+  <% end %>
 </div>
 
 <script>
-document.querySelectorAll('.filter-checkbox').forEach(function(checkbox) {
-  checkbox.addEventListener('change', function() {
-    document.getElementById('filter-form').submit();
+document.querySelectorAll(".filter-checkbox").forEach(function (checkbox) {
+  checkbox.addEventListener("change", function () {
+    document.getElementById("filter-form").requestSubmit();
   });
 });
 </script>

@@ -1,0 +1,31 @@
+<%# Empty result state: names the cause and offers the one action that
+    undoes it, rather than leaving a blank page.
+    Locals: reason — :page | :filters | :search %>
+<% case reason %>
+<% when :page %>
+  <div class="panel">
+    <div class="panel__body text-center py-10">
+      <p class="text-sm text-[var(--text)]">That page is past the end of the list.</p>
+      <p class="mt-1 text-xs text-[var(--text-muted)]">
+        There are <span class="font-data"><%= number_with_delimiter(total_pages) %></span> pages of results.
+      </p>
+      <%= link_to "Back to page 1", items_path(q: params[:q], per_page: @per_page, filters: params[:filters]&.to_unsafe_h), class: "btn mt-4" %>
+    </div>
+  </div>
+<% when :filters %>
+  <div class="panel">
+    <div class="panel__body text-center py-10">
+      <p class="text-sm text-[var(--text)]">No items match this combination of filters.</p>
+      <p class="mt-1 text-xs text-[var(--text-muted)]">Try dropping one, or widening the caliber.</p>
+      <%= link_to "Clear filters", items_path(q: params[:q], per_page: @per_page), class: "btn mt-4" %>
+    </div>
+  </div>
+<% else %>
+  <div class="panel">
+    <div class="panel__body text-center py-10">
+      <p class="text-sm text-[var(--text)]">No items match this search.</p>
+      <p class="mt-1 text-xs text-[var(--text-muted)]">Try a shorter name, or search by short name instead.</p>
+      <%= link_to "Show all items", items_path(per_page: @per_page), class: "btn mt-4" %>
+    </div>
+  </div>
+<% end %>

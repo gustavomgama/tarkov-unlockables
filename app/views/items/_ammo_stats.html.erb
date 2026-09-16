@@ -1,44 +1,82 @@
-<dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-  <% if item.data["caliber"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Caliber</dt>
-      <dd class="font-medium text-[var(--text)]"><%= caliber_display(item.data["caliber"]) %></dd>
-    </div>
-  <% end %>
+<% pen = item.data["penetration_power"].presence || item.data["penetration"].presence %>
+<% velocity = item.data["velocity"].presence %>
+<% stack = item.data["stackMaxSize"].presence || item.data["stack_max_size"].presence %>
+<% tracer = item.data["tracer"].presence %>
+<% recoil = item.data["recoil"].presence %>
+<% ammo_type = item.data["ammo_type"].presence || item.data["ammoType"].presence %>
+
+<dl class="stats">
   <% if item.data["damage"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Damage</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["damage"] %></dd>
+    <div class="stat stat--xl">
+      <dt class="stat__key">Damage</dt>
+      <dd class="stat__val"><%= item.data["damage"] %></dd>
+      <dd class="stat__note">per round</dd>
     </div>
   <% end %>
-  <% if item.data["penetration_power"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Penetration</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["penetration_power"] %></dd>
+
+  <% if pen.present? %>
+    <% classes = penetration_class(pen) %>
+    <div class="stat stat--xl stat--tone" style="--tone: <%= penetration_tone(pen) %>">
+      <dt class="stat__key">Penetration</dt>
+      <dd class="stat__val"><%= pen %></dd>
+      <dd class="stat__note"><%= classes.zero? ? "no armor penetration" : "beats class #{classes} and below" %></dd>
     </div>
   <% end %>
-  <% if item.data["ammo_type"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Ammo Type</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["ammo_type"] %></dd>
+
+  <% if (caliber = item_caliber(item)) %>
+    <div class="stat">
+      <dt class="stat__key">Caliber</dt>
+      <dd class="stat__val"><%= caliber %></dd>
     </div>
   <% end %>
-  <% if item.data["stack_max_size"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Stack Max Size</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["stack_max_size"] %></dd>
-    </div>
-  <% end %>
-  <% if item.data["tracer"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Tracer</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["tracer"] %></dd>
-    </div>
-  <% end %>
-  <% if item.data["tracer_color"].present? %>
-    <div>
-      <dt class="text-[var(--text-muted)]">Tracer Color</dt>
-      <dd class="font-medium text-[var(--text)]"><%= item.data["tracer_color"] %></dd>
+
+  <% if velocity.present? %>
+    <div class="stat">
+      <dt class="stat__key">Velocity</dt>
+      <dd class="stat__val"><%= velocity %> <span class="text-[0.6875rem] font-normal text-[var(--text-muted)]">m/s</span></dd>
     </div>
   <% end %>
 </dl>
+
+<% if pen.present? %>
+  <div class="stat stat--wide">
+    <span class="stat__key">Reliable penetration by armor class</span>
+    <%= render "items/armor_scale", scale: penetration_scale(pen), tone: penetration_tone(pen),
+          label: classes.zero? ? "Does not defeat any armor class" : "Reliably defeats armor classes 1 through #{classes}" %>
+  </div>
+<% end %>
+
+<% if ammo_type.present? || stack.present? || recoil.present? || tracer.present? %>
+  <dl class="specs">
+    <%# "bullet" is the default for every round; a row saying so is noise. %>
+    <% if ammo_type.present? && ammo_type.to_s.downcase != "bullet" %>
+      <div class="spec">
+        <dt class="spec__key">Ammo Type</dt>
+        <dd class="spec__val"><%= ammo_type.titleize %></dd>
+      </div>
+    <% end %>
+    <% if stack.present? %>
+      <div class="spec">
+        <dt class="spec__key">Stack Max Size</dt>
+        <dd class="spec__val"><%= stack %></dd>
+      </div>
+    <% end %>
+    <% if recoil.present? && recoil.to_s != "0" %>
+      <div class="spec">
+        <dt class="spec__key">Recoil</dt>
+        <dd class="spec__val"><%= recoil.to_s.start_with?("-", "+") ? recoil : "+#{recoil}" %></dd>
+      </div>
+    <% end %>
+    <% if tracer.present? && tracer.to_s.downcase != "false" %>
+      <div class="spec">
+        <dt class="spec__key">Tracer</dt>
+        <dd class="spec__val flex items-center justify-end gap-1.5">
+          <% if item.data["tracer_color"].present? %>
+            <span class="trader-dot" style="background: <%= item.data["tracer_color"] %>" aria-hidden="true"></span>
+          <% end %>
+          <%= item.data["tracer_color"].presence&.titleize || "Yes" %>
+        </dd>
+      </div>
+    <% end %>
+  </dl>
+<% end %>

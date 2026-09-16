@@ -1,0 +1,42 @@
+<%# Ammo comparison table.
+    Locals:
+      ammo    — collection of Item::Ammo, already ordered
+      title   — panel heading
+      note    — optional one-line explanation under the heading
+      current — optional item to highlight as the one being viewed
+%>
+<% current ||= nil %>
+<section class="panel" aria-labelledby="ammo-table-head">
+  <div class="panel__head">
+    <h2 id="ammo-table-head" class="panel__title"><%= title %></h2>
+    <span class="panel__note"><%= ammo.size %> rounds</span>
+  </div>
+  <div class="panel__body panel__body--flush">
+    <div class="ammo-table">
+      <div class="ammo-table__head" aria-hidden="true">
+        <span>Round</span>
+        <span>Dmg</span>
+        <span>Pen</span>
+        <span>Class</span>
+      </div>
+      <% ammo.each do |round| %>
+        <% pen = round.data["penetration_power"].presence || round.data["penetration"].presence %>
+        <% is_current = current && round.id == current.id %>
+        <%= link_to item_path(round), class: "ammo-row #{'ammo-row--current' if is_current}", "aria-current": ("true" if is_current) do %>
+          <span class="ammo-row__name"><%= round.short_name.presence || round.full_name %><%= " · viewing" if is_current %></span>
+          <span class="ammo-row__num"><%= round.data["damage"].presence || "—" %></span>
+          <% if pen.present? %>
+            <span class="ammo-row__num" style="color: <%= penetration_tone(pen) %>"><%= pen %></span>
+            <span class="ammo-row__num ammo-row__num--muted"><%= penetration_class(pen).zero? ? "—" : penetration_class(pen) %></span>
+          <% else %>
+            <span class="ammo-row__num ammo-row__num--muted">—</span>
+            <span class="ammo-row__num ammo-row__num--muted">—</span>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+    <% if note.present? %>
+      <p class="px-3.5 py-2.5 text-xs text-[var(--text-muted)] border-t border-[var(--border)]"><%= note %></p>
+    <% end %>
+  </div>
+</section>

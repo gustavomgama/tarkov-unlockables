@@ -1,0 +1,86 @@
+<%# Where to get: every acquisition route on file, one row per route.
+    Task gating is flagged here but explained in the unlock panel, so the
+    timeline is never rendered twice. %>
+<% rewards  = item.item_task_rewards %>
+<%# The import can repeat a row; the same offer twice is noise, not data. %>
+<% traders  = item.item_currencies.uniq { |c| [ c.trader, c.currency, c.min_trader_level ] } %>
+<% barters  = item.item_barters %>
+<% hideouts = item.item_hideouts.uniq { |h| [ h.station, h.level ] } %>
+<% barter_groups = barters.group_by { |b| [ b.trader, b.trader_level ] } %>
+
+<% if rewards.any? || traders.any? || barters.any? || hideouts.any? %>
+  <div class="panel__body panel__body--flush">
+    <% traders.each do |currency| %>
+      <div class="srcrow">
+        <span class="srcbadge" style="--tone: var(--badge-currency)">Trader</span>
+        <div class="srcrow__body">
+          <p class="srcrow__title">
+            <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= currency.trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+            <%= currency.trader.titleize %> <span class="font-data text-[var(--text-muted)]">LL<%= currency.min_trader_level %></span>
+            <% if currency.currency.present? %>
+              <span class="font-data text-[var(--text-muted)]">· <%= currency.currency %></span>
+            <% end %>
+          </p>
+          <% if currency.task_unlock? %>
+            <p class="srcrow__meta">
+              <span class="chip" style="--tone: var(--badge-task)">Task-gated</span>
+              unlocked by a task — see the unlock path on this page
+            </p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% barter_groups.each do |(trader, level), group| %>
+      <% gives = group.filter_map(&:item_name).uniq %>
+      <div class="srcrow">
+        <span class="srcbadge" style="--tone: var(--badge-barter)">Barter</span>
+        <div class="srcrow__body">
+          <p class="srcrow__title">
+            <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= trader.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+            <%= trader.presence&.titleize || "Unknown trader" %>
+            <span class="font-data text-[var(--text-muted)]">LL<%= level %></span>
+          </p>
+          <%# Barter contents are often absent from the import; say nothing
+              rather than repeat "not recorded" on every row. %>
+          <% if gives.any? %>
+            <p class="srcrow__meta">for <%= gives.to_sentence %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% hideouts.each do |hideout| %>
+      <div class="srcrow">
+        <span class="srcbadge" style="--tone: var(--badge-hideout)">Hideout</span>
+        <div class="srcrow__body">
+          <p class="srcrow__title"><%= hideout.station %> <span class="font-data text-[var(--text-muted)]">Level <%= hideout.level %></span></p>
+          <p class="srcrow__meta">crafted at the hideout</p>
+        </div>
+      </div>
+    <% end %>
+
+    <% rewards.each do |reward| %>
+      <div class="srcrow">
+        <span class="srcbadge" style="--tone: var(--badge-task)">Quest</span>
+        <div class="srcrow__body">
+          <p class="srcrow__title">
+            <% task = reward.task || task_map[reward.task_name] %>
+            <% if task %>
+              <%= link_to task_display_name(reward.task_name), task_path(task) %>
+            <% else %>
+              <%= task_display_name(reward.task_name) %>
+            <% end %>
+          </p>
+          <p class="srcrow__meta">quest reward</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="panel__body">
+    <p class="text-sm text-[var(--text-muted)]">
+      No trader, barter or quest route recorded. This item may only drop in raid.
+    </p>
+  </div>
+<% end %>
