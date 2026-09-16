@@ -23,6 +23,11 @@
         <% if @trader.description.present? %>
           <p class="mt-2 text-sm text-[var(--text)]"><%= @trader.description %></p>
         <% end %>
+        <% if @offers_by_level.any? %>
+          <p class="mt-2">
+            <%= link_to "Browse #{@trader.name} items", items_path(filters: { trader: [ @trader.name ] }), class: "chip chip--link" %>
+          </p>
+        <% end %>
       </div>
     </div>
   </section>

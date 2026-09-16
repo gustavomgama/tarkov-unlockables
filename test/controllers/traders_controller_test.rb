@@ -33,6 +33,7 @@ class TradersControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: "LL2"
     assert_select "a[href=?]", item_path(item), text: "Trader Widget"
     assert_match "1,234 RUB", response.body
+    assert_select "a[href=?]", items_path(filters: { trader: [ "Show Trader" ] }), text: "Browse Show Trader items"
   ensure
     item&.item_currencies&.destroy_all
     item&.destroy

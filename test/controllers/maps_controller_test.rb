@@ -39,6 +39,7 @@ class MapsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: "Extracts"
     assert_match "ZB-1011", response.body
     assert_match "Transit to Reserve", response.body
+    assert_select "a[href=?]", tasks_path(map: "Show Map"), text: "Quests on Show Map"
   ensure
     map&.destroy
   end
