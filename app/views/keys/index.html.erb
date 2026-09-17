@@ -1,0 +1,37 @@
+<% content_for :title, "Quest keys" %>
+<% content_for :description, "Every key an Escape from Tarkov quest asks for, and which quests need it." %>
+
+<div class="space-y-4 sm:space-y-5">
+  <div class="flex items-baseline justify-between gap-3 flex-wrap">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Quest keys</h1>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
+        Every key a quest asks for, so you know what to keep.
+      </p>
+    </div>
+    <p class="font-data text-sm text-[var(--text-muted)]">
+      <span class="text-[var(--text)]"><%= @keys.size %></span> keys ·
+      <span class="text-[var(--text)]"><%= @map_count %></span> maps
+    </p>
+  </div>
+
+  <div class="border border-[var(--border)]">
+    <% @keys.each do |key| %>
+      <div class="srcrow">
+        <div class="srcrow__body">
+          <p class="srcrow__title">
+            <% if key[:item_id] %>
+              <%= link_to key[:name], item_path(key[:item_id]) %>
+            <% else %>
+              <%= key[:name] %>
+            <% end %>
+          </p>
+          <p class="srcrow__meta">
+            <% if key[:maps].any? %><%= key[:maps].to_sentence %> · <% end %>
+            needed by <%= safe_join(key[:tasks].map { |task| link_to(task.full_name, task_path(task)) }, ", ") %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
