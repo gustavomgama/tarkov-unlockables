@@ -85,4 +85,24 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
     station&.destroy
     item&.destroy
   end
+
+  # The reference charts load one item type and render jsonb, so they stay
+  # flat regardless of how many rows the type has.
+  test "ammo#index query budget" do
+    queries = count_queries { get ammo_url }
+    assert_response :success
+    assert_operator queries, :<=, 8, "ammo#index fired #{queries} queries"
+  end
+
+  test "armor#index query budget" do
+    queries = count_queries { get armor_url }
+    assert_response :success
+    assert_operator queries, :<=, 8, "armor#index fired #{queries} queries"
+  end
+
+  test "keys#index query budget" do
+    queries = count_queries { get keys_url }
+    assert_response :success
+    assert_operator queries, :<=, 8, "keys#index fired #{queries} queries"
+  end
 end
