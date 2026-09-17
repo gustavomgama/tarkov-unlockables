@@ -21,7 +21,7 @@ Answering questions like:
 - `/maps` — raid length, bosses, extracts and transits.
 - `/keys` — every key a quest asks for, and which quests need it.
 - `/ammo` — every round by caliber, sorted by penetration.
-- `/armor` — body armor by class, durability and movement penalty.
+- `/armor` — body armor and helmets by class, durability and movement penalty.
 
 ## Setup
 

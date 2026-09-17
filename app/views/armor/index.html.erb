@@ -1,15 +1,19 @@
 <% content_for :title, "Armor" %>
-<% content_for :description, "Escape from Tarkov body armor chart: class, durability, material and movement penalties." %>
+<% content_for :description, "Escape from Tarkov armor chart: body armor and helmets by class, durability, material and movement penalties." %>
 
 <div class="space-y-4 sm:space-y-6">
   <div>
     <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Armor chart</h1>
     <p class="mt-1 text-sm text-[var(--text-muted)]">
-      Body armor by class, toughest first. Plates and helmets are separate item types.
+      Body armor and helmets by class, toughest first. Plates and face shields are not included.
     </p>
   </div>
 
-  <% @by_class.each do |armor_class, armors| %>
-    <%= render "items/armor_table", armors: armors, title: "Class #{armor_class}" %>
+  <% @armor_by_class.each do |armor_class, armors| %>
+    <%= render "items/armor_table", armors: armors, title: "Body armor class #{armor_class}" %>
+  <% end %>
+
+  <% @helmets_by_class.each do |armor_class, helmets| %>
+    <%= render "items/armor_table", armors: helmets, title: "Helmet class #{armor_class}" %>
   <% end %>
 </div>
