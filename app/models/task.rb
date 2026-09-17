@@ -56,13 +56,13 @@ class Task < ApplicationRecord
   # passes a preloaded name → task map (built once per request in the
   # controller as @task_map); nested calls share it. Called without a map
   # (console, tests) it builds one — 3 queries total instead of ~3 per level.
-  def prerequisite_chain(visited = [], task_map = nil)
+  def prerequisite_chain(visited = [], task_map = nil, alternative: false)
     task_map ||= Task.includes(requirements: :previous_tasks).index_by(&:name)
     return [] if visited.include?(id)
     visited << id
 
     # Read through the map's preloaded copy: the object this was called on
-    # (e.g. an unlock's task) has no preloaded requirements, so touching
+    # (e.g., an unlock's task) has no preloaded requirements, so touching
     # self.requirements would fire one query per chain node.
     node = task_map[name] || self
     first_req = node.requirements.first
@@ -72,13 +72,15 @@ class Task < ApplicationRecord
       full_name:           full_name,
       given_by:            given_by,
       player_level:        first_req&.player_level.to_i,
-      trader_requirements: first_req&.trader_level || []
+      trader_requirements: first_req&.trader_level || [],
+      # Set when the wiki lists this guess as one of several alternatives.
+      alternative:         alternative
     } ]
 
     node.requirements.each do |req|
       req.previous_tasks.each do |pt|
         prev = task_map[pt.task_name]
-        chain += prev.prerequisite_chain(visited, task_map) if prev
+        chain += prev.prerequisite_chain(visited, task_map, alternative: pt.alternative) if prev
       end
     end
 

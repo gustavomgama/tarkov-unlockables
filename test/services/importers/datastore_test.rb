@@ -138,6 +138,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         # The same prerequisite in both spellings: a hash and a bare id.
         "task_requirements" => [ { "bsg_id" => "t1", "name" => "First Task" } ],
         "previous_tasks" => %w[t1],
+        # The wiki joins this one with `or`: any one of the set suffices.
+        "alternative_previous_tasks" => %w[t1],
         "leads_to" => [ { "task_id" => "t1", "task_name" => "first-task" } ],
         "start_rewards" => { "items" => [], "offer_unlock" => [], "barter_unlock" => [], "craft_unlock" => [] },
         "finish_rewards" => { "items" => [], "offer_unlock" => [], "barter_unlock" => [], "craft_unlock" => [] }
@@ -331,6 +333,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal 1, requirement.previous_tasks.count
     assert_equal first.id, requirement.previous_tasks.first.task_id
     assert_equal "first-task", requirement.previous_tasks.first.task_name
+    assert requirement.previous_tasks.first.alternative
     assert_equal 1, requirement.previous_tasks_count
 
     assert_equal 5, first.requirements.first.player_level

@@ -113,6 +113,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", tasks(:one).wiki_link, text: "Wiki walkthrough"
   end
 
+  test "show marks an alternative prerequisite with or" do
+    child = Task.create!(bsg_id: "altc-#{SecureRandom.hex(4)}", full_name: "Alt Child", name: "alt-child", given_by: "Prapor")
+    parent = Task.create!(bsg_id: "altp-#{SecureRandom.hex(4)}", full_name: "Alt Parent", name: "alt-parent", given_by: "Prapor")
+    child.requirements.create!(player_level: 0)
+         .previous_tasks.create!(task: parent, task_name: parent.name, alternative: true)
+
+    get task_url(child)
+
+    assert_response :success
+    assert_select ".timeline-node span", text: "or", minimum: 1
+  ensure
+    child&.destroy
+    parent&.destroy
+  end
+
   test "show renders a trader-level requirement with no prerequisites" do
     # Without the timeline (no prerequisites) a trader gate used to appear
     # nowhere on the page.

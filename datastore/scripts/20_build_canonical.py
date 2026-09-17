@@ -433,8 +433,37 @@ def task_req_ref(ctx, req):
     return {}
 
 
+def _wiki_previous_links(value):
+    """[(quest name, is_alternative), ...] from a wiki `previous = ...` value.
+
+    Wikilinks joined by `or` are alternatives — the player needs any one of
+    them, not all — while adjacent links are all required. Every member of an
+    `or` group is an alternative, the first one included.
+    """
+    tokens = []
+    for node in mwparserfromhell.parse(value).nodes:
+        if isinstance(node, mwparserfromhell.nodes.Wikilink):
+            title = str(node.title).strip()
+            # "Fail X" means X is the quest you must not fail.
+            if title.lower().startswith("fail "):
+                title = title[5:].strip()
+            if title:
+                tokens.append(("link", title))
+        elif isinstance(node, mwparserfromhell.nodes.Text) and str(node).strip().lower() == "or":
+            tokens.append(("or",))
+
+    out = []
+    for i, token in enumerate(tokens):
+        if token[0] != "link":
+            continue
+        before = tokens[i - 1][0] == "or" if i > 0 else False
+        after = tokens[i + 1][0] == "or" if i + 1 < len(tokens) else False
+        out.append((token[1], before or after))
+    return out
+
+
 def wiki_task_previous():
-    """Wiki quest name -> [previous quest names] from the quest infoboxes.
+    """Wiki quest name -> [(previous quest name, is_alternative), ...].
 
     The wiki lists every prerequisite, where the API's `taskRequirements`
     often carries only the immediate one, so this is the fuller edge set.
@@ -462,10 +491,7 @@ def wiki_task_previous():
         for line in section.splitlines():
             field = line.strip()
             if field.startswith("previous") and "=" in field:
-                links = [ str(link.title).strip()
-                          for link in mwparserfromhell.parse(field.split("=", 1)[1]).filter_wikilinks() ]
-                # "Fail X" means X is the quest you must not fail.
-                links = [ link[5:].strip() if link.lower().startswith("fail ") else link for link in links ]
+                links = _wiki_previous_links(field.split("=", 1)[1])
                 if links:
                     previous[name] = links
                 break
@@ -479,7 +505,9 @@ def merge_wiki_previous(rows):
     point at prerequisites); the wiki only ever adds edges the API omitted.
     A cycle is impossible in the API graph, but the wiki can list two quests as
     each other's prerequisite, so an edge that would close a cycle is skipped
-    (and counted). Returns `(added, skipped)`, for the build report.
+    (and counted). Edges the wiki joins with `or` are recorded in
+    `alternative_previous_tasks` too: the player needs any one of them.
+    Returns `(added, skipped)`, for the build report.
     """
     wiki = wiki_task_previous()
     by_name = { r["name"].casefold(): r["id"] for r in rows if r.get("name") }
@@ -503,18 +531,26 @@ def merge_wiki_previous(rows):
 
     added = skipped = 0
     for row in rows:
-        names = wiki.get(row.get("name") or "")
-        if not names:
+        entries = wiki.get(row.get("name") or "")
+        if not entries:
             continue
-        for name in names:
+        for name, is_alternative in entries:
             prev_id = by_name.get(name.casefold())
-            if not prev_id or prev_id == row["id"] or prev_id in graph[row["id"]]:
+            if not prev_id or prev_id == row["id"]:
+                continue
+            if prev_id in graph[row["id"]]:
+                # Already a prerequisite (API or index); the wiki only adds the
+                # `or` flag when it marks the group as alternatives.
+                if is_alternative and prev_id not in row["alternative_previous_tasks"]:
+                    row["alternative_previous_tasks"].append(prev_id)
                 continue
             if reaches(prev_id, row["id"]):
                 skipped += 1
                 continue
             row["previous_tasks"].append(prev_id)
             graph[row["id"]].add(prev_id)
+            if is_alternative:
+                row["alternative_previous_tasks"].append(prev_id)
             added += 1
     return added, skipped
 
@@ -656,6 +692,9 @@ def build_tasks(ctx):
                 for req in (index.get("requirements") or [])
                 for pt in (req.get("previous_tasks") or [])
             ),
+            # Filled by merge_wiki_previous: the subset of previous_tasks the
+            # wiki joined with `or` (any one of them suffices).
+            "alternative_previous_tasks": [],
             "task_image_url": t.get("taskImageLink"),
         })
     return rows

@@ -281,6 +281,8 @@ module Importers
       previous_tasks = (Array(raw["task_requirements"]) + Array(raw["previous_tasks"]))
                        .map { |entry| entry.is_a?(Hash) ? entry["bsg_id"] : entry }
                        .compact.uniq
+      # Prerequisites the wiki joins with `or`: any one of them suffices.
+      alternatives = Array(raw["alternative_previous_tasks"])
       trader_levels = Array(raw["trader_requirements"]).map do |req|
         { "trader_name" => req["trader_slug"], "trader_level" => req["value"].to_s }
       end
@@ -294,8 +296,9 @@ module Importers
 
       previous_tasks.each do |bsg_id|
         requirement.previous_tasks.create!(
-          task_id:   @task_id_by_bsg[bsg_id],
-          task_name: task_slug(bsg_id, nil)
+          task_id:     @task_id_by_bsg[bsg_id],
+          task_name:   task_slug(bsg_id, nil),
+          alternative: alternatives.include?(bsg_id)
         )
       end
     end

@@ -112,6 +112,7 @@ repair-degradation bounds sit next to `class` and `durability`.
 | `start_rewards` / `finish_rewards` / `failure_outcome` | object | see below |
 | `leads_to` | object[] | `{task_id, task_name}` (from the derived graph) |
 | `previous_tasks` | string[] | task ids |
+| `alternative_previous_tasks` | string[] | the subset of prerequisite ids the wiki joins with `or` — any one of them suffices, and the id may also appear in `task_requirements` |
 | `task_image_url` | string | |
 
 ### objective shape

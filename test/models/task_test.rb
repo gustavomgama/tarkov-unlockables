@@ -66,6 +66,18 @@ class TaskTest < ActiveSupport::TestCase
     assert_equal "first", chain.last[:name]
   end
 
+  test "prerequisite_chain marks an alternative prerequisite" do
+    first = Task.create!(bsg_id: "alt1-#{SecureRandom.hex(4)}", full_name: "Alt First", name: "alt-first", given_by: "Prapor")
+    second = Task.create!(bsg_id: "alt2-#{SecureRandom.hex(4)}", full_name: "Alt Second", name: "alt-second", given_by: "Prapor")
+
+    req = second.requirements.create!(player_level: 0)
+    req.previous_tasks.create!(task: first, task_name: "alt-first", alternative: true)
+
+    chain = second.prerequisite_chain
+    refute chain.first[:alternative]
+    assert chain.last[:alternative]
+  end
+
   # --- Task 11: chain node carries requirements (player_level + trader_requirements) ---
 
   test "prerequisite_chain node carries player_level + trader_requirements" do

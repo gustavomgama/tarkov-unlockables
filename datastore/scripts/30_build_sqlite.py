@@ -121,7 +121,7 @@ CREATE TABLE task_trader_requirements (
   task_id TEXT, trader_slug TEXT, requirement_type TEXT, compare_method TEXT, value TEXT
 );
 CREATE TABLE task_leads_to (task_id TEXT, follow_up_task_id TEXT, follow_up_task_name TEXT);
-CREATE TABLE task_previous_tasks (task_id TEXT, previous_task_id TEXT);
+CREATE TABLE task_previous_tasks (task_id TEXT, previous_task_id TEXT, alternative INTEGER);
 CREATE TABLE task_needed_keys (task_id TEXT, map_id TEXT, key_bsg_id TEXT);
 CREATE TABLE task_rewards (
   task_id TEXT, phase TEXT, kind TEXT, bsg_id TEXT, name TEXT, count INTEGER,
@@ -375,8 +375,9 @@ def main():
                          for x in r["trader_requirements"]])
         cur.executemany("INSERT INTO task_leads_to VALUES (?,?,?)",
                         [(tid, x["task_id"], x["task_name"]) for x in r["leads_to"]])
-        cur.executemany("INSERT INTO task_previous_tasks VALUES (?,?)",
-                        [(tid, p) for p in r["previous_tasks"]])
+        cur.executemany("INSERT INTO task_previous_tasks VALUES (?,?,?)",
+                        [(tid, p, 1 if p in set(r.get("alternative_previous_tasks") or []) else 0)
+                         for p in r["previous_tasks"]])
         for nk in r["needed_keys"]:
             for k in nk["keys"]:
                 cur.execute("INSERT INTO task_needed_keys VALUES (?,?,?)", (tid, nk["map_id"], k.get("bsg_id")))
