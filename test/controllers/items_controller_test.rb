@@ -811,6 +811,23 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ light, heavy ].each { |i| i&.destroy }
   end
 
+  test "index renders every filter with a weight sort" do
+    [
+      { q: "a", sort: "weight_desc" },
+      { filters: { currency: [ "RUB" ] }, sort: "weight_asc" },
+      { filters: { trader: [ "Prapor" ] }, sort: "weight_desc" },
+      { filters: { source: [ "trader" ] }, sort: "weight_asc" },
+      { filters: { category: [ "headphones" ] }, sort: "weight_desc" },
+      { filters: { caliber: [ "Caliber556x45NATO" ] }, sort: "weight_desc" },
+      { filters: { armor_class: [ "5" ] }, sort: "weight_asc" },
+      { filters: { task_required: [ "1" ] }, sort: "weight_desc" },
+      { filters: { exclude_ref: [ "1" ] }, sort: "weight_desc" }
+    ].each do |params|
+      get items_url(params)
+      assert_response :success, "expected 200 for #{params.inspect}"
+    end
+  end
+
   test "index survives malformed filter params" do
     # params[:filters] comes from the query string: it can be a String or an
     # Array rather than a nested hash, and each of these 500'd at some point.
