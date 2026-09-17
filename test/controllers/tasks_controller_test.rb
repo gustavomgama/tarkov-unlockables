@@ -66,6 +66,25 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     Task.where(id: [ task&.id, other&.id ]).delete_all
   end
 
+  test "index marks tasks that need keys" do
+    key_task = Task.create!(bsg_id: "kt-#{SecureRandom.hex(4)}", full_name: "Keyed Task", name: "keyed-task",
+                            given_by: "Prapor",
+                            needed_keys: [ { "map_name" => "Customs", "item_id" => nil, "item_name" => "A key" },
+                                           { "map_name" => "Customs", "item_id" => nil, "item_name" => "B key" } ])
+    plain = Task.create!(bsg_id: "pt-#{SecureRandom.hex(4)}", full_name: "Plain Task", name: "plain-task",
+                         given_by: "Prapor")
+
+    get tasks_url
+
+    assert_response :success
+    assert_select "a.task-row[href=?]", task_path(key_task), text: /Key ×2/
+    assert_select "a.task-row[href=?]", task_path(plain) do
+      assert_select ".chip", text: /Key ×/, count: 0
+    end
+  ensure
+    [ key_task, plain ].each(&:destroy)
+  end
+
   test "show renders task header and unlock path from the prerequisite graph" do
     get task_url(tasks(:one))
 

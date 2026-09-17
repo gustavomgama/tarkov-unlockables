@@ -114,6 +114,9 @@
           <% if task.lightkeeper_required %>
             <span class="chip" style="background: var(--trader-lightkeeper); color: var(--text-bright)">Lightkeeper</span>
           <% end %>
+          <% if @key_counts[task.id] %>
+            <span class="chip" style="background: var(--badge-currency); color: var(--text-bright)">Key ×<%= @key_counts[task.id] %></span>
+          <% end %>
         <% end %>
       <% end %>
     </div>

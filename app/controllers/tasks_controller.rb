@@ -15,6 +15,10 @@ class TasksController < ApplicationController
     @maps = Rails.cache.fetch("tasks/maps", expires_in: 1.hour) do
       Task.where.not(map_name: [ nil, "" ]).distinct.order(:map_name).pluck(:map_name)
     end
+    # How many keys each task asks for, for the row chips (one query).
+    @key_counts = Task.where("jsonb_array_length(needed_keys) > 0")
+                      .pluck(:id, Arel.sql("jsonb_array_length(needed_keys)"))
+                      .to_h
     @kappa_count = Rails.cache.fetch("tasks/kappa_count", expires_in: 1.hour) do
       Task.where(kappa_required: true).count
     end
