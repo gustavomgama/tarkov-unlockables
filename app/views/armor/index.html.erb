@@ -1,0 +1,15 @@
+<% content_for :title, "Armor" %>
+<% content_for :description, "Escape from Tarkov body armor chart: class, durability, material and movement penalties." %>
+
+<div class="space-y-4 sm:space-y-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Armor chart</h1>
+    <p class="mt-1 text-sm text-[var(--text-muted)]">
+      Body armor by class, toughest first. Plates and helmets are separate item types.
+    </p>
+  </div>
+
+  <% @by_class.each do |armor_class, armors| %>
+    <%= render "items/armor_table", armors: armors, title: "Class #{armor_class}" %>
+  <% end %>
+</div>

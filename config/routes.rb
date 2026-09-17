@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   resources :maps, only: [ :index, :show ], param: :slug
   get "keys", to: "keys#index", as: :keys
   get "ammo", to: "ammo#index", as: :ammo
+  get "armor", to: "armor#index", as: :armor
 
   namespace :admin do
     resources :items, :tasks, :requirements, :rewards, :leads_tos,
