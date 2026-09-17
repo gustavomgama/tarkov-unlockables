@@ -12,6 +12,11 @@
 | items | 5481 |
 | weapon_variants | 103 |
 
+## Task graph
+
+- wiki prerequisite edges merged: 134
+- wiki edges skipped to keep the graph acyclic: 4
+
 ## Item display-name provenance
 
 | source | items |

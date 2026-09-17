@@ -114,7 +114,7 @@ Fandom wiki (`escapefromtarkov.fandom.com`).
 | `parsed_items.json` | 4.3 MB | 3,899 items keyed by BSG id: `full_name` (wiki page title) + parsed `infobox` (19 keys) + `sections.mods` / `sections.weapon_variants`. 156 of those pages name **several** node ids (colour variants, ammo packs, PvE/PvP twins); `20_build_canonical.py` re-parses `itembatches/` and clones the page onto the 216 sibling ids, taking wiki coverage to 4,115 items |
 | `all_wiki_content.wiki` | 8.9 MB | raw wikitext dump |
 | `filtered_wiki_content_normalized.wiki` | 3.3 MB | filtered/normalized variant |
-| `tasks.wiki` | 301 KB | per-quest wiki pages with reward/reputation/chain fields |
+| `tasks.wiki` | 301 KB | per-quest wiki pages with reward/reputation/chain fields. `20_build_canonical.py` reads each infobox's `previous` list and unions it into the task's `previous_tasks`: the API's `taskRequirements` often names only the immediate prerequisite, so this adds ~134 edges the API omits (edges that would close a cycle are skipped) |
 | `quest_list.wiki` | 243 KB | quest index page |
 | `barter_list.json` / `.wiki` | 183 KB / 144 KB | 443 wiki-parsed barters (names only, no ids) |
 | `craft_list.json` / `.wiki` | 122 KB / 116 KB | 8 stations of wiki-parsed crafts (names only) |

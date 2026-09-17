@@ -45,7 +45,7 @@
 | 41 | PASS | wiki compatibility relations resolve — 10775 edges over 1785 items |
 | 42 | PASS | wiki trader offers parse and corroborate — 2760 offers over 2525 items, 2633 (95%) corroborated, 2954 internal ids |
 | 43 | PASS | wiki trade/craft tables corroborate — trades 379/443 (85%), crafts 199/213 (93%), ballistics 1510/1522 (99%), 12 numeric disagreements |
-| 44 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 13, lightkeeper 7 |
+| 44 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 16, lightkeeper 7 |
 | 45 | PASS | wiki weapon variants map 1:1 to presets — 103 variants over 52 base weapons, 101 matched 1:1, 1063 attachments |
 | 46 | PASS | wiki build parts agree with preset parts — 99/101 wiki part lists are a subset of their preset's parts |
 | 47 | PASS | map boss names resolved — 129 entries named |
@@ -54,7 +54,7 @@
 | 50 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
 | 51 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
 | 52 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 53 | PASS | sqlite file exists — 52174848 |
+| 53 | PASS | sqlite file exists — 52187136 |
 | 54 | PASS | sqlite integrity_check — ok |
 | 55 | PASS | sqlite item count matches canonical — ==5481 = 5481 |
 | 56 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |

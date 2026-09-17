@@ -310,7 +310,9 @@ def _task_graph(tasks):
     assert not orphans, f"{len(orphans)} prerequisite ids not in the dataset"
     kappa = sum(1 for t in tasks if t["graph"]["kappa_chain"])
     light = sum(1 for t in tasks if t["graph"]["lightkeeper_chain"])
-    assert kappa == 13, f"kappa chain changed: {kappa}"
+    # 16 since the wiki prerequisite merge (13 before): the wiki lists
+    # prerequisites the API's taskRequirements omitted, widening the closure.
+    assert kappa == 16, f"kappa chain changed: {kappa}"
     assert light == 7, f"lightkeeper chain changed: {light}"
     deep = max(t["graph"]["depth"] for t in tasks)
     assert deep >= 10, f"max chain depth only {deep}"
