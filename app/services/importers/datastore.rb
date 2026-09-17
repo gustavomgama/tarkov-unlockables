@@ -363,6 +363,10 @@ module Importers
     end
 
     def import_craft_unlock(reward, raw)
+      # 30 canonical craft unlocks are empty placeholders (every field null);
+      # the reward row for one would render as a blank "Craft".
+      return if raw["bsg_id"].blank? && raw["name"].blank? && raw["station_name"].blank?
+
       reward.craft_unlocks.create!(
         item_id:         @item_id_by_bsg[raw["bsg_id"]],
         item_name:       raw["name"],

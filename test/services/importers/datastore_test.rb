@@ -123,7 +123,9 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                                  "offered" => { "bsg_id" => "a1", "name" => "5.45x39mm PS" },
                                  "required" => [ { "bsg_id" => "w1", "name" => "AK-74", "count" => 1 } ] } ],
           "craft_unlock" => [ { "bsg_id" => "a1", "name" => "5.45x39mm PS",
-                                "station_name" => "Workbench", "level" => 3 } ],
+                                "station_name" => "Workbench", "level" => 3 },
+                              # Empty placeholder from the index source: skipped.
+                              { "bsg_id" => nil, "name" => nil, "station_name" => nil, "level" => nil } ],
           "trader_standing" => [ { "trader_slug" => "prapor", "standing" => 0.15 } ],
           "skill_level_reward" => [ { "skill" => "Strength", "level" => 2 } ]
         }
@@ -371,6 +373,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     craft = finish.craft_unlocks.first
     assert_equal [ "5.45x39mm PS", "Workbench", 3 ],
                  [ craft.item_name, craft.hideout_station, craft.station_level ]
+    # The empty placeholder did not become a blank reward row.
+    assert_equal 1, finish.craft_unlocks.count
 
     # Unmodelled kinds ride along in jsonb; the modelled ones do not.
     assert_equal [ { "trader_slug" => "prapor", "standing" => 0.15 } ], finish.data["trader_standing"]
