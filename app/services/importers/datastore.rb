@@ -4,9 +4,9 @@ module Importers
   # Loads `datastore/canonical/` — the verified, cross-checked dataset — into
   # the app schema, replacing every item and task row.
   #
-  # Supersedes Importers::Index / TarkovDev / Wiki / TaskGraph: canonical is
-  # the same lineage (offlinedata + tarkov.dev localizations), merged,
-  # name-resolved and verified (`datastore/reports/04_verification.md`).
+  # Supersedes the offlinedata-derived importers (index, tarkov.dev, wiki and
+  # task graph): canonical is the same lineage, merged, name-resolved and
+  # verified (`datastore/reports/04_verification.md`).
   # Field mapping: `datastore/docs/04_db_mapping.md`.
   #
   # Idempotent: truncates the data tables first, so `db:seed` replaces rather
