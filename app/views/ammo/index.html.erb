@@ -9,6 +9,18 @@
     </p>
   </div>
 
+  <nav class="flex flex-wrap gap-1.5" aria-label="Filter by armor class">
+    <%= link_to "All rounds", ammo_path,
+          class: "chip chip--tap #{@min_class.zero? ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
+          "aria-current": (@min_class.zero? ? "true" : nil) %>
+    <% (1..6).each do |armor_class| %>
+      <% active = @min_class == armor_class %>
+      <%= link_to "Pens class #{armor_class}+", ammo_path(min_class: armor_class),
+            class: "chip chip--tap #{active ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
+            "aria-current": (active ? "true" : nil) %>
+    <% end %>
+  </nav>
+
   <% @by_caliber.each do |caliber, rounds| %>
     <%= render "items/ammo_table", ammo: rounds, title: caliber, current: nil, note: nil %>
   <% end %>

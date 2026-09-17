@@ -12,6 +12,17 @@ class AmmoControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: "Ammo chart"
     assert_operator response.body.index(item_path(strong)), :<, response.body.index(item_path(weak))
+
+    # "Pens class 4+" keeps the strong round and drops the weak one.
+    get ammo_url(min_class: 4)
+    assert_response :success
+    assert_match item_path(strong), response.body
+    assert_no_match item_path(weak), response.body
+
+    # Nothing in this caliber defeats class 6.
+    get ammo_url(min_class: 6)
+    assert_response :success
+    assert_no_match item_path(strong), response.body
   ensure
     [ weak, strong ].each { |i| i&.destroy }
   end

@@ -27,4 +27,11 @@
 #  index_items_on_slug              (slug)
 #  index_items_on_type              (type)
 #
-class Item::Ammo < Item; end
+class Item::Ammo < Item
+  # Heaviest armor class this round reliably defeats, the same heuristic the
+  # views use (ItemsHelper#penetration_class): penetration / 10, floored.
+  def defeats_class
+    pen = data["penetration_power"].presence || data["penetration"]
+    (pen.to_f / 10).floor.clamp(0, 6)
+  end
+end
