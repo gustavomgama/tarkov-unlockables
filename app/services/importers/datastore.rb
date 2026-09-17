@@ -64,16 +64,21 @@ module Importers
       @item_name_by_bsg = @items.to_h { |item| [ item["bsg_id"], item["name"] ] }
     end
 
+    # One transaction around everything: Postgres TRUNCATE is transactional, so
+    # readers keep the old rows until commit and a failure rolls the whole load
+    # back instead of leaving the reference tables truncated.
     def import!
-      truncate!
-      import_items
-      import_slots
-      import_tasks
-      import_task_graph
-      import_item_acquisition
-      import_hideout
-      import_traders
-      import_maps
+      ActiveRecord::Base.transaction do
+        truncate!
+        import_items
+        import_slots
+        import_tasks
+        import_task_graph
+        import_item_acquisition
+        import_hideout
+        import_traders
+        import_maps
+      end
       self
     end
 

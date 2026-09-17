@@ -13,6 +13,13 @@ if [ -n "${DATABASE_URL}" ]; then
     echo "ERROR: database not reachable after 60s — refusing to start" >&2
     exit 1
   }
+
+  # Seed once. db:prepare only seeds when it loads the schema itself; a
+  # pre-deploy migration makes the database "initialized", so a first deploy
+  # would otherwise come up empty. An existing dataset is left alone.
+  if ! ./bin/rails runner 'exit(Item.exists? ? 0 : 1)'; then
+    ./bin/rails db:seed
+  fi
 fi
 
 exec "${@}"

@@ -426,6 +426,25 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal "Transit to Reserve", map.transits.sole["name"]
   end
 
+  test "a failed load rolls back and keeps the existing data" do
+    import!
+    items_before = Item.count
+
+    # Duplicate map slugs violate the unique index part-way through.
+    write("items", item_rows)
+    write("tasks", task_rows)
+    write("hideout_stations", hideout_rows)
+    write("traders", trader_rows)
+    write("maps", map_rows + map_rows)
+
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      Importers::Datastore.import!(source: @source)
+    end
+
+    assert_equal items_before, Item.count
+    assert_equal 1, Map.count
+  end
+
   test "is idempotent — reseeding replaces rather than accumulates" do
     import!
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,
