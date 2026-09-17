@@ -180,6 +180,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     task&.destroy
   end
 
+  test "show falls back to the objective type when the description is blank" do
+    task = Task.create!(bsg_id: "blank-obj-#{SecureRandom.hex(4)}", full_name: "Blank Objective",
+                        name: "blank-objective", given_by: "Prapor")
+    task.task_objectives.create!(objective_type: "visit", description: nil, position: 0)
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=objectives-head]" do
+      assert_select ".srcrow__title", text: "Visit"
+    end
+  ensure
+    task&.destroy
+  end
+
   test "show lists the keys a quest needs, grouped by map" do
     task = Task.create!(bsg_id: "key-#{SecureRandom.hex(4)}", full_name: "Key Quest", name: "key-quest",
                         given_by: "Prapor",
