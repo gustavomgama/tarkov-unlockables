@@ -793,6 +793,24 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ heavy, light ].each { |i| i&.destroy }
   end
 
+  test "index sorts by weight when a filter adds DISTINCT" do
+    light = Item.create!(bsg_id: "dw1-#{SecureRandom.hex(4)}", full_name: "Distinct Light", short_name: "DL",
+                         data: { "weight" => 0.2 })
+    heavy = Item.create!(bsg_id: "dw2-#{SecureRandom.hex(4)}", full_name: "Distinct Heavy", short_name: "DH",
+                         data: { "weight" => 7.7 })
+    [ light, heavy ].each do |item|
+      item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    end
+
+    get items_url(filters: { trader: [ "Prapor" ] }, sort: "weight_desc")
+
+    assert_response :success
+    assert_operator response.body.index("Distinct Heavy"), :<, response.body.index("Distinct Light")
+  ensure
+    ItemCurrency.destroy_all
+    [ light, heavy ].each { |i| i&.destroy }
+  end
+
   test "index survives malformed filter params" do
     # params[:filters] comes from the query string: it can be a String or an
     # Array rather than a nested hash, and each of these 500'd at some point.
