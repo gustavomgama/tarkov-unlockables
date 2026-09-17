@@ -274,9 +274,9 @@ CraftUnlock.where(station_level: 3)
 ### Trader Levels
 
 ```ruby
-# Items buyable from a trader at specific level
-ItemBarter.where(trader_name: "therapist", trader_level: 1)
-ItemCurrency.where(trader_name: "prapor", trader_level: 3)
+# Items buyable from a trader at specific level (trader is the display name)
+ItemBarter.where(trader: "Therapist", trader_level: "1")
+ItemCurrency.where(trader: "Prapor", min_trader_level: 3)
 
 # All trader offers for an item
 item = Item.find_by(bsg_id: "544fb45d4bdc2dee738b4568")
@@ -284,8 +284,8 @@ item.item_barters
 item.item_currencies
 
 # Trader levels for an item
-item.item_barters.pluck(:trader_name, :trader_level)
-item.item_currencies.pluck(:trader_name, :trader_level, :currency)
+item.item_barters.pluck(:trader, :trader_level)
+item.item_currencies.pluck(:trader, :min_trader_level, :currency)
 ```
 
 ### Hideout
@@ -417,11 +417,11 @@ mc.obtain_from_tasks      # task rewards
 
 # What loyalty level required to buy item?
 item = Item.find_by("full_name ILIKE ?", "%Salewa%")
-item.item_barters.pluck(:trader_name, :trader_level)
-item.item_currencies.pluck(:trader_name, :trader_level, :currency)
+item.item_barters.pluck(:trader, :trader_level)
+item.item_currencies.pluck(:trader, :min_trader_level, :currency)
 
 # What items can I get at loyalty level 2 from Therapist?
-Item.joins(:item_barters).where(item_barters: {trader_name: "therapist", trader_level: 2})
+Item.joins(:item_currencies).where(item_currencies: {trader: "Therapist", min_trader_level: 2})
 
 # =============================================
 # TASK REWARDS
