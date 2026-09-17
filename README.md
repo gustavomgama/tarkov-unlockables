@@ -19,6 +19,7 @@ Answering questions like:
 - `/hideout` — each station's levels, build costs and crafts.
 - `/traders` — loyalty thresholds and what each trader sells.
 - `/maps` — raid length, bosses, extracts and transits.
+- `/keys` — every key a quest asks for, and which quests need it.
 
 ## Setup
 
