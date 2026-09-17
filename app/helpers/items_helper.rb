@@ -225,7 +225,13 @@ module ItemsHelper
       pairs << [ "RNDS", capacity, nil ] if capacity
       pairs << [ "CAL", caliber, nil ] if caliber
     when Item::Generic
-      pairs << [ "PART", d["type"], nil ] if d["type"].present?
+      # Helmets and plates are Generic but carry an armor class; show it
+      # rather than the raw wiki type.
+      if d["class"].present?
+        pairs << [ "CLASS", d["class"], armor_class_tone(d["class"]) ]
+      elsif d["type"].present?
+        pairs << [ "PART", d["type"], nil ]
+      end
     end
     pairs
   end

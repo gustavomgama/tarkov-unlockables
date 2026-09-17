@@ -828,6 +828,18 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "index shows an armor class on a helmet card" do
+    helmet = Item.create!(bsg_id: "helm-#{SecureRandom.hex(4)}", full_name: "Test Helmet Card", short_name: "THC",
+                          data: { "propertiesType" => "ItemPropertiesHelmet", "class" => 4, "type" => "Helmet" })
+
+    get items_url(q: "Test Helmet Card")
+
+    assert_response :success
+    assert_select "a.card[href=?]", item_path(helmet), text: /CLASS/
+  ensure
+    helmet&.destroy
+  end
+
   test "index survives malformed filter params" do
     # params[:filters] comes from the query string: it can be a String or an
     # Array rather than a nested hash, and each of these 500'd at some point.
