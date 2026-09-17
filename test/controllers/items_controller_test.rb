@@ -646,6 +646,24 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.destroy
   end
 
+  test "show collapses a long list of fitting slots" do
+    mod = Item.create!(bsg_id: "fit-#{SecureRandom.hex(4)}", full_name: "Popular Mod", short_name: "PM")
+    weapons = Array.new(13) do |i|
+      weapon = Item.create!(bsg_id: "fit-w#{i}-#{SecureRandom.hex(4)}", full_name: "Fit Weapon #{i}", short_name: "FW#{i}")
+      weapon.item_slots.create!(slot_id: "s#{i}", name: "Mount", position: 0)
+            .item_slot_allowed_items.create!(item: mod)
+      weapon
+    end
+
+    get item_url(mod)
+
+    assert_response :success
+    assert_select "details.disclosure summary", text: /and 1 more slots/
+  ensure
+    weapons&.each(&:destroy)
+    mod&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do
