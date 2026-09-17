@@ -634,6 +634,18 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     part&.destroy
   end
 
+  test "index table shows the item weight" do
+    item = Item.create!(bsg_id: "wt-#{SecureRandom.hex(4)}", full_name: "Weight Row", short_name: "WR",
+                        data: { "weight" => 1.25 })
+
+    get items_url(q: "Weight Row")
+
+    assert_response :success
+    assert_select "td", text: "1.25 kg"
+  ensure
+    item&.destroy
+  end
+
   # --- typeahead ---
 
   test "search suggests matching items as rows" do

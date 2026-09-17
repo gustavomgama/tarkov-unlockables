@@ -151,18 +151,21 @@
         <caption class="sr-only">Items matching the current search and filters</caption>
         <thead class="bg-[var(--bg-panel)]">
           <tr class="text-left text-[0.625rem] uppercase tracking-widest text-[var(--text-muted)]">
-            <th scope="col" class="px-3 py-2 font-normal w-[45%]">Name</th>
-            <th scope="col" class="px-3 py-2 font-normal w-[18%]">Short name</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[38%]">Name</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[16%]">Short name</th>
             <th scope="col" class="px-3 py-2 font-normal w-[12%]">Type</th>
-            <th scope="col" class="px-3 py-2 font-normal w-[25%]">Categories</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[12%] text-right">Weight</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[22%]">Categories</th>
           </tr>
         </thead>
         <tbody>
           <% @items.each do |item| %>
+            <% weight = item.data["weight"] %>
             <tr class="border-t border-[var(--border)] hover:bg-[var(--bg-elevated)]">
               <td class="px-3 py-2"><%= link_to item.full_name, item_path(item) %></td>
               <td class="px-3 py-2 font-data text-[var(--text-muted)]"><%= item.short_name %></td>
               <td class="px-3 py-2 text-[var(--text-muted)]"><%= item.class.name.demodulize.titleize %></td>
+              <td class="px-3 py-2 font-data text-right text-[var(--text-muted)]"><%= weight.present? ? "#{weight} kg" : "—" %></td>
               <td class="px-3 py-2 text-[var(--text-muted)]"><%= category_labels(item, limit: 3).join(", ") %></td>
             </tr>
           <% end %>
