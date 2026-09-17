@@ -10,10 +10,10 @@
   </div>
 
   <% @armor_by_class.each do |armor_class, armors| %>
-    <%= render "items/armor_table", armors: armors, title: "Body armor class #{armor_class}" %>
+    <%= render "items/armor_table", armors: armors, armor_class: armor_class, title: "Body armor class #{armor_class}" %>
   <% end %>
 
   <% @helmets_by_class.each do |armor_class, helmets| %>
-    <%= render "items/armor_table", armors: helmets, title: "Helmet class #{armor_class}" %>
+    <%= render "items/armor_table", armors: helmets, armor_class: armor_class, title: "Helmet class #{armor_class}" %>
   <% end %>
 </div>

@@ -17,6 +17,7 @@ class ArmorControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: "Body armor class 3"
     assert_select "h2", text: "Helmet class 4"
     assert_select "a[href=?]", item_path(helmet), text: "Test Helmet"
+    assert_select "a[href=?]", ammo_path(min_class: 6), text: "Rounds that pen it"
     assert_operator response.body.index(item_path(high)), :<, response.body.index(item_path(low))
   ensure
     [ low, high, helmet ].each { |i| i&.destroy }

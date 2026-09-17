@@ -1,8 +1,11 @@
-<%# Body-armor comparison. Locals: armors (ordered), title. %>
+<%# One armor class compared. Locals: armors (ordered), title, armor_class. %>
 <section class="panel" aria-labelledby="<%= title.parameterize %>-head">
   <div class="panel__head">
     <h2 id="<%= title.parameterize %>-head" class="panel__title"><%= title %></h2>
-    <span class="panel__note"><%= armors.size %> items</span>
+    <span class="panel__note flex items-center gap-2">
+      <%= link_to "Rounds that pen it", ammo_path(min_class: armor_class), class: "chip chip--link" %>
+      <span class="font-data"><%= armors.size %></span> items
+    </span>
   </div>
   <div class="panel__body panel__body--flush">
     <div class="overflow-x-auto">
