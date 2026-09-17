@@ -109,22 +109,20 @@ Item.find_by(bsg_id: "5448ba0b4bdc2d02308b456c")
 # Find item by name (partial match)
 Item.where("full_name ILIKE ?", "%salewa%")
 
-# Items by category
-Item.where("categories @> ?", ["meds"])
+# Items by category (categories is a string array, so pass its literal)
+Item.where("categories @> ?", "{meds}")
+Item.where("categories && ?", "{meds}")  # any overlap
 
-# Items with properties
-Item.joins(:property).count
-
-# Item properties
+# Item properties live in `data` (jsonb): tarkov.dev properties verbatim,
+# their snake_case twins, and the wiki infobox underneath as fallback.
 item = Item.find_by(bsg_id: "544fb45d4bdc2dee738b4568")
-item.property
-item.property.slots
+item.data["caliber"]
+item.data["propertiesType"]
 
-# Item slots
-item.property.slots.each do |slot|
+# Mod slots and what fits each
+item.item_slots.each do |slot|
   slot.name_id
-  slot.allowed_items
-  slot.allowed_categories
+  slot.item_slot_allowed_items.map { |allowed| allowed.item&.full_name }
 end
 
 # Item obtain methods
@@ -134,27 +132,23 @@ item.item_barters
 item.item_currencies
 ```
 
-### Properties
+### Properties (the `data` jsonb)
 
 ```ruby
 # Items by armor class
-Property.where(armor_class: "5")
-Property.where(armor_class: "6")
+Item.where("data->>'class' = ?", "5")
+Item.where("data->>'class' = ?", "6")
 
 # Items by caliber
-Property.where(caliber: "Caliber556x45NATO")
+Item.where("data->>'caliber' = ?", "Caliber556x45NATO")
 
-# Ammo types
-Property.where(properties_type: "ItemPropertiesAmmo")
+# Ammo, med kits and food/drink by tarkov.dev properties type
+Item.where("data->>'propertiesType' = ?", "ItemPropertiesAmmo")
+Item.where("data->>'propertiesType' = ?", "ItemPropertiesMedKit")
+Item.where("data->>'propertiesType' = ?", "ItemPropertiesFoodDrink")
 
-# Weapons with slots
-Property.where.not(slots: {id: nil}).joins(:slots)
-
-# Med kits
-Property.where(properties_type: "ItemPropertiesMedKit")
-
-# Food/drink
-Property.where(properties_type: "ItemPropertiesFoodDrink")
+# Weapons and mods with a slot graph
+Item.joins(:item_slots).distinct
 ```
 
 ### Tasks
@@ -399,11 +393,11 @@ end
 # =============================================
 
 # What armor class 5 armors can I get?
-Item.joins(:property).where("properties.armor_class = 5")
+Item.where("data->>'class' = ?", "5")
 
 # All armors by class
-Item.joins(:property).where("properties.armor_class = 6")  # Class 6 armors
-Item.joins(:property).where("properties.armor_class = 4")  # Class 4 armors
+Item.where("data->>'class' = ?", "6")  # Class 6 armors
+Item.where("data->>'class' = ?", "4")  # Class 4 armors
 
 # =============================================
 # BUY/BARTER/UNLOCK OFFERS
