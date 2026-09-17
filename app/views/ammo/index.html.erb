@@ -1,0 +1,15 @@
+<% content_for :title, "Ammo" %>
+<% content_for :description, "Escape from Tarkov ammo chart: damage, penetration and armor class for every round, by caliber." %>
+
+<div class="space-y-4 sm:space-y-6">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Ammo chart</h1>
+    <p class="mt-1 text-sm text-[var(--text-muted)]">
+      Every round by caliber, sorted by penetration. Class is the heaviest armor the round reliably defeats.
+    </p>
+  </div>
+
+  <% @by_caliber.each do |caliber, rounds| %>
+    <%= render "items/ammo_table", ammo: rounds, title: caliber, current: nil, note: nil %>
+  <% end %>
+</div>

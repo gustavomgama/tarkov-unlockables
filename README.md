@@ -20,6 +20,7 @@ Answering questions like:
 - `/traders` — loyalty thresholds and what each trader sells.
 - `/maps` — raid length, bosses, extracts and transits.
 - `/keys` — every key a quest asks for, and which quests need it.
+- `/ammo` — every round by caliber, sorted by penetration.
 
 ## Setup
 
