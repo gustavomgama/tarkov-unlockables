@@ -33,11 +33,11 @@ rails db:create db:migrate db:seed
 docker compose up --build
 ```
 
-Open `http://localhost:3000`. First boot installs gems, runs
-`db:prepare` (create + migrate), then starts Puma with live reload
-(code is bind-mounted, gems cached in a volume).
+Open `http://localhost:3000`. First boot installs gems, runs `db:prepare`
+(create + migrate), seeds the canonical dataset, then starts Puma with
+live reload (code is bind-mounted, gems cached in a volume).
 
-Seed separately — the dev DB starts empty:
+Re-seed on demand with:
 
 ```bash
 docker compose exec web bin/rails db:seed
