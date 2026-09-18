@@ -513,16 +513,16 @@ def merge_wiki_previous(rows):
     Returns `(added, skipped)`, for the build report.
     """
     wiki = wiki_task_previous()
-    by_name = { r["name"].casefold(): r["id"] for r in rows if r.get("name") }
+    by_name = {r["name"].casefold(): r["id"] for r in rows if r.get("name")}
 
     graph = {}
     for row in rows:
-        reqs = { x["bsg_id"] for x in (row.get("task_requirements") or []) if x.get("bsg_id") }
+        reqs = {x["bsg_id"] for x in (row.get("task_requirements") or []) if x.get("bsg_id")}
         graph[row["id"]] = reqs | set(row.get("previous_tasks") or [])
 
     def reaches(start, target):
         """Does `start` reach `target` through prerequisite edges?"""
-        seen, stack = set(), [ start ]
+        seen, stack = set(), [start]
         while stack:
             for node in graph.get(stack.pop(), ()):
                 if node == target:

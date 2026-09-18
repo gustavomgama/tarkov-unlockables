@@ -361,7 +361,7 @@ def _wiki_tables(con):
     out = {}
     for t in ("item_wiki_slots", "item_wiki_meta", "item_wiki_trader_offers",
               "item_conflicts", "item_compatibility", "item_grids"):
-        out[t] = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # nosec B608 - t is a literal in the tuple above
+        out[t] = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # nosec B608
         assert out[t] > 0, f"{t} is empty"
     wiki_conf = con.execute("SELECT COUNT(*) FROM item_conflicts WHERE source='officialwiki'").fetchone()[0]
     assert wiki_conf >= 2000, f"only {wiki_conf} wiki conflicts in sqlite"
@@ -536,7 +536,8 @@ def _armor_materials():
         assert row["reference"] in materials, f"{row['material']} has no reference.json counterpart"
         want = materials[row["reference"]]
         assert row["destructibility"] == want["destructibility"], \
-            f"{row['material']} destructibility {row['destructibility']} != {want['destructibility']}"
+            (f"{row['material']} destructibility {row['destructibility']} "
+             f"!= {want['destructibility']}")
         assert row["explosive_destructibility"] == want["explosionDestructibility"], \
             (f"{row['material']} explosive destructibility {row['explosive_destructibility']} "
              f"!= {want['explosionDestructibility']}")
@@ -595,7 +596,7 @@ def _map_tables():
     con = sqlite3.connect(os.path.join(C.DS, "tarkov.sqlite3"))
     out = []
     for table, exp in sorted(expected.items()):
-        got = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]  # nosec B608 - table is a key of the literal map
+        got = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]  # nosec B608
         assert got == exp, f"{table} has {got} rows, canonical has {exp}"
         out.append(f"{table}={got}")
     return f"{len(expected)} map tables complete ({', '.join(out)})"
@@ -727,7 +728,7 @@ def _no_empty_tables(con):
         "SELECT name FROM sqlite_master WHERE type='table' "
         "AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'items_fts_%'")]
     empty = [t for t in tables
-             if con.execute(f"SELECT 1 FROM {t} LIMIT 1").fetchone() is None]  # nosec B608 - t came from sqlite_master
+             if con.execute(f"SELECT 1 FROM {t} LIMIT 1").fetchone() is None]  # nosec B608
     assert not empty, f"empty tables: {empty}"
     return f"{len(tables)} tables all non-empty"
 

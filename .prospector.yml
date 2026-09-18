@@ -1,0 +1,7 @@
+# Prospector, as detected by Codacy for its prospector engine.
+#
+# Same reasoning as .pylintrc: Prospector bundles Pylint, pycodestyle and McCabe
+# over the same datastore pipeline, whose conventions are deliberate and whose
+# gate is 99_verify.py.
+ignore-paths:
+  - datastore/
