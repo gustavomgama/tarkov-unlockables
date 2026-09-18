@@ -4,6 +4,10 @@ module Importers
   # Loads `datastore/canonical/` — the verified, cross-checked dataset — into
   # the app schema, replacing every item and task row.
   #
+  # An item with no acquisition route is dropped on the way in: nothing that is
+  # not bought, bartered, crafted or handed out by a quest gets a page. Recipes
+  # and task keys that mention one keep its name, they just lose the link.
+  #
   # Supersedes the offlinedata-derived importers (index, tarkov.dev, wiki and
   # task graph): canonical is the same lineage, merged, name-resolved and
   # verified (`datastore/reports/04_verification.md`).
@@ -13,6 +17,14 @@ module Importers
   # than merges into whatever was there.
   class Datastore
     SOURCE = Rails.root.join("datastore/canonical")
+
+    # The acquisition branches that make an item worth a page.
+    OBTAINABLE_KINDS = %w[buy index_offers barter craft task_rewards].freeze
+
+    # The reward buckets `import_rewards` is called with, and the ones that
+    # unlock a route for the item they name.
+    REWARD_KINDS = %w[start_rewards finish_rewards].freeze
+    UNLOCK_KINDS = %w[offer_unlock barter_unlock craft_unlock].freeze
 
     # TRUNCATE ... CASCADE on this set leaves schema_migrations and
     # ar_internal_metadata alone, and resets ids so a reseed is reproducible.
@@ -62,6 +74,7 @@ module Importers
       @task_id_by_slug = {}
       @task_slug_by_id = @tasks.to_h { |task| [ task["id"], task["slug"] ] }
       @item_name_by_bsg = @items.to_h { |item| [ item["bsg_id"], item["name"] ] }
+      @unlocked_item_bsg = unlocked_item_bsg
     end
 
     # One transaction around everything: Postgres TRUNCATE is transactional, so
@@ -99,9 +112,39 @@ module Importers
     def import_items
       Item.transaction do
         @items.each do |raw|
+          next unless obtainable?(raw)
+
           @item_id_by_bsg[raw["bsg_id"]] = create_item(raw).id
         end
       end
+    end
+
+    # A drop-only item (no trader offer, barter, hideout craft or quest reward)
+    # has nothing to show, so it never reaches the database.
+    def obtainable?(raw)
+      return true if @unlocked_item_bsg.include?(raw["bsg_id"])
+
+      acquisition = raw["acquisition"]
+      acquisition.is_a?(Hash) && OBTAINABLE_KINDS.any? { |kind| Array(acquisition[kind]).any? }
+    end
+
+    # Items a quest unlocks at a trader, as a barter or as a craft. A few of
+    # them (the SCAR-L, the HK USP, the D-60 magazine) are missing that route
+    # on the item record itself, so the task reward is the only proof they are
+    # obtainable — dropping them would lose a weapon the quest hands you.
+    def unlocked_item_bsg
+      @tasks.flat_map do |task|
+        REWARD_KINDS.flat_map do |kind|
+          rewards = task[kind]
+          next [] unless rewards.is_a?(Hash)
+
+          UNLOCK_KINDS.flat_map do |unlock|
+            Array(rewards[unlock]).filter_map do |entry|
+              entry["bsg_id"] || entry.dig("offered", "bsg_id")
+            end
+          end
+        end
+      end.to_set
     end
 
     def create_item(raw)
@@ -383,7 +426,10 @@ module Importers
     def import_item_acquisition
       Item.transaction do
         @items.each do |raw|
-          item = Item.find(@item_id_by_bsg[raw["bsg_id"]])
+          item_id = @item_id_by_bsg[raw["bsg_id"]]
+          next unless item_id
+
+          item = Item.find(item_id)
           acquisition = raw["acquisition"] || {}
 
           # `buy` is tarkov.dev's priced purchase; `index_offers` is the

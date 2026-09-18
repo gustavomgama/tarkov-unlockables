@@ -84,6 +84,37 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
                                            "is_tool" => true } ] } ],
           "task_rewards" => [ { "task_id" => "t1", "task_name" => "first-task" } ]
         }
+      },
+      # Drop-only: no trader offer, barter, craft or quest reward, so the
+      # importer leaves it out.
+      {
+        "bsg_id" => "d1", "slug" => "zabey", "name" => "Tagilla's welding mask",
+        "short_name" => "ZABEY",
+        "properties_type" => "ItemPropertiesArmor",
+        "types" => %w[wearable],
+        "categories" => { "leaves" => %w[face-cover] },
+        "handbook_categories" => { "leaves" => [] },
+        "properties" => { "propertiesType" => "ItemPropertiesArmor", "class" => 4 },
+        "contains_items" => [], "images" => {}, "links" => {},
+        "wiki" => { "title" => "Tagilla's welding mask", "infobox" => {},
+                    "mod_slots" => [], "weapon_variants" => [] },
+        "acquisition" => { "buy" => [], "index_offers" => [], "barter" => [], "craft" => [],
+                           "task_rewards" => [] }
+      },
+      # No route of its own, but a quest unlocks its trader offer: that is the
+      # SCAR-L case, and it stays.
+      {
+        "bsg_id" => "u1", "slug" => "scar-l", "name" => "SCAR-L", "short_name" => "SCAR",
+        "properties_type" => "ItemPropertiesWeapon",
+        "types" => %w[gun wearable],
+        "categories" => { "leaves" => %w[assault-rifle weapon] },
+        "handbook_categories" => { "leaves" => [] },
+        "properties" => { "propertiesType" => "ItemPropertiesWeapon" },
+        "contains_items" => [], "images" => {}, "links" => {},
+        "wiki" => { "title" => "SCAR-L", "infobox" => {}, "mod_slots" => [],
+                    "weapon_variants" => [] },
+        "acquisition" => { "buy" => [], "index_offers" => [], "barter" => [], "craft" => [],
+                           "task_rewards" => [] }
       }
     ]
   end
@@ -118,6 +149,8 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
         "finish_rewards" => {
           "items" => [ { "bsg_id" => "a1", "name" => "5.45x39mm PS", "count" => 3 } ],
           "offer_unlock" => [ { "bsg_id" => "a1", "name" => "5.45x39mm PS", "trader_slug" => "prapor",
+                                "level" => 3 },
+                              { "bsg_id" => "u1", "name" => "SCAR-L", "trader_slug" => "mechanic",
                                 "level" => 3 } ],
           "barter_unlock" => [ { "trader_slug" => "prapor", "min_trader_level" => 2,
                                  "offered" => { "bsg_id" => "a1", "name" => "5.45x39mm PS" },
@@ -217,13 +250,31 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
   test "imports the item universe and replaces whatever was there" do
     import!
 
-    assert_equal 2, Item.count
+    assert_equal 3, Item.count
     weapon = Item.find_by!(bsg_id: "w1")
     assert_equal "Item::Weapon", weapon.type
     assert_equal "AK-74", weapon.full_name
     assert_equal "AK-74", weapon.wiki_title
     assert_equal [ "https://wiki/ak-74", "https://tarkov.dev/ak-74", "https://market/ak-74" ], weapon.links
     assert_equal %w[icon.png grid.png base.png], weapon.images
+  end
+
+  # Nothing buys, barters, crafts or rewards it, so it has no page to show.
+  test "skips an item with no acquisition route" do
+    import!
+
+    assert_nil Item.find_by(bsg_id: "d1")
+    assert_equal 3, Item.count
+  end
+
+  # A quest that unlocks the offer is proof enough: the item record itself can
+  # be missing the route (the SCAR-L is).
+  test "keeps an item a quest unlocks" do
+    import!
+
+    item = Item.find_by!(bsg_id: "u1")
+    assert_equal "SCAR-L", item.full_name
+    assert_equal item.id, OfferUnlock.find_by(item_name: "SCAR-L").item_id
   end
 
   # The API value wins over the wiki fallback: the app's CALIBER_MAP and
@@ -360,7 +411,7 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
 
     finish = Task.find_by!(bsg_id: "t1").rewards.find_by!(reward_type: "finish_rewards")
     assert_equal [ [ "5.45x39mm PS", 3 ] ], finish.loose_items.map { |i| [ i.item_name, i.count ] }
-    assert_equal [ [ "5.45x39mm PS", "Prapor", "3" ] ],
+    assert_equal [ [ "5.45x39mm PS", "Prapor", "3" ], [ "SCAR-L", "Mechanic", "3" ] ],
                  finish.offer_unlocks.map { |o| [ o.item_name, o.trader_name, o.trader_level ] }
 
     barter = finish.barter_unlocks.first

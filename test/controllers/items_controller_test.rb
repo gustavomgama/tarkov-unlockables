@@ -9,13 +9,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     @item.destroy if @item
   end
 
-  # The index only lists items with a tracked acquisition route, so a test
-  # item that should show up in it needs one.
-  def make_obtainable(item)
-    item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
-    item
-  end
-
   test "should get index" do
     get items_url
     assert_response :success
@@ -641,7 +634,7 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   # --- typeahead ---
 
   test "search suggests matching items as rows" do
-    item = make_obtainable(Item.create!(bsg_id: "ta-#{SecureRandom.hex(4)}", full_name: "Alpha Autocomplete", short_name: "AA"))
+    item = Item.create!(bsg_id: "ta-#{SecureRandom.hex(4)}", full_name: "Alpha Autocomplete", short_name: "AA")
 
     get search_items_url(q: "alpha autocomplete")
 
@@ -667,7 +660,7 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "search caps how many suggestions it returns" do
     created = Array.new(ItemsController::AUTOCOMPLETE_LIMIT + 4) do |i|
-      make_obtainable(Item.create!(bsg_id: "cap-#{i}-#{SecureRandom.hex(4)}", full_name: "Cap Suggestion #{i}", short_name: "CS#{i}"))
+      Item.create!(bsg_id: "cap-#{i}-#{SecureRandom.hex(4)}", full_name: "Cap Suggestion #{i}", short_name: "CS#{i}")
     end
 
     get search_items_url(q: "cap suggestion")
@@ -675,16 +668,14 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a", maximum: ItemsController::AUTOCOMPLETE_LIMIT
   ensure
-    ids = created&.map(&:id)
-    ItemCurrency.where(item_id: ids).delete_all
-    Item.where(id: ids).delete_all
+    Item.where(id: created&.map(&:id)).delete_all
   end
 
   # --- Ransack search ---
 
   test "index search by full_name returns matching items" do
-    alpha = make_obtainable(Item.create!(bsg_id: "alpha-#{SecureRandom.hex(4)}", full_name: "Alpha Scope", short_name: "AS"))
-    beta = make_obtainable(Item.create!(bsg_id: "beta-#{SecureRandom.hex(4)}", full_name: "Beta Grip", short_name: "BG"))
+    alpha = Item.create!(bsg_id: "alpha-#{SecureRandom.hex(4)}", full_name: "Alpha Scope", short_name: "AS")
+    beta = Item.create!(bsg_id: "beta-#{SecureRandom.hex(4)}", full_name: "Beta Grip", short_name: "BG")
 
     get items_url(q: "Alpha")
 
@@ -696,8 +687,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index search by short_name returns matching items" do
-    alpha = make_obtainable(Item.create!(bsg_id: "alpha2-#{SecureRandom.hex(4)}", full_name: "Alpha Scope 2", short_name: "ALF"))
-    beta = make_obtainable(Item.create!(bsg_id: "beta2-#{SecureRandom.hex(4)}", full_name: "Beta Grip 2", short_name: "BTA"))
+    alpha = Item.create!(bsg_id: "alpha2-#{SecureRandom.hex(4)}", full_name: "Alpha Scope 2", short_name: "ALF")
+    beta = Item.create!(bsg_id: "beta2-#{SecureRandom.hex(4)}", full_name: "Beta Grip 2", short_name: "BTA")
 
     get items_url(q: "ALF")
 
@@ -773,8 +764,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index shows an armor class on a helmet card" do
-    helmet = make_obtainable(Item.create!(bsg_id: "helm-#{SecureRandom.hex(4)}", full_name: "Test Helmet Card", short_name: "THC",
-                          data: { "propertiesType" => "ItemPropertiesHelmet", "class" => 4, "type" => "Helmet" }))
+    helmet = Item.create!(bsg_id: "helm-#{SecureRandom.hex(4)}", full_name: "Test Helmet Card", short_name: "THC",
+                          data: { "propertiesType" => "ItemPropertiesHelmet", "class" => 4, "type" => "Helmet" })
 
     get items_url(q: "Test Helmet Card")
 
@@ -838,8 +829,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index filters by category" do
-    head_item = make_obtainable(Item.create!(bsg_id: "cat1-#{SecureRandom.hex(4)}", full_name: "Headphones Pro", short_name: "HP", categories: [ "headphones" ]))
-    gun_item = make_obtainable(Item.create!(bsg_id: "cat2-#{SecureRandom.hex(4)}", full_name: "AK-74", short_name: "AK", categories: [ "assault_rifles" ]))
+    head_item = Item.create!(bsg_id: "cat1-#{SecureRandom.hex(4)}", full_name: "Headphones Pro", short_name: "HP", categories: [ "headphones" ])
+    gun_item = Item.create!(bsg_id: "cat2-#{SecureRandom.hex(4)}", full_name: "AK-74", short_name: "AK", categories: [ "assault_rifles" ])
 
     get items_url(filters: { category: [ "headphones" ] })
     assert_response :success
@@ -850,8 +841,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index filters by caliber" do
-    ammo545 = make_obtainable(Item::Ammo.create!(bsg_id: "cal1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BP", short_name: "BP", data: { "caliber" => "5.45x39mm", "damage" => 40 }))
-    ammo762 = make_obtainable(Item::Ammo.create!(bsg_id: "cal2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm", "damage" => 50 }))
+    ammo545 = Item::Ammo.create!(bsg_id: "cal1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BP", short_name: "BP", data: { "caliber" => "5.45x39mm", "damage" => 40 })
+    ammo762 = Item::Ammo.create!(bsg_id: "cal2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm", "damage" => 50 })
 
     get items_url(filters: { caliber: [ "5.45x39mm" ] })
     assert_response :success
@@ -862,9 +853,9 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index caliber filter also matches ammo packs by their category" do
-    loose = make_obtainable(Item::Ammo.create!(bsg_id: "calp1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT", short_name: "BT", data: { "caliber" => "5.45x39mm" }))
-    other = make_obtainable(Item::Ammo.create!(bsg_id: "calp2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm" }))
-    pack = make_obtainable(Item.create!(bsg_id: "calp3-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT ammo pack", short_name: "BTP", categories: [ "ammobox", "5.45x39mm_pack" ]))
+    loose = Item::Ammo.create!(bsg_id: "calp1-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT", short_name: "BT", data: { "caliber" => "5.45x39mm" })
+    other = Item::Ammo.create!(bsg_id: "calp2-#{SecureRandom.hex(4)}", full_name: "7.62x39mm PS", short_name: "PS", data: { "caliber" => "7.62x39mm" })
+    pack = Item.create!(bsg_id: "calp3-#{SecureRandom.hex(4)}", full_name: "5.45x39mm BT ammo pack", short_name: "BTP", categories: [ "ammobox", "5.45x39mm_pack" ])
 
     get items_url(filters: { caliber: [ "5.45x39mm" ] })
     assert_response :success
@@ -876,8 +867,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index filters by armor class" do
-    armor4 = make_obtainable(Item::Armor.create!(bsg_id: "arm1-#{SecureRandom.hex(4)}", full_name: "Trooper Class 4", short_name: "T4", data: { "class" => "4" }))
-    armor6 = make_obtainable(Item::Armor.create!(bsg_id: "arm2-#{SecureRandom.hex(4)}", full_name: "Zabralo Class 6", short_name: "Z6", data: { "class" => "6" }))
+    armor4 = Item::Armor.create!(bsg_id: "arm1-#{SecureRandom.hex(4)}", full_name: "Trooper Class 4", short_name: "T4", data: { "class" => "4" })
+    armor6 = Item::Armor.create!(bsg_id: "arm2-#{SecureRandom.hex(4)}", full_name: "Zabralo Class 6", short_name: "Z6", data: { "class" => "6" })
 
     get items_url(filters: { armor_class: [ "4" ] })
     assert_response :success
@@ -888,8 +879,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index filters by task_required" do
-    gated = make_obtainable(Item.create!(bsg_id: "tg1-#{SecureRandom.hex(4)}", full_name: "Task Gated Item", short_name: "TGI"))
-    free = make_obtainable(Item.create!(bsg_id: "tg2-#{SecureRandom.hex(4)}", full_name: "Free Item", short_name: "FI"))
+    gated = Item.create!(bsg_id: "tg1-#{SecureRandom.hex(4)}", full_name: "Task Gated Item", short_name: "TGI")
+    free = Item.create!(bsg_id: "tg2-#{SecureRandom.hex(4)}", full_name: "Free Item", short_name: "FI")
     task = Task.create!(bsg_id: "t-tg-#{SecureRandom.hex(4)}", full_name: "Gate Task", name: "gate-task", given_by: "Prapor")
     reward = task.rewards.create!(reward_type: "finish_rewards")
     reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
@@ -929,8 +920,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index filters by source task_gated" do
-    gated = make_obtainable(Item.create!(bsg_id: "src1-#{SecureRandom.hex(4)}", full_name: "Gated Source", short_name: "GS"))
-    free = make_obtainable(Item.create!(bsg_id: "src2-#{SecureRandom.hex(4)}", full_name: "Free Source", short_name: "FS"))
+    gated = Item.create!(bsg_id: "src1-#{SecureRandom.hex(4)}", full_name: "Gated Source", short_name: "GS")
+    free = Item.create!(bsg_id: "src2-#{SecureRandom.hex(4)}", full_name: "Free Source", short_name: "FS")
     task = Task.create!(bsg_id: "t-src-#{SecureRandom.hex(4)}", full_name: "Source Task", name: "source-task", given_by: "Prapor")
     reward = task.rewards.create!(reward_type: "finish_rewards")
     reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
@@ -965,8 +956,8 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index marks task-gated item cards" do
-    gated = make_obtainable(Item.create!(bsg_id: "badge-#{SecureRandom.hex(4)}", full_name: "Badge Gated", short_name: "BG"))
-    free = make_obtainable(Item.create!(bsg_id: "badge2-#{SecureRandom.hex(4)}", full_name: "Badge Free", short_name: "BF"))
+    gated = Item.create!(bsg_id: "badge-#{SecureRandom.hex(4)}", full_name: "Badge Gated", short_name: "BG")
+    free = Item.create!(bsg_id: "badge2-#{SecureRandom.hex(4)}", full_name: "Badge Free", short_name: "BF")
     task = Task.create!(bsg_id: "badge-t-#{SecureRandom.hex(4)}", full_name: "Badge Task", name: "badge-task", given_by: "Prapor")
     reward = task.rewards.create!(reward_type: "finish_rewards")
     reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
@@ -1019,14 +1010,14 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index with all filter options checked returns all items" do
-    total_before = Item.obtainable.count
+    total_before = Item.count
 
     all_currencies = ItemCurrency.distinct.pluck(:currency).compact
-    all_armor_classes = Item.obtainable.distinct.pluck(Arel.sql("data->>'class'")).compact
-    all_calibers = Item.obtainable.distinct.pluck(Arel.sql("data->>'caliber'")).compact
+    all_armor_classes = Item.distinct.pluck(Arel.sql("data->>'class'")).compact
+    all_calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact
 
     # Build category base values (merged pack/box/bundle)
-    raw_cats = Item.obtainable.pluck(:categories).flatten.uniq
+    raw_cats = Item.pluck(:categories).flatten.uniq
     all_category_bases = raw_cats.map { |c| c.sub(/_(pack|box|bundle)\z/, "") }.uniq
 
     all_sources = %w[barter craft trader hideout task_gated]
