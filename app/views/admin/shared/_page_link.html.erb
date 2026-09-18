@@ -1,0 +1,7 @@
+<%# One pagination control: a link when enabled, a muted span otherwise.
+    Locals: label, page, enabled, base_params %>
+<% if enabled %>
+  <%= link_to label, url_for(base_params.merge(page: page, per_page: @per_page)), class: "px-3 py-1 text-sm bg-[var(--bg-surface)] border border-[var(--border)] hover:bg-[var(--bg-elevated)]" %>
+<% else %>
+  <span class="px-3 py-1 text-sm text-[var(--text-muted)] border border-[var(--border)] "><%= label %></span>
+<% end %>

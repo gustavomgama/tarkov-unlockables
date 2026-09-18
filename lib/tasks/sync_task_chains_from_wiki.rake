@@ -8,13 +8,11 @@ namespace :tasks do
 
     name_to_task = Task.all.index_by { |t| t.full_name.downcase }
 
-    def slugify(name)
-      name.strip.downcase.gsub(" ", "-").gsub(/[^a-z0-9\-]/, "")
-    end
-
-    def extract_wikilinks(text)
-      return [] unless text
-      text.scan(/\[\[([^\]]+)\]\]/).flatten.map(&:strip)
+    # Lambdas rather than `def`: a method defined inside the task body would
+    # leak onto Object for the rest of the process.
+    slugify = ->(name) { name.strip.downcase.gsub(" ", "-").gsub(/[^a-z0-9\-]/, "") }
+    extract_wikilinks = lambda do |text|
+      text ? text.scan(/\[\[([^\]]+)\]\]/).flatten.map(&:strip) : []
     end
 
     stats = { processed: 0, leads_to_created: 0, previous_created: 0, not_found: [] }
@@ -42,12 +40,12 @@ namespace :tasks do
       elsif current_task
         if line.start_with?(" previous     = ")
           value = line.sub(" previous     = ", "")
-          previous_names = extract_wikilinks(value)
+          previous_names = extract_wikilinks.call(value)
 
           previous_names.each do |pt_name|
             pt_name_clean = pt_name.sub(/\AFail /i, "").strip
 
-            prev_task = name_to_task[pt_name_clean.downcase] || Task.find_by(name: slugify(pt_name_clean))
+            prev_task = name_to_task[pt_name_clean.downcase] || Task.find_by(name: slugify.call(pt_name_clean))
 
             existing = PreviousTask.find_by(requirement_id: current_req.id, task_name: pt_name)
             unless existing
@@ -62,12 +60,12 @@ namespace :tasks do
 
         elsif line.start_with?(" leads to     = ")
           value = line.sub(" leads to     = ", "")
-          leads_to_names = extract_wikilinks(value).map { |n| n.sub(/\(\+24hr\)\z/, "").strip }
+          leads_to_names = extract_wikilinks.call(value).map { |n| n.sub(/\(\+24hr\)\z/, "").strip }
 
           leads_to_names.each do |lt_name|
             lt_name_clean = lt_name.sub(/\(\+24hr\)\z/, "").strip
 
-            follow_task = name_to_task[lt_name_clean.downcase] || Task.find_by(name: slugify(lt_name_clean))
+            follow_task = name_to_task[lt_name_clean.downcase] || Task.find_by(name: slugify.call(lt_name_clean))
 
             existing = LeadsTo.find_by(task_id: current_task.id, follow_up_task_name: lt_name)
             unless existing

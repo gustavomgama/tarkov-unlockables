@@ -8,37 +8,25 @@ module Importers
   #
   # Idempotency: per-task destroy + recreate of leads_tos / requirements / rewards
   # (which cascade through their children). Tasks themselves are upserted by bsg_id.
-  class TaskGraph
+  class TaskGraph < JsonImport
     SOURCE = Rails.root.join("offlinedata/tarkovunlockables/tasks_index.json")
-
-    def self.import!(source: SOURCE)
-      new(source).import!
-    end
-
-    def initialize(source)
-      @source = source
-    end
 
     def import!
       # Pass 1: upsert every Task row so FKs (leads_tos.follow_up_task_id,
       # previous_tasks.task_id) can resolve on pass 2 regardless of JSON order.
-      tasks_data.each { |raw| upsert_task(raw) }
+      records.each { |raw| upsert_task(raw) }
 
       # Pass 2: graph + rewards + requirements.
-      tasks_data.each { |raw| populate_task(raw) }
+      records.each { |raw| populate_task(raw) }
     end
 
     private
 
-    def tasks_data
-      @tasks_data ||= JSON.parse(File.read(@source))
-    end
-
     def upsert_task(raw)
-      task = Task.find_or_initialize_by(bsg_id: raw["bsg_id"])
+      task = find_or_new_task(raw)
       task.assign_attributes(
         full_name:            raw["full_name"],
-        name:                 raw["name"],
+        name:                 task_name_for(raw),
         wiki_link:            raw["wiki_link"],
         given_by:             raw["given_by"],
         kappa_required:       raw["kappa_required"],
@@ -47,8 +35,34 @@ module Importers
       task.save!
     end
 
+    # 52 Ref/Arena quests carry no bsg_id in the source (and no name slug).
+    # Keying on the blank bsg_id collapsed all of them into one row — 51 quests
+    # were lost — and the duplicate blank names then collided in the chain map,
+    # which indexes tasks by name. `full_name` is unique across the source, so it
+    # is the fallback identity. Both lookups share it.
+    def task_identity(raw)
+      bsg_id = raw["bsg_id"]
+      return { bsg_id: bsg_id } if bsg_id.present?
+
+      { bsg_id: nil, full_name: raw["full_name"] }
+    end
+
+    def find_or_new_task(raw)
+      Task.find_or_initialize_by(task_identity(raw))
+    end
+
+    def find_task!(raw)
+      Task.find_by!(task_identity(raw))
+    end
+
+    # Those same quests have no slug; derive one from the full name (measured
+    # unique against every name in the source and against the existing slugs).
+    def task_name_for(raw)
+      raw["name"].presence || raw["full_name"].to_s.parameterize
+    end
+
     def populate_task(raw)
-      task = Task.find_by!(bsg_id: raw["bsg_id"])
+      task = find_task!(raw)
 
       # Per-task destroy → recreate. has_many dependent: :destroy fires
       # child destroy callbacks in turn (loose_items, barter_unlocks, etc.).
@@ -64,10 +78,7 @@ module Importers
 
     def import_leads_tos(task, leads_to)
       leads_to.each do |lt|
-        task.leads_tos.create!(
-          follow_up_task_id:   Task.find_by(bsg_id: lt["task_id"])&.id,
-          follow_up_task_name: lt["task_name"]
-        )
+        create_task_link(task.leads_tos, lt, id_attr: :follow_up_task_id, name_attr: :follow_up_task_name)
       end
     end
 
@@ -77,13 +88,34 @@ module Importers
           player_level: req["player_level"].to_i,
           trader_level: req["trader_level"] || []
         )
-        previous_tasks = req["previous_tasks"] || []
-        previous_tasks.each do |pt|
-          requirement.previous_tasks.create!(
-            task_id:   Task.find_by(bsg_id: pt["task_id"])&.id,
-            task_name: pt["task_name"]
-          )
+        (req["previous_tasks"] || []).each do |pt|
+          create_task_link(requirement.previous_tasks, pt, id_attr: :task_id, name_attr: :task_name)
         end
+      end
+    end
+
+    # Links a row to another task by bsg_id. The referenced task may not be
+    # imported yet, in which case the id stays nil and only the name is kept.
+    def create_task_link(association, raw, id_attr:, name_attr:)
+      linked_id = linked_task_id(raw)
+      name = raw["task_name"].presence
+      # A reference with neither a resolved link nor a name carries nothing:
+      # the source has 48 such `leads_to` rows, and the page would render an
+      # empty chip / count a lead that names no quest.
+      return if linked_id.nil? && name.nil?
+
+      association.create!(id_attr => linked_id, name_attr => name)
+    end
+
+    # 502 references leave task_id blank (408 of them name the task's slug
+    # instead), so resolve by slug when the id is missing — looking up
+    # `bsg_id: ""` used to hand back whichever blank-id row happened to exist.
+    def linked_task_id(raw)
+      task_id = raw["task_id"]
+      if task_id.present?
+        Task.find_by(bsg_id: task_id)&.id
+      else
+        Task.find_by(name: raw["task_name"])&.id
       end
     end
 
@@ -123,44 +155,23 @@ module Importers
 
     def import_barter_unlocks(reward, barter_unlocks)
       barter_unlocks.each do |bu|
-        result_items  = bu.dig("result", 0, "items") || []
-        first_item    = result_items.first || {}
+        first_item    = first_result_item(bu)
         barter_unlock = reward.barter_unlocks.create!(
           item_id:   item_id_for(first_item["item_id"]),
           item_name: first_item["item_name"]
         )
 
-        (bu["requirements"] || []).each do |req|
-          barter_req = barter_unlock.barter_requirements.create!(
-            trader_name:  req["trader_name"].to_s.capitalize,
-            trader_level: strip_ll(req["trader_level"])
-          )
-
-          (req["items"] || []).each do |ri|
-            barter_req.barter_requirement_items.create!(
-              item_id:   item_id_for(ri["item_id"]),
-              item_name: ri["item_name"],
-              count:     ri["count"].to_i
-            )
-          end
-        end
-
-        (bu["result"] || []).each do |res|
-          barter_result = barter_unlock.barter_results.create!
-          (res["items"] || []).each do |ri|
-            barter_result.barter_result_items.create!(
-              item_id:   item_id_for(ri["item_id"]),
-              item_name: ri["item_name"]
-            )
-          end
-        end
+        # Barter JSON uses item_id/item_name/count keys.
+        import_requirement_tree(barter_unlock, :barter_requirements, :barter_requirement_items,
+                                bu["requirements"], id_key: "item_id", name_key: "item_name", count_key: "count")
+        import_result_tree(barter_unlock, :barter_results, :barter_result_items,
+                           bu["result"], id_key: "item_id", name_key: "item_name")
       end
     end
 
     def import_craft_unlocks(reward, craft_unlocks)
       craft_unlocks.each do |cu|
-        result_items    = cu.dig("result", 0, "items") || []
-        first_result    = result_items.first || {}
+        first_result    = first_result_item(cu)
         item_id         = cu["item_id"].presence || first_result["id"]
         item_name       = cu["item_name"].presence || first_result["name"]
         craft_unlock    = reward.craft_unlocks.create!(
@@ -170,31 +181,49 @@ module Importers
           station_level:   cu["station_level"].to_i
         )
 
-        (cu["requirements"] || []).each do |req|
-          craft_req = craft_unlock.craft_requirements.create!(
-            trader_name:  req["trader_name"].to_s.capitalize,
-            trader_level: strip_ll(req["trader_level"])
-          )
-
-          (req["items"] || []).each do |ri|
-            craft_req.craft_requirement_items.create!(
-              item_id:   item_id_for(ri["id"]),
-              item_name: ri["name"],
-              count:     ri["quantity"].to_i
-            )
-          end
-        end
-
-        (cu["result"] || []).each do |res|
-          craft_result = craft_unlock.craft_results.create!
-          (res["items"] || []).each do |ri|
-            craft_result.craft_result_items.create!(
-              item_id:   item_id_for(ri["id"]),
-              item_name: ri["name"]
-            )
-          end
-        end
+        # Craft JSON uses id/name/quantity keys for the same shapes.
+        import_requirement_tree(craft_unlock, :craft_requirements, :craft_requirement_items,
+                                cu["requirements"], id_key: "id", name_key: "name", count_key: "quantity")
+        import_result_tree(craft_unlock, :craft_results, :craft_result_items,
+                           cu["result"], id_key: "id", name_key: "name")
       end
+    end
+
+    # Barter and craft share the same nesting: a trader-gated requirement row
+    # owning item rows. id_key/name_key/count_key map each source's JSON keys.
+    def import_requirement_tree(unlock, requirement_assoc, item_assoc, requirements, id_key:, name_key:, count_key:)
+      (requirements || []).each do |req|
+        requirement = unlock.public_send(requirement_assoc).create!(
+          trader_name:  req["trader_name"].to_s.capitalize,
+          trader_level: strip_ll(req["trader_level"])
+        )
+
+        import_item_rows(requirement, item_assoc, req["items"], id_key: id_key, name_key: name_key, count_key: count_key)
+      end
+    end
+
+    # Result rows own item rows with no trader gate and no count.
+    def import_result_tree(unlock, result_assoc, item_assoc, results, id_key:, name_key:)
+      (results || []).each do |res|
+        result = unlock.public_send(result_assoc).create!
+
+        import_item_rows(result, item_assoc, res["items"], id_key: id_key, name_key: name_key)
+      end
+    end
+
+    # Item rows hang off either a requirement or a result row. count_key is
+    # nil for result items, which carry no count.
+    def import_item_rows(owner, item_assoc, items, id_key:, name_key:, count_key: nil)
+      (items || []).each do |ri|
+        attrs = { item_id: item_id_for(ri[id_key]), item_name: ri[name_key] }
+        attrs[:count] = ri[count_key].to_i if count_key
+        owner.public_send(item_assoc).create!(attrs)
+      end
+    end
+
+    # First entry of a reward's `result` array, or {} when absent.
+    def first_result_item(raw)
+      (raw.dig("result", 0, "items") || []).first || {}
     end
 
     def item_id_for(bsg_id)

@@ -24,7 +24,7 @@ require "test_helper"
 #
 class LooseItemTest < ActiveSupport::TestCase
   test "belongs to reward with optional item" do
-    task = Task.create!(bsg_id: "li-#{SecureRandom.hex(4)}", full_name: "LI", name: "li")
+    task = create_task("LI", "li")
     reward = task.rewards.create!(reward_type: "Item")
 
     loose = reward.loose_items.create!(item_name: "Loose", count: 2)

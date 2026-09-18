@@ -23,10 +23,6 @@ module TasksHelper
     end
   end
 
-  def reward_count(task)
-    task.rewards.sum { |reward| reward_groups(reward).sum { |_, rows, _| rows.size } }
-  end
-
   # Trader level a requirement asks for, as [[name, level], …]. One formatter
   # for both the requirements panel and the timeline nodes.
   def trader_requirements(requirement)

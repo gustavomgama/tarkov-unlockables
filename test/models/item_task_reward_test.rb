@@ -23,12 +23,12 @@ require "test_helper"
 #
 class ItemTaskRewardTest < ActiveSupport::TestCase
   test "belongs to item and optional task" do
-    item = Item.create!(bsg_id: "itr-#{SecureRandom.hex(4)}", full_name: "ITR", short_name: "ITR")
+    item = create_item("ITR", short_name: "ITR")
     itr = item.item_task_rewards.create!(task_name: "Debut")
     assert_equal item, itr.item
     assert_nil itr.task
 
-    task = Task.create!(bsg_id: "itr2-#{SecureRandom.hex(4)}", full_name: "Debut", name: "debut")
+    task = create_task("Debut", "debut")
     itr.update!(task: task)
     assert_equal task, itr.task
   end

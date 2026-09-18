@@ -4,4 +4,7 @@ inherit_gem:
 
 # Your own specialized rules go here
 
-plugins: rubocop-performance
+plugins:
+  - rubocop-performance
+  - rubocop-minitest
+  - rubocop-capybara

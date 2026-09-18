@@ -65,8 +65,40 @@ jobs:
       - name: RuboCop
         run: bundle exec rake ci:lint
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install JS lint dependencies
+        run: npm ci
+
+      - name: ESLint + Prettier (app/javascript)
+        run: bundle exec rake ci:js
+
       - name: Fasterer (performance idioms)
         run: bundle exec rake ci:fasterer
+
+  # ── Python: wiki parser tests (rake ci:python) ───────────────────────
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby-4.0.6
+          bundler-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install parser dependencies
+        run: pip install -r requirements.txt
+
+      - name: Wiki parser tests
+        run: bundle exec rake ci:python
 
   # ── Development boot check (rake ci:development) ─────────────────────
   development:
@@ -129,6 +161,9 @@ jobs:
 
       - name: Test suite
         run: bundle exec rake ci:test
+
+      - name: Schema integrity (active_record_doctor)
+        run: bundle exec rake ci:db_doctor
 
   # ── Coverage gate (rake ci:coverage) ─────────────────────────────────
   coverage:
@@ -198,6 +233,16 @@ jobs:
         with:
           ruby-version: ruby-4.0.6
           bundler-cache: true
+
+      # The accessibility system test injects axe-core from the npm
+      # devDependencies, so the browser job needs them installed too.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
 
       - name: System tests
         run: bundle exec rake ci:system

@@ -42,6 +42,7 @@
   </style>
  </head>
  <body class="min-h-screen flex">
+  <a href="#main" class="skip-link">Skip to content</a>
   <aside class="w-56 bg-[var(--bg-panel)] border-r border-[var(--border)] flex-shrink-0 flex flex-col">
    <div class="p-4 border-b border-[var(--border)]">
     <%= link_to "Admin Panel", admin_root_path, class: "text-lg font-bold text-[var(--accent)]" %>
@@ -68,7 +69,7 @@
    </nav>
   </aside>
 
-  <main class="flex-1 p-6 overflow-auto">
+  <main id="main" tabindex="-1" class="flex-1 p-6 overflow-auto outline-none">
    <% if notice %>
     <div class="mb-4 p-3 bg-[var(--success)]/20 border border-[var(--success)] text-[var(--success)] text-sm">
      <%= notice %>

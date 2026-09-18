@@ -15,7 +15,7 @@ class TaskSearchSuggestionsTest < ApplicationSystemTestCase
     assert_selector "#search-results a", minimum: 1, wait: 5
     assert_selector "#search-results a", text: /Task One/
 
-    find("#q").send_keys(:escape)
+    find_by_id("q").send_keys(:escape)
     assert_no_selector "#search-results a"
   end
 end

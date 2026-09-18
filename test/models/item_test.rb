@@ -30,48 +30,87 @@ require "test_helper"
 #  index_items_on_type              (type)
 #
 class ItemTest < ActiveSupport::TestCase
+  STI_CLASSES = [
+    Item::Weapon, Item::Ammo, Item::Armor, Item::Key, Item::Magazine,
+    Item::Container, Item::Medical, Item::Provision, Item::Throwable, Item::Generic
+  ].freeze
+
   fixtures :all
 
   test "defaults to Item::Generic type" do
-    item = Item.create!(bsg_id: "gen-#{SecureRandom.hex(4)}", full_name: "Generic", short_name: "G")
+    item = create_item("Generic", short_name: "G")
     assert_equal "Item::Generic", item.type
     assert_instance_of Item::Generic, Item.find(item.id)
   end
 
   test "has the four obtain associations" do
-    item = Item.create!(bsg_id: "obtain-#{SecureRandom.hex(4)}", full_name: "Obtainable", short_name: "O")
+    item = create_item("Obtainable")
 
-    item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
-    item.item_task_rewards.create!(task_name: "Debut")
-    item.item_hideouts.create!(station: "Workbench", level: 1)
-    item.item_barters.create!(trader: "Prapor", trader_level: "LL1", currency: "RUB", cost: 100, item_name: "Barter")
-
-    assert_equal 1, item.item_currencies.count
-    assert_equal 1, item.item_task_rewards.count
-    assert_equal 1, item.item_hideouts.count
-    assert_equal 1, item.item_barters.count
+    {
+      item_currencies: { trader: "Prapor", currency: "RUB", min_trader_level: 1 },
+      item_task_rewards: { task_name: "Debut" },
+      item_hideouts: { station: "Workbench", level: 1 },
+      item_barters: { trader: "Prapor", trader_level: "LL1", currency: "RUB", cost: 100, item_name: "Barter" }
+    }.each do |association, attrs|
+      item.public_send(association).create!(attrs)
+      assert_equal 1, item.public_send(association).count
+    end
   end
 
   test "destroying an item destroys its obtain records" do
-    item = Item.create!(bsg_id: "dep-#{SecureRandom.hex(4)}", full_name: "Dep", short_name: "D")
+    item = create_item("Dep", short_name: "D")
     item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
     item.item_hideouts.create!(station: "Workbench", level: 1)
 
     assert_difference([ "ItemCurrency.count", "ItemHideout.count" ], -1) { item.destroy }
   end
 
+  # barter/craft unlocks are not leaves: their requirements/results and those
+  # rows' items hang off them, so the destroy has to walk the whole chain. Using
+  # `delete_all` here skipped it and the restrict FKs rejected the item delete.
+  test "destroying an item cascades through its barter and craft unlock graphs" do
+    models = %w[
+      BarterUnlock BarterRequirement BarterRequirementItem BarterResult BarterResultItem
+      CraftUnlock CraftRequirement CraftRequirementItem CraftResult CraftResultItem
+      OfferUnlock ItemBarter LooseItem ItemTaskReward ItemCurrency ItemHideout
+    ].map(&:constantize)
+    before = models.index_with(&:count)
+
+    items(:one).destroy!
+
+    after = models.index_with(&:count)
+    assert_equal before.keys, after.keys
+    before.each do |model, count|
+      assert_operator after[model], :<, count, "#{model} should lose the rows that hung off the item"
+    end
+  end
+
+  # Mirror of the task-graph test: an item appears in many reference columns (as
+  # a barter/craft requirement or result item, a loose item, a favorite, an
+  # item_task_reward). Deleting every fixture item proves each edge has a
+  # handler, so the admin Delete action cannot 500 on an item mid-graph.
+  test "every fixture item can be destroyed with the graph attached" do
+    Item.all.to_a.each(&:destroy!)
+
+    assert_equal 0, Item.count
+  end
+
   # --- type_for mappings ---
 
   test "type_for maps source properties_type suffixes to type classes" do
-    assert_equal Item::Weapon, Item.type_for("ItemPropertiesWeapon", nil)
-    assert_equal Item::Ammo, Item.type_for("ItemPropertiesAmmo", nil)
-    assert_equal Item::Armor, Item.type_for("ItemPropertiesArmor", nil)
-    assert_equal Item::Key, Item.type_for("ItemPropertiesKey", nil)
-    assert_equal Item::Magazine, Item.type_for("ItemPropertiesMagazine", nil)
-    assert_equal Item::Container, Item.type_for("ItemPropertiesContainer", nil)
-    assert_equal Item::Medical, Item.type_for("ItemPropertiesMedKit", nil)
-    assert_equal Item::Provision, Item.type_for("ItemPropertiesFoodDrink", nil)
-    assert_equal Item::Throwable, Item.type_for("ItemPropertiesGrenade", nil)
+    {
+      "ItemPropertiesWeapon" => Item::Weapon,
+      "ItemPropertiesAmmo" => Item::Ammo,
+      "ItemPropertiesArmor" => Item::Armor,
+      "ItemPropertiesKey" => Item::Key,
+      "ItemPropertiesMagazine" => Item::Magazine,
+      "ItemPropertiesContainer" => Item::Container,
+      "ItemPropertiesMedKit" => Item::Medical,
+      "ItemPropertiesFoodDrink" => Item::Provision,
+      "ItemPropertiesGrenade" => Item::Throwable
+    }.each do |properties_type, expected|
+      assert_equal expected, Item.type_for(properties_type, nil)
+    end
   end
 
   test "type_for falls back to Generic for unknown types" do
@@ -92,17 +131,10 @@ class ItemTest < ActiveSupport::TestCase
   # --- STI ---
 
   test "type classes are Items with correct sti_name" do
-    assert Item::Weapon.new.is_a?(Item)
-    assert_equal "Item::Weapon", Item::Weapon.sti_name
-    assert_equal "Item::Ammo", Item::Ammo.sti_name
-    assert_equal "Item::Armor", Item::Armor.sti_name
-    assert_equal "Item::Key", Item::Key.sti_name
-    assert_equal "Item::Magazine", Item::Magazine.sti_name
-    assert_equal "Item::Container", Item::Container.sti_name
-    assert_equal "Item::Medical", Item::Medical.sti_name
-    assert_equal "Item::Provision", Item::Provision.sti_name
-    assert_equal "Item::Throwable", Item::Throwable.sti_name
-    assert_equal "Item::Generic", Item::Generic.sti_name
+    STI_CLASSES.each do |klass|
+      assert klass.new.is_a?(Item), "#{klass} is not an Item"
+      assert_equal klass.name, klass.sti_name
+    end
   end
 
   # --- data= setter ---
@@ -128,23 +160,6 @@ class ItemTest < ActiveSupport::TestCase
 
   # --- obtain graph (uses internal id) ---
 
-  test "obtain_from returns entries from all obtain associations" do
-    item = items(:one)
-    types = item.obtain_types
-    assert_includes types, :task_reward
-    assert_includes types, :hideout
-    assert_includes types, :barter
-    assert_includes types, :currency
-  end
-
-  test "obtain_from_* filters by type" do
-    item = items(:one)
-    assert_equal 1, item.obtain_from_tasks.size
-    assert_equal 1, item.obtain_from_hideouts.size
-    assert_equal 1, item.obtain_from_barters.size
-    assert_equal 1, item.obtain_from_currencies.size
-  end
-
   # --- unlock logic (uses internal id) ---
 
   test "requires_task? is true when an unlock references the item" do
@@ -152,67 +167,126 @@ class ItemTest < ActiveSupport::TestCase
   end
 
   test "requires_task? is false when no unlock references the item" do
-    item = Item.create!(bsg_id: "notask-#{SecureRandom.hex(4)}", full_name: "No Task", short_name: "NT")
+    item = create_item("No Task", short_name: "NT")
     refute item.requires_task?
   end
 
   test "task_gated scope returns items referenced by unlocks" do
-    gated = Item.task_gated
-    assert_includes gated.map(&:id), items(:one).id
-    assert_includes gated.map(&:id), items(:two).id
+    gated_ids = Item.task_gated.pluck(:id)
+
+    assert_includes gated_ids, items(:one).id
+    assert_includes gated_ids, items(:two).id
   end
 
-  test "how_to_unlock returns unlock paths" do
-    paths = items(:one).how_to_unlock
-    assert paths.any?
-    assert paths.all? { |p| p.respond_to?(:task) && p.respond_to?(:reward_type) && p.respond_to?(:unlock_method) }
+  # 101 offers in the source carry a taskUnlock, so an item whose only gate is a
+  # trader offer has to count as task-gated — the filter used to miss it.
+  test "a trader offer is task-gated only when it carries the task flag" do
+    { true => true, false => false }.each do |task_unlock, expected|
+      item = create_item("Offer #{task_unlock}", short_name: "O#{task_unlock}")
+      item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1,
+                                   task_unlock: task_unlock)
+
+      assert_equal expected, item.requires_task?
+      assert_equal expected, Item.task_gated.exists?(item.id)
+    ensure
+      item&.destroy
+    end
   end
 
-  test "unlock_details_for returns offer unlock details" do
-    path = items(:one).how_to_unlock.find { |p| p.unlock_method == :offer_unlock }
-    assert path
-    details = items(:one).unlock_details_for(path)
-    assert_match(/Prapor LL2/, details)
+  # The items index counts per caliber and groups by class on every cold
+  # filter-options pass; the jsonb GIN index cannot serve `->>` equality, so
+  # without these expression indexes each was a sequential scan (measured on the
+  # real dataset: 349ms of SQL → 27ms).
+  test "the caliber and class expressions are indexed" do
+    indexes = ActiveRecord::Base.connection.indexes(:items).map(&:name)
+
+    assert_includes indexes, "index_items_on_data_caliber"
+    assert_includes indexes, "index_items_on_data_class"
   end
 
-  test "unlock_details_for returns craft unlock details" do
-    path = items(:one).how_to_unlock.find { |p| p.unlock_method == :craft_unlock }
-    assert path
-    details = items(:one).unlock_details_for(path)
-    assert_match(/Craft at Workbench Level 1/, details)
-    assert_match(/Test Item One x2/, details)
+  test "type_for resolves the source property type and lets the wiki infobox win" do
+    assert_equal Item::Weapon, Item.type_for("ItemPropertiesWeapon")
+    assert_equal Item::Medical, Item.type_for("ItemPropertiesMedKit")
+    assert_equal Item::Generic, Item.type_for("ItemPropertiesSomethingNew")
+    # The wiki infobox is authoritative when both sources are present.
+    assert_equal Item::Armor, Item.type_for("ItemPropertiesWeapon", "Armor")
   end
 
-  test "unlock_details_for returns barter unlock details" do
-    path = items(:one).how_to_unlock.find { |p| p.unlock_method == :barter_unlock }
-    assert path
-    details = items(:one).unlock_details_for(path)
-    assert_match(/Prapor LL2/, details)
-    assert_match(/Gives: Test Item One/, details)
-    assert_match(/Test Item One x2/, details)
+  test "caliber_display maps the source enum and passes unknown values through" do
+    assert_equal "5.56x45mm NATO", Item.caliber_display("Caliber556x45NATO")
+    assert_equal "12/70", Item.caliber_display("Caliber12g")
+    assert_equal "5.45x39mm", Item.caliber_display("5.45x39mm")
+    assert_nil Item.caliber_display(nil)
+  end
+
+  # --- guarded edges: partial import data must degrade, not raise ---
+  test "ammo_packs is empty for an item with no bsg_id" do
+    assert_equal 0, Item.new(full_name: "No BSG").ammo_packs.count
+  end
+
+  # The packs query binds a JSON string against a jsonb column, so it only works
+  # because Postgres infers the parameter's type from the left operand. Nothing
+  # else exercises the matching path (the view only renders when it matches).
+  test "ammo_packs finds the packs whose containsItems name the item" do
+    round = create_item("Packed Round", data: {})
+    pack = create_item("Round Pack", data: { "containsItems" => [ { "item" => round.bsg_id, "count" => 2 } ] })
+    create_item("Unrelated Pack", data: { "containsItems" => [ { "item" => "someone-else" } ] })
+
+    assert_equal [ pack.id ], round.ammo_packs.pluck(:id)
+  end
+
+  test "caliber_ammo is empty for an item with no caliber" do
+    item = create_item("No Caliber", data: {})
+
+    assert_equal 0, item.caliber_ammo.count
+  ensure
+    item&.destroy
+  end
+
+  # The item belongs in its own caliber list: the page renders that list with
+  # `current: @item` and highlights the row, so excluding self would hide the
+  # round the visitor is looking at.
+  test "caliber_ammo lists the item among its caliber and orders by penetration" do
+    own = create_item("Own Round", klass: Item::Ammo, data: { "caliber" => "TestCal", "penetration_power" => 20 })
+    stronger = create_item("Stronger Round", klass: Item::Ammo, data: { "caliber" => "TestCal", "penetration_power" => 40 })
+    other = create_item("Other Round", klass: Item::Ammo, data: { "caliber" => "OtherCal", "penetration_power" => 60 })
+
+    assert_equal [ stronger.id, own.id ], own.caliber_ammo.pluck(:id)
+    refute_includes own.caliber_ammo.pluck(:id), other.id
+  ensure
+    Item.where(id: [ own&.id, stronger&.id, other&.id ]).delete_all
+  end
+
+  # The caliber map has to survive both shapes the import can leave behind: a
+  # raw value that was never translated out of the BSG enum, and two raw values
+  # that resolve to the same display.
+  test "caliber_category_map skips an enum-shaped display and a repeated display" do
+    unmapped = create_item("Unmapped Caliber", klass: Item::Ammo, data: { "caliber" => "CaliberNotMapped" })
+    from_enum = create_item("Enum Caliber", klass: Item::Ammo, data: { "caliber" => "Caliber545x39" })
+    from_display = create_item("Display Caliber", klass: Item::Ammo, data: { "caliber" => "5.45x39mm" })
+
+    map = Item.build_caliber_category_map
+
+    refute_includes map.keys, "CaliberNotMapped"
+    assert_includes map.keys, "5.45x39mm"
+  ensure
+    [ unmapped, from_enum, from_display ].each { |item| item&.destroy }
   end
 
   # --- stats_partial (Task 8) ---
 
   test "stats_partial returns demodulized class-name partial path" do
-    assert_equal "items/weapon_stats",   Item::Weapon.new.stats_partial
-    assert_equal "items/ammo_stats",     Item::Ammo.new.stats_partial
-    assert_equal "items/armor_stats",    Item::Armor.new.stats_partial
-    assert_equal "items/key_stats",      Item::Key.new.stats_partial
-    assert_equal "items/magazine_stats", Item::Magazine.new.stats_partial
-    assert_equal "items/container_stats", Item::Container.new.stats_partial
-    assert_equal "items/medical_stats",  Item::Medical.new.stats_partial
-    assert_equal "items/provision_stats", Item::Provision.new.stats_partial
-    assert_equal "items/throwable_stats", Item::Throwable.new.stats_partial
-    assert_equal "items/generic_stats",  Item::Generic.new.stats_partial
+    STI_CLASSES.each do |klass|
+      assert_equal "items/#{klass.name.demodulize.underscore}_stats", klass.new.stats_partial
+    end
   end
 
   # --- search ---
 
   test "search matches slug, full_name, and short_name" do
-    assert_includes Item.search("item-one").map(&:id), items(:one).id
-    assert_includes Item.search("Test Item One").map(&:id), items(:one).id
-    assert_includes Item.search("TIO").map(&:id), items(:one).id
+    [ "item-one", "Test Item One", "TIO" ].each do |query|
+      assert_includes Item.search(query).map(&:id), items(:one).id, query
+    end
   end
 
   test "search with blank query returns all" do

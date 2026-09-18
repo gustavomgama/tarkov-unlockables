@@ -25,22 +25,27 @@ require "test_helper"
 #  index_tasks_on_search_text_trgm  (search_text) USING gin
 #
 class TaskTest < ActiveSupport::TestCase
+  PEACEKEEPER_LL3 = [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ].freeze
+  UNNAMED_TRADER_LL4 = [ { "trader_name" => "", "trader_level" => "4" } ].freeze
+  WET_JOBS = (1..6).map { |n| [ "Wet Job #{n}", "wet-job-part-#{n}" ] }.freeze
+
   test "has task graph associations" do
-    task = Task.create!(bsg_id: "t-#{SecureRandom.hex(4)}", full_name: "Debut", name: "debut", given_by: "Prapor")
+    task = create_task("Debut", "debut", given_by: "Prapor")
 
-    task.rewards.create!(reward_type: "Item")
-    task.leads_tos.create!(follow_up_task_name: "Shootout")
-    task.requirements.create!(player_level: 5)
-    task.item_task_rewards.create!(item: Item.create!(bsg_id: "i-#{SecureRandom.hex(4)}", full_name: "Item", short_name: "I"), task_name: "Debut")
+    {
+      rewards: { reward_type: "Item" },
+      leads_tos: { follow_up_task_name: "Shootout" },
+      requirements: { player_level: 5 },
+      item_task_rewards: { item: create_item("Item"), task_name: "Debut" }
+    }.each do |association, attrs|
+      task.public_send(association).create!(attrs)
 
-    assert_equal 1, task.rewards.count
-    assert_equal 1, task.leads_tos.count
-    assert_equal 1, task.requirements.count
-    assert_equal 1, task.item_task_rewards.count
+      assert_equal 1, task.public_send(association).count
+    end
   end
 
   test "leads_tos_count counter cache increments" do
-    task = Task.create!(bsg_id: "cc-#{SecureRandom.hex(4)}", full_name: "Counter", name: "counter")
+    task = create_task("Counter", "counter")
     assert_equal 0, task.leads_tos_count
 
     task.leads_tos.create!(follow_up_task_name: "Next")
@@ -48,11 +53,9 @@ class TaskTest < ActiveSupport::TestCase
   end
 
   test "prerequisite_chain walks previous tasks" do
-    first = Task.create!(bsg_id: "p1-#{SecureRandom.hex(4)}", full_name: "First", name: "first", given_by: "Prapor")
-    second = Task.create!(bsg_id: "p2-#{SecureRandom.hex(4)}", full_name: "Second", name: "second", given_by: "Prapor")
-
-    req = second.requirements.create!(player_level: 10)
-    req.previous_tasks.create!(task: first, task_name: "first")
+    first = create_task("First", "first", given_by: "Prapor")
+    second = create_task("Second", "second", given_by: "Prapor")
+    link_prerequisite(second, first, player_level: 10)
 
     chain = second.prerequisite_chain
     assert_equal 2, chain.length
@@ -63,72 +66,110 @@ class TaskTest < ActiveSupport::TestCase
   # --- Task 11: chain node carries requirements (player_level + trader_requirements) ---
 
   test "prerequisite_chain node carries player_level + trader_requirements" do
-    first = Task.create!(bsg_id: "np1-#{SecureRandom.hex(4)}", full_name: "First", name: "first", given_by: "Prapor")
-    second = Task.create!(bsg_id: "np2-#{SecureRandom.hex(4)}", full_name: "Second", name: "second", given_by: "Therapist")
-
-    req = second.requirements.create!(player_level: 14, trader_level: [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ])
-    req.previous_tasks.create!(task: first, task_name: "first")
+    first = create_task("First", "first", given_by: "Prapor")
+    second = create_task("Second", "second", given_by: "Therapist")
+    link_prerequisite(second, first, player_level: 14, trader_level: PEACEKEEPER_LL3)
 
     chain = second.prerequisite_chain
-    assert_equal 14, chain.first[:player_level]
-    assert_equal [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ], chain.first[:trader_requirements]
-
-    assert_equal 0, chain.last[:player_level]
-    assert_equal [], chain.last[:trader_requirements]
+    assert_requirement chain.first, player_level: 14, trader_level: PEACEKEEPER_LL3
+    assert_requirement chain.last, player_level: 0, trader_level: []
   end
 
   test "prerequisite_chain full chain length 8 (wet-job 1..6 -> the-guide -> the-cleaner)" do
     # Build the chain that mirrors the source (Task 11 example: M80 unlock path)
-    wet1 = Task.create!(bsg_id: "wet1-#{SecureRandom.hex(4)}", full_name: "Wet Job 1", name: "wet-job-part-1", given_by: "Mechanic")
-    wet2 = Task.create!(bsg_id: "wet2-#{SecureRandom.hex(4)}", full_name: "Wet Job 2", name: "wet-job-part-2", given_by: "Mechanic")
-    wet3 = Task.create!(bsg_id: "wet3-#{SecureRandom.hex(4)}", full_name: "Wet Job 3", name: "wet-job-part-3", given_by: "Mechanic")
-    wet4 = Task.create!(bsg_id: "wet4-#{SecureRandom.hex(4)}", full_name: "Wet Job 4", name: "wet-job-part-4", given_by: "Mechanic")
-    wet5 = Task.create!(bsg_id: "wet5-#{SecureRandom.hex(4)}", full_name: "Wet Job 5", name: "wet-job-part-5", given_by: "Mechanic")
-    wet6 = Task.create!(bsg_id: "wet6-#{SecureRandom.hex(4)}", full_name: "Wet Job 6", name: "wet-job-part-6", given_by: "Mechanic")
-    guide = Task.create!(bsg_id: "guide-#{SecureRandom.hex(4)}", full_name: "The Guide", name: "the-guide", given_by: "Peacekeeper")
-    cleaner = Task.create!(bsg_id: "cleaner-#{SecureRandom.hex(4)}", full_name: "The Cleaner", name: "the-cleaner", given_by: "Peacekeeper")
+    wet = WET_JOBS.map { |full_name, name| create_task(full_name, name, given_by: "Mechanic") }
+    guide = create_task("The Guide", "the-guide", given_by: "Peacekeeper")
+    cleaner = create_task("The Cleaner", "the-cleaner", given_by: "Peacekeeper")
 
-    wet1.requirements.create!(player_level: 14, trader_level: [])
-    [ wet2, wet3, wet4, wet5 ].each_with_index do |t, i|
-      prev = [ wet1, wet2, wet3, wet4 ][i]
-      r = t.requirements.create!(player_level: 14, trader_level: [])
-      r.previous_tasks.create!(task: prev, task_name: prev.name)
+    wet.first.requirements.create!(player_level: 14, trader_level: [])
+    wet.each_cons(2).with_index do |(prev, task), index|
+      # wet-job-2..5 need level 14; wet-job-6 (the last link) is unlocked at 0.
+      link_prerequisite(task, prev, player_level: index < 4 ? 14 : 0)
     end
-    wet6_r = wet6.requirements.create!(player_level: 0, trader_level: [])
-    wet6_r.previous_tasks.create!(task: wet5, task_name: wet5.name)
-
-    guide_r = guide.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "", "trader_level" => "4" } ])
-    guide_r.previous_tasks.create!(task: wet6, task_name: wet6.name)
-
-    cleaner_r = cleaner.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ])
-    cleaner_r.previous_tasks.create!(task: guide, task_name: guide.name)
+    link_prerequisite(guide, wet.last, player_level: 0, trader_level: UNNAMED_TRADER_LL4)
+    link_prerequisite(cleaner, guide, player_level: 0, trader_level: PEACEKEEPER_LL3)
 
     chain = cleaner.prerequisite_chain
-    assert_equal 8, chain.length
-    expected_slugs = %w[the-cleaner the-guide wet-job-part-6 wet-job-part-5 wet-job-part-4 wet-job-part-3 wet-job-part-2 wet-job-part-1]
-    assert_equal expected_slugs, chain.map { |n| n[:name] }
+    # The slug order is the whole chain, so it proves the length too.
+    assert_equal %w[the-cleaner the-guide wet-job-part-6 wet-job-part-5 wet-job-part-4
+                    wet-job-part-3 wet-job-part-2 wet-job-part-1],
+                 chain.map { |n| n[:name] }
 
-    # wet-job-part-1: lvl 14, no trader (last node — root of the chain)
-    wet1_node = chain.last
-    assert_equal 14, wet1_node[:player_level]
-    assert_equal [], wet1_node[:trader_requirements]
-
-    # the-guide: lvl 0, empty-name trader (LL4)
-    guide_node = chain[1]
-    assert_equal 0, guide_node[:player_level]
-    assert_equal [ { "trader_name" => "", "trader_level" => "4" } ], guide_node[:trader_requirements]
-
-    # the-cleaner: lvl 0, peacekeeper LL3
-    cleaner_node = chain.first
-    assert_equal 0, cleaner_node[:player_level]
-    assert_equal [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ], cleaner_node[:trader_requirements]
+    # [chain index, player level, trader requirements]: -1 is the root (wet-job-1),
+    # 1 is the-guide, 0 is the-cleaner.
+    { -1 => [ 14, [] ], 1 => [ 0, UNNAMED_TRADER_LL4 ], 0 => [ 0, PEACEKEEPER_LL3 ] }.each do |index, (level, traders)|
+      assert_requirement chain[index], player_level: level, trader_level: traders
+    end
   end
 
   test "prerequisite_chain returns trader_requirements=[] for task with no requirement row" do
-    task = Task.create!(bsg_id: "noreq-#{SecureRandom.hex(4)}", full_name: "No Req", name: "no-req", given_by: "Prapor")
+    task = create_task("No Req", "no-req", given_by: "Prapor")
     chain = task.prerequisite_chain
     assert_equal 1, chain.length
-    assert_equal 0, chain.first[:player_level]
-    assert_equal [], chain.first[:trader_requirements]
+    assert_requirement chain.first, player_level: 0, trader_level: []
+  end
+
+  # Both cross-task reference columns (leads_tos.follow_up_task_id and
+  # previous_tasks.task_id) carry a restrict FK and neither had an inverse
+  # association on Task, so deleting a task that another task leads to, or that
+  # another task requires as a prerequisite, raised a foreign-key violation —
+  # the admin Delete action 500d for any task in the middle of the graph.
+  test "destroying a task clears the other tasks' pointers to it" do
+    referenced = create_task("Referenced Task")
+    other = create_task("Other Task")
+    other.leads_tos.create!(follow_up_task_name: referenced.name, follow_up_task: referenced)
+    requirement = other.requirements.create!(player_level: 5)
+    requirement.previous_tasks.create!(task: referenced, task_name: referenced.name)
+
+    referenced.destroy!
+
+    assert_nil LeadsTo.find_by(follow_up_task_name: referenced.name).follow_up_task_id
+    assert_nil PreviousTask.find_by(task_name: referenced.name).task_id
+  end
+
+  # The admin Delete action runs on any task in the graph. Deleting every fixture
+  # task at once proves each reference edge (own rows, cross-task pointers, and
+  # rewards → unlocks → requirements/results → items) has a handler; a missing
+  # one surfaces as a foreign-key violation here instead of a 500 in the admin.
+  test "every fixture task can be destroyed with the graph attached" do
+    Task.all.to_a.each(&:destroy!)
+
+    assert_equal 0, Task.count
+  end
+
+  # A prerequisite row can outlive the task it names (a deleted task, a stale
+  # import). The walk has to skip it rather than raise.
+  test "prerequisite_chain skips a previous task that no longer exists" do
+    task = create_task("Orphan Chain", "orphan-chain")
+    requirement = task.requirements.create!(player_level: 5)
+    requirement.previous_tasks.create!(task_name: "deleted-task")
+
+    chain = task.prerequisite_chain
+
+    assert_equal 1, chain.length
+    assert_equal "orphan-chain", chain.first[:name]
+  end
+
+  # The importer resolves every reference with find_by/find_or_initialize_by on
+  # bsg_id; the unique index is what makes that lookup both safe and fast, and
+  # pins the one-task-per-bsg_id invariant.
+  test "tasks.bsg_id is uniquely indexed" do
+    index = ActiveRecord::Base.connection.indexes(:tasks).find { |i| i.columns == [ "bsg_id" ] }
+
+    assert index&.unique, "tasks.bsg_id needs a unique index for the importer's lookups"
+  end
+
+  private
+
+  # Creates `prev` as the single prerequisite of `task` and returns the new row.
+  def link_prerequisite(task, prev, player_level:, trader_level: [])
+    requirement = task.requirements.create!(player_level: player_level, trader_level: trader_level)
+    requirement.previous_tasks.create!(task: prev, task_name: prev.name)
+    requirement
+  end
+
+  def assert_requirement(node, player_level:, trader_level:)
+    assert_equal player_level, node[:player_level]
+    assert_equal trader_level, node[:trader_requirements]
   end
 end

@@ -34,12 +34,21 @@ class Item < ApplicationRecord
   has_many :item_currencies, dependent: :delete_all
   has_many :loose_items, dependent: :delete_all
   has_many :offer_unlocks, dependent: :delete_all
-  has_many :barter_unlocks, dependent: :delete_all
-  has_many :craft_unlocks, dependent: :delete_all
+  # barter/craft unlocks are not leaves: their requirements/results (and those
+  # rows' items) point back at them, so `delete_all` would bypass BarterUnlock's
+  # own dependent: :destroy and leave orphaned rows the restrict FK then rejects
+  # — deleting any item that has a barter or craft unlock raised a foreign-key
+  # violation instead of destroying it.
+  has_many :barter_unlocks, dependent: :destroy
+  has_many :craft_unlocks, dependent: :destroy
   has_many :barter_requirement_items, dependent: :delete_all
   has_many :barter_result_items, dependent: :delete_all
   has_many :craft_requirement_items, dependent: :delete_all
   has_many :craft_result_items, dependent: :delete_all
+  # The FK is `on_delete: :restrict`, so without this an item anyone favorited
+  # cannot be destroyed at all — the admin delete action 500s on a foreign-key
+  # violation, and re-imports that drop items fail the same way.
+  has_many :favorite_items, dependent: :delete_all
 
   attr_accessor :data_json_invalid
 
@@ -167,13 +176,17 @@ class Item < ApplicationRecord
   # appears in their name. Never overwrites an existing caliber value.
   def self.populate_calibers_from_names
     Item.where("data->>'caliber' IS NULL").find_each do |item|
-      caliber = parse_caliber_from_name(item.full_name) ||
-                parse_caliber_from_name(item.slug) ||
-                parse_caliber_from_name(item.wiki_title)
+      caliber = caliber_from_item(item)
       next if caliber.blank?
 
       item.update_column(:data, (item.data || {}).merge("caliber" => caliber))
     end
+  end
+
+  def self.caliber_from_item(item)
+    parse_caliber_from_name(item.full_name) ||
+      parse_caliber_from_name(item.slug) ||
+      parse_caliber_from_name(item.wiki_title)
   end
 
   # Maps caliber display name → matching categories, including the
@@ -181,22 +194,20 @@ class Item < ApplicationRecord
   # Computed on demand (not at class load) so boot never touches the DB and
   # re-imported data is reflected immediately.
   def self.caliber_category_map
-    Rails.cache.fetch("items/caliber_category_map", expires_in: 1.hour) do
-      build_caliber_category_map
-    end
+    cached("caliber_category_map") { build_caliber_category_map }
   end
 
   # Full category list backing filter expansion. Cached: changes only on import.
   def self.category_list
-    Rails.cache.fetch("items/category_list", expires_in: 1.hour) do
-      pluck(:categories).flatten.uniq
-    end
+    cached("category_list") { pluck(:categories).flatten.uniq }
+  end
+
+  # Item lookups that only change on import share one cache namespace and TTL.
+  def self.cached(key, &block)
+    Rails.cache.fetch("items/#{key}", expires_in: 1.hour, &block)
   end
 
   def self.build_caliber_category_map
-    # Normalize: lowercase, strip non-alphanumeric, strip 'x', strip trailing 'mm'
-    norm = ->(s) { s.downcase.gsub(/[^a-zA-Z0-9]/, "").gsub("x", "").sub(/mm\z/, "") }
-
     cal_cats = category_list.select { |c| c.sub(/_(pack|box|bundle)\z/, "").match?(/^\d|^\./) }
 
     raw_calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact
@@ -205,13 +216,25 @@ class Item < ApplicationRecord
       display = Item.caliber_display(raw)
       next if display.start_with?("Caliber")
       next if display_to_cats.key?(display)
-      dn = norm.call(display)
-      display_to_cats[display] = cal_cats.select { |c|
-        bn = norm.call(c.sub(/_(pack|box|bundle)\z/, ""))
-        bn == dn || bn.start_with?(dn) || dn.start_with?(bn)
-      }
+
+      display_to_cats[display] = matching_categories(display, cal_cats)
     end
     display_to_cats
+  end
+
+  # Categories whose normalized name equals, extends, or is extended by the
+  # caliber's normalized name ("5.45x39mm" → "545x39_pack").
+  def self.matching_categories(display, cal_cats)
+    normalized = normalize_caliber(display)
+    cal_cats.select do |category|
+      base = normalize_caliber(category.sub(/_(pack|box|bundle)\z/, ""))
+      base == normalized || base.start_with?(normalized) || normalized.start_with?(base)
+    end
+  end
+
+  # Normalize: lowercase, strip non-alphanumeric, strip 'x', strip trailing 'mm'
+  def self.normalize_caliber(value)
+    value.downcase.gsub(/[^a-zA-Z0-9]/, "").gsub("x", "").sub(/mm\z/, "")
   end
 
   # Links come from the wiki import and are rendered as an `href`. A stored
@@ -235,15 +258,15 @@ class Item < ApplicationRecord
   DMG_ORDER = "CASE WHEN data->>'damage' ~ '^[0-9]+$' " \
               "THEN (data->>'damage')::int END DESC NULLS LAST".freeze
 
-  # Every other round in the same caliber, hardest-hitting first. A round's
-  # penetration number only means something next to its siblings, so the
-  # ammo page leads with this comparison.
+  # The round's own caliber, hardest-hitting first. A penetration number only
+  # means something next to its siblings, so the ammo page leads with this
+  # comparison and the table highlights this round in it (`current:` in
+  # _ammo_table) — excluding self here left that highlight unreachable.
   def caliber_ammo(limit: 14)
     raw = data["caliber"]
     return Item.none if raw.blank?
 
     Item::Ammo.where("data->>'caliber' = ?", raw)
-              .where.not(id: id)
               .order(Arel.sql(PEN_ORDER), Arel.sql(DMG_ORDER))
               .limit(limit)
   end
@@ -273,50 +296,21 @@ class Item < ApplicationRecord
     "items/#{self.class.name.demodulize.underscore}_stats"
   end
 
-  # --- obtain graph (uses internal id) ---
-
-  ObtainEntry = Struct.new(:type, :source, keyword_init: true)
-  UnlockPath = Struct.new(:task, :reward_type, :unlock_method, keyword_init: true)
-
-  def obtain_from
-    entries = []
-    item_task_rewards.find_each { |r| entries << ObtainEntry.new(type: :task_reward, source: r) }
-    item_hideouts.find_each { |r| entries << ObtainEntry.new(type: :hideout, source: r) }
-    item_barters.find_each { |r| entries << ObtainEntry.new(type: :barter, source: r) }
-    item_currencies.find_each { |r| entries << ObtainEntry.new(type: :currency, source: r) }
-    entries
-  end
-
-  def obtain_types
-    obtain_from.map(&:type).uniq
-  end
-
-  def obtain_from_tasks
-    obtain_from.select { |e| e.type == :task_reward }
-  end
-
-  def obtain_from_hideouts
-    obtain_from.select { |e| e.type == :hideout }
-  end
-
-  def obtain_from_barters
-    obtain_from.select { |e| e.type == :barter }
-  end
-
-  def obtain_from_currencies
-    obtain_from.select { |e| e.type == :currency }
-  end
-
   def requires_task?
     %w[OfferUnlock BarterUnlock CraftUnlock].any? do |model_name|
       model_name.constantize.exists?(item_id: id)
-    end
+    end || item_currencies.where(task_unlock: true).exists?
   end
 
+  # An item is task-gated through any unlock row, or through a trader offer that
+  # a quest unlocks. Without the last clause an item gated only via its trader
+  # offer slips the "Task Required" filter (101 offers in the source carry a
+  # taskUnlock).
   scope :task_gated, -> {
     where(id: OfferUnlock.select(:item_id))
       .or(where(id: BarterUnlock.select(:item_id)))
       .or(where(id: CraftUnlock.select(:item_id)))
+      .or(where(id: ItemCurrency.where(task_unlock: true).select(:item_id)))
   }
 
   def self.ransackable_attributes(auth_object = nil)
@@ -331,59 +325,5 @@ class Item < ApplicationRecord
     return all if query.blank?
     q = "%#{query}%"
     where("slug ILIKE ? OR full_name ILIKE ? OR short_name ILIKE ?", q, q, q)
-  end
-
-  def how_to_unlock
-    paths = []
-    Reward.joins(:offer_unlocks).where(offer_unlocks: { item_id: id }).find_each do |reward|
-      paths << UnlockPath.new(task: reward.task, reward_type: reward.reward_type, unlock_method: :offer_unlock)
-    end
-    Reward.joins(:barter_unlocks).where(barter_unlocks: { item_id: id }).find_each do |reward|
-      paths << UnlockPath.new(task: reward.task, reward_type: reward.reward_type, unlock_method: :barter_unlock)
-    end
-    Reward.joins(:craft_unlocks).where(craft_unlocks: { item_id: id }).find_each do |reward|
-      paths << UnlockPath.new(task: reward.task, reward_type: reward.reward_type, unlock_method: :craft_unlock)
-    end
-    paths.uniq
-  end
-
-  def unlock_details_for(path)
-    reward = path.task.rewards.where(reward_type: path.reward_type).first
-    return nil unless reward
-
-    case path.unlock_method
-    when :craft_unlock
-      craft_unlock = reward.craft_unlocks.where(item_id: id).first
-      return nil unless craft_unlock
-      details = []
-      details << "Craft at #{craft_unlock.hideout_station} Level #{craft_unlock.station_level}"
-      craft_unlock.craft_requirements.each do |req|
-        next if req.trader_level.blank?
-        details << "Requires #{req.trader_name.titleize} LL#{req.trader_level}"
-      end
-      craft_unlock.craft_requirements.flat_map(&:craft_requirement_items).each do |item|
-        details << "#{item.item_name} x#{item.count}"
-      end
-      details.join(" · ")
-    when :barter_unlock
-      barter_unlock = reward.barter_unlocks.where(item_id: id).first
-      return nil unless barter_unlock
-      details = []
-      barter_unlock.barter_requirements.each do |req|
-        details << "#{req.trader_name.titleize} LL#{req.trader_level}"
-      end
-      items = barter_unlock.barter_results.flat_map(&:barter_result_items).map(&:item_name)
-      details << "Gives: #{items.join(", ")}" if items.any?
-      barter_unlock.barter_requirements.flat_map(&:barter_requirement_items).each do |item|
-        details << "#{item.item_name} x#{item.count}"
-      end
-      details.join(" · ")
-    when :offer_unlock
-      offer_unlock = reward.offer_unlocks.where(item_id: id).first
-      return nil unless offer_unlock
-      "#{offer_unlock.trader_name.titleize} LL#{offer_unlock.trader_level}"
-    else
-      nil
-    end
   end
 end

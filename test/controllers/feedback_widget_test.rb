@@ -1,15 +1,28 @@
 require "test_helper"
 
 class FeedbackWidgetTest < ActionDispatch::IntegrationTest
-  TALLY_EMBED_SRC = "https://tally.so/embed/Pd77Md?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1".freeze
+  # The ampersands are escaped in the attribute, as HTML requires; the browser
+  # decodes them back before Tally's widget reads the value.
+  TALLY_EMBED_SRC = "https://tally.so/embed/Pd77Md?alignLeft=1&amp;hideTitle=1&amp;transparentBackground=1&amp;dynamicHeight=1".freeze
   TALLY_IFRAME_SELECTOR = "iframe[data-tally-src*='tally.so/embed/Pd77Md']".freeze
 
   test "the footer embeds the Tally form in-page as an iframe" do
     get root_url
 
     assert_response :success
-    assert_select TALLY_IFRAME_SELECTOR
+    assert_select TALLY_IFRAME_SELECTOR, count: 1
     assert_includes response.body, TALLY_EMBED_SRC
+  end
+
+  # A copy-paste once shipped the Tally block and the "Public thread" intro
+  # twice, with an unmatched </div>; assert one of each so it cannot come back.
+  test "each feedback channel is embedded exactly once" do
+    get root_url
+
+    assert_select TALLY_IFRAME_SELECTOR, count: 1
+    assert_equal 1, response.body.scan("tally.so/widgets/embed.js").size
+    assert_equal 1, response.body.scan("utteranc.es/client.js").size
+    assert_equal 1, response.body.scan("Public thread").size
   end
 
   test "the Tally form is embedded, never linked off-site" do

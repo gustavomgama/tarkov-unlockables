@@ -130,4 +130,21 @@ class Importers::WikiTest < ActiveSupport::TestCase
       run_import!
     end
   end
+
+  # A page can be missing its name or a section. The stored value has to survive,
+  # and an empty section must not be written into data.
+  test "keeps the stored full_name when the wiki name is blank and drops an empty section" do
+    item = Item.create!(bsg_id: "wiki_blank_name", full_name: "Kept Name", short_name: "KN")
+    write_fixture(
+      "wiki_blank_name" => { "full_name" => "", "infobox" => {}, "sections" => { "mods" => [] } }
+    )
+
+    run_import!
+
+    item.reload
+    assert_equal "Kept Name", item.full_name
+    assert_not item.data.key?("mods")
+  ensure
+    item&.destroy
+  end
 end

@@ -14,8 +14,7 @@
     width="<%= size == :hero ? 160 : 200 %>"
     height="<%= size == :hero ? 160 : 150 %>"
     decoding="async"
-    <%= eager ? 'fetchpriority="high"'.html_safe : 'loading="lazy"'.html_safe %>
-  >
+    <%= eager ? 'fetchpriority="high"'.html_safe : 'loading="lazy"'.html_safe %>>
 <% else %>
   <span class="flex h-full w-full items-center justify-center px-1 text-center font-data text-[0.6875rem] leading-tight text-[var(--text-muted)]">
     <%= item.short_name.presence || item.full_name.to_s.first(12) %>

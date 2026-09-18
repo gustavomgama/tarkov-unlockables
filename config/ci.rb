@@ -8,10 +8,13 @@
 #   ci.yml job     step
 #   ───────────    ─────────────────────────────────────────
 #   security       Security: Brakeman + bundler-audit
-#   lint           Lint: RuboCop
+#   lint           Lint: RuboCop + erb_lint
+#   js             Lint: ESLint + Prettier (app/javascript)
 #   lint           Perf: Fasterer
+#   python         Python: wiki parser tests
 #   development    Development: Boot + routes + perf tooling
 #   test           Test: Suite + Bullet/Goldiloader
+#   test           Schema: active_record_doctor
 #   coverage       Coverage: 89% line gate
 #   system         System: Browser tests
 #   audit          Audit: Rubycritic ≥ 75
@@ -28,7 +31,7 @@
 #   static       reads the source tree only
 #   development  uses the development database
 #   test-db      test, coverage and system all use the test database
-#   audit        reads app/, writes tmp/rubycritic
+#   audit        reads hand-written code, writes tmp/rubycritic
 #   docker       builds the image, then owns port 3001 and its containers
 #
 # Each step's output goes to tmp/ci/<step>.log so concurrent steps do not
@@ -42,9 +45,12 @@ CI.run do
   sequences = [
     [ [ "Security: Brakeman + bundler-audit", "bundle exec rake ci:security" ],
       [ "Lint: RuboCop", "bundle exec rake ci:lint" ],
-      [ "Perf: Fasterer", "bundle exec rake ci:fasterer" ] ],
+      [ "Lint: ESLint + Prettier", "bundle exec rake ci:js" ],
+      [ "Perf: Fasterer", "bundle exec rake ci:fasterer" ],
+      [ "Python: wiki parser tests", "bundle exec rake ci:python" ] ],
     [ [ "Development: Boot + routes + perf tooling", "bundle exec rake ci:development" ] ],
     [ [ "Test: Suite + Bullet/Goldiloader", "bundle exec rake ci:test" ],
+      [ "Schema: active_record_doctor", "bundle exec rake ci:db_doctor" ],
       [ "Coverage: 89% line gate", "bundle exec rake ci:coverage" ],
       [ "System: Browser tests", "bundle exec rake ci:system" ] ],
     [ [ "Audit: Rubycritic ≥ 75", "bundle exec rake ci:audit" ] ],

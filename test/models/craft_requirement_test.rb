@@ -21,7 +21,7 @@ require "test_helper"
 #
 class CraftRequirementTest < ActiveSupport::TestCase
   test "belongs to craft_unlock and has requirement items" do
-    task = Task.create!(bsg_id: "cr-#{SecureRandom.hex(4)}", full_name: "CR", name: "cr")
+    task = create_task("CR", "cr")
     reward = task.rewards.create!(reward_type: "Item")
     unlock = reward.craft_unlocks.create!(item_name: "Craft", hideout_station: "Workbench", station_level: 1)
 

@@ -1,0 +1,14 @@
+<%# Admin index header: title + count, new link, search form.
+    Locals: title, new_label, new_path, search_path, placeholder %>
+<div class="mb-6 flex justify-between items-center">
+  <h1 class="text-2xl font-bold text-[var(--text-bright)]"><%= title %> (<%= @total_count %>)</h1>
+  <%= link_to "New #{new_label}", new_path, class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] font-bold hover:bg-[var(--accent-hover)] transition-colors" %>
+</div>
+
+<%= form_tag search_path, method: :get, class: "mb-4 flex items-center gap-2" do %>
+  <%= text_field_tag :q, params[:q], autocomplete: "off", placeholder: placeholder, "aria-label": placeholder,
+        class: "flex-1 px-3 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none" %>
+  <button type="submit" class="px-4 py-2 text-sm bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]">
+    Search
+  </button>
+<% end %>

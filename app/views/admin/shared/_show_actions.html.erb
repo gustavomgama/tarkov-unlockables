@@ -1,0 +1,5 @@
+<%# Edit/delete controls for an admin show page. Locals: edit_path, destroy_path %>
+<div class="mb-6 flex gap-4">
+  <%= link_to "Edit", edit_path, class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+  <%= button_to "Delete", destroy_path, method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "px-4 py-2 bg-[var(--danger)] text-white hover:opacity-90" %>
+</div>

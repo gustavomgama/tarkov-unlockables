@@ -21,7 +21,7 @@ require "test_helper"
 #
 class BarterRequirementTest < ActiveSupport::TestCase
   test "belongs to barter_unlock and has requirement items" do
-    task = Task.create!(bsg_id: "br-#{SecureRandom.hex(4)}", full_name: "BR", name: "br")
+    task = create_task("BR", "br")
     reward = task.rewards.create!(reward_type: "Item")
     unlock = reward.barter_unlocks.create!(item_name: "Barter")
 

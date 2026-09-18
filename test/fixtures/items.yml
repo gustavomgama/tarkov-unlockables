@@ -51,7 +51,11 @@ two:
   short_name: TIT
   search_text: testitemtwotit
   wiki_title: Test_Item_Two
-  categories: [ "general" ]
+  # uniquecat00..12 push the Category menu past the 12-option threshold so the
+  # narrowing box renders without a system test having to create rows.
+  categories: [ "general", "uniquecat00", "uniquecat01", "uniquecat02", "uniquecat03",
+                "uniquecat04", "uniquecat05", "uniquecat06", "uniquecat07", "uniquecat08",
+                "uniquecat09", "uniquecat10", "uniquecat11", "uniquecat12" ]
   links: [ "https://example.com/item-two" ]
   images: [ "https://example.com/item-two.png" ]
   data: {}

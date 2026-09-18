@@ -10,6 +10,15 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
     File.write(fixture_path, JSON.generate("data" => { "items" => items }))
   end
 
+  # Preset resolution reads the item *and* the source's category table, so this
+  # variant writes both. Categories are keyed by their source id.
+  def write_preset_fixture(**categories)
+    FileUtils.mkdir_p(fixture_path.dirname)
+    File.write(fixture_path, JSON.generate(
+      "data" => { "items" => { "armor_bsg_1" => armor_fixture }, "itemCategories" => categories }
+    ))
+  end
+
   def run_import!
     Importers::TarkovDev.import!(source: fixture_path)
   end
@@ -102,38 +111,32 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
   test "enriches data with kept weapon properties and drops pruned ones" do
     run_import!
 
-    weapon = Item.find_by(bsg_id: "weapon_bsg_1")
-    assert_equal "Caliber545x39", weapon.data["caliber"]
-    assert_equal [ "ammo_bsg_1" ], weapon.data["allowedAmmo"]
-    assert_equal [ { "id" => "slot_1", "nameId" => "mod_pistol_grip" } ], weapon.data["slots"]
-    assert_equal [ "preset_1" ], weapon.data["presets"]
-    assert_equal "preset_1", weapon.data["defaultPreset"]
-    refute weapon.data.key?("ergonomics")
-    refute weapon.data.key?("recoilVertical")
-    refute weapon.data.key?("fireRate")
+    data = Item.find_by(bsg_id: "weapon_bsg_1").data
+    assert_equal({ "caliber" => "Caliber545x39", "allowedAmmo" => [ "ammo_bsg_1" ],
+                   "slots" => [ { "id" => "slot_1", "nameId" => "mod_pistol_grip" } ],
+                   "presets" => [ "preset_1" ], "defaultPreset" => "preset_1" },
+                 data.slice("caliber", "allowedAmmo", "slots", "presets", "defaultPreset"))
+    assert_empty data.keys & %w[ergonomics recoilVertical fireRate]
   end
 
   test "enriches data with kept ammo properties and drops pruned ones" do
     run_import!
 
-    ammo = Item.find_by(bsg_id: "ammo_bsg_1")
-    assert_equal "Caliber545x39", ammo.data["caliber"]
-    assert_equal 120, ammo.data["stackMaxSize"]
-    assert_equal true, ammo.data["tracer"]
-    assert_equal "green", ammo.data["tracerColor"]
-    assert_equal "bullet", ammo.data["ammoType"]
-    assert_equal 54, ammo.data["damage"]
-    assert_equal 31, ammo.data["penetrationPower"]
-    refute ammo.data.key?("ballisticCoeficient")
-    refute ammo.data.key?("armorDamage")
+    data = Item.find_by(bsg_id: "ammo_bsg_1").data
+    assert_equal({ "caliber" => "Caliber545x39", "stackMaxSize" => 120, "tracer" => true,
+                   "tracerColor" => "green", "ammoType" => "bullet", "damage" => 54,
+                   "penetrationPower" => 31 },
+                 data.slice("caliber", "stackMaxSize", "tracer", "tracerColor", "ammoType",
+                            "damage", "penetrationPower"))
+    assert_empty data.keys & %w[ballisticCoeficient armorDamage]
   end
 
   test "enriches data with kept armor class and drops pruned ones" do
     run_import!
 
-    armor = Item.find_by(bsg_id: "armor_bsg_1")
-    assert_equal 6, armor.data["class"]
-    refute armor.data.key?("armorDamage")
+    data = Item.find_by(bsg_id: "armor_bsg_1").data
+    assert_equal 6, data["class"]
+    refute data.key?("armorDamage")
   end
 
   test "stores types, categories and containsItems" do
@@ -163,7 +166,7 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
     assert_equal "Mechanic", currency.trader
     assert_equal "RUB", currency.currency
     assert_equal 3, currency.min_trader_level
-    assert_equal false, currency.task_unlock
+    refute currency.task_unlock
   end
 
   test "is idempotent when run twice" do
@@ -171,9 +174,10 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
     run_import!
 
     weapon = Item.find_by(bsg_id: "weapon_bsg_1")
-    assert_equal 1, weapon.item_currencies.count
-    assert_equal 1, weapon.data["presets"].count
-    assert_equal 1, weapon.links.count { |l| l == "https://example.com/ak-74m" }
+    assert_equal({ currencies: 1, presets: 1, links: 1 },
+                 { currencies: weapon.item_currencies.count,
+                   presets: weapon.data["presets"].count,
+                   links: weapon.links.count { |l| l == "https://example.com/ak-74m" } })
   end
 
   test "skips items not present in the database" do
@@ -191,15 +195,10 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
   test "resolves BSG categories for preset items" do
     item = Item.find_by(bsg_id: "armor_bsg_1")
     item.update!(categories: [ "preset" ])
-    File.write(fixture_path, JSON.generate(
-      "data" => {
-        "items" => { "armor_bsg_1" => armor_fixture },
-        "itemCategories" => {
-          "5448c12b4bdc2d02308b456f" => { "id" => "5448c12b4bdc2d02308b456f", "normalizedName" => "armored-equipment", "parent" => "" },
-          "5448e54d4bdc2dcc718b4568" => { "id" => "5448e54d4bdc2dcc718b4568", "normalizedName" => "armor", "parent" => "" }
-        }
-      }
-    ))
+    write_preset_fixture(
+      "5448c12b4bdc2d02308b456f" => { "id" => "5448c12b4bdc2d02308b456f", "normalizedName" => "armored-equipment", "parent" => "" },
+      "5448e54d4bdc2dcc718b4568" => { "id" => "5448e54d4bdc2dcc718b4568", "normalizedName" => "armor", "parent" => "" }
+    )
 
     run_import!
 
@@ -209,17 +208,53 @@ class Importers::TarkovDevTest < ActiveSupport::TestCase
   test "leaves categories untouched for non-preset items" do
     item = Item.find_by(bsg_id: "armor_bsg_1")
     item.update!(categories: [ "armor", "wearable" ])
-    File.write(fixture_path, JSON.generate(
-      "data" => {
-        "items" => { "armor_bsg_1" => armor_fixture },
-        "itemCategories" => {
-          "5448c12b4bdc2d02308b456f" => { "id" => "5448c12b4bdc2d02308b456f", "normalizedName" => "armored-equipment", "parent" => "" }
-        }
-      }
-    ))
+    write_preset_fixture(
+      "5448c12b4bdc2d02308b456f" => { "id" => "5448c12b4bdc2d02308b456f", "normalizedName" => "armored-equipment", "parent" => "" }
+    )
 
     run_import!
 
     assert_equal [ "armor", "wearable" ], item.reload.categories
+  end
+
+  # The source can drop links and properties between refreshes; whatever the
+  # item already has must survive, and an unknown trader id must not raise.
+  test "keeps existing links when the source supplies none" do
+    item = Item.find_by(bsg_id: "armor_bsg_1")
+    item.update!(links: [ "https://example.com/kept" ])
+    write_fixture("armor_bsg_1" => armor_fixture.merge("wikiLink" => nil, "link" => nil))
+
+    run_import!
+
+    assert_equal [ "https://example.com/kept" ], item.reload.links
+  end
+
+  test "falls back to the raw trader id when the trader is unknown" do
+    item = Item.find_by(bsg_id: "weapon_bsg_1")
+    write_fixture(
+      "weapon_bsg_1" => weapon_fixture.merge(
+        "buyFromTrader" => [ { "trader" => "unknown-trader-id", "currency" => "RUB", "minTraderLevel" => 1 } ]
+      )
+    )
+
+    run_import!
+
+    assert_equal "unknown-trader-id", item.item_currencies.first.trader
+  end
+
+  test "leaves data keys the source omits alone" do
+    write_fixture(
+      "ammo_bsg_1" => {
+        "bsg_id" => "ammo_bsg_1",
+        "properties" => { "propertiesType" => "ItemPropertiesAmmo", "damage" => 54 }
+      }
+    )
+
+    run_import!
+
+    data = Item.find_by(bsg_id: "ammo_bsg_1").reload.data
+    assert_equal 54, data["damage"]
+    assert_nil data["penetrationPower"]
+    assert_nil data["categories"]
   end
 end

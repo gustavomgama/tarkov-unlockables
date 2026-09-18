@@ -30,6 +30,14 @@ class Task < ApplicationRecord
   has_many :rewards, dependent: :destroy
   has_many :item_task_rewards, dependent: :destroy
 
+  # Pointers from other tasks: a task that leads to this one, or that requires it
+  # as a prerequisite. Both columns are optional but their FK is restrict, so
+  # without these the pointer row blocked the delete and the admin Delete action
+  # 500d for any task in the middle of the graph. Nullify drops the dangling
+  # reference and leaves the other task's own rows intact.
+  has_many :incoming_leads_tos, class_name: "LeadsTo", foreign_key: :follow_up_task_id, dependent: :nullify
+  has_many :referencing_previous_tasks, class_name: "PreviousTask", foreign_key: :task_id, dependent: :nullify
+
   # Keeps the trigram-indexed search_text column fresh for loose_search.
   before_validation :set_search_text
 
@@ -54,7 +62,8 @@ class Task < ApplicationRecord
     # (e.g. an unlock's task) has no preloaded requirements, so touching
     # self.requirements would fire one query per chain node.
     node = task_map[name] || self
-    first_req = node.requirements.first
+    requirements = node.requirements
+    first_req = requirements.first
     chain = [ {
       id:                  id,
       name:                name,
@@ -64,7 +73,7 @@ class Task < ApplicationRecord
       trader_requirements: first_req&.trader_level || []
     } ]
 
-    node.requirements.each do |req|
+    requirements.each do |req|
       req.previous_tasks.each do |pt|
         prev = task_map[pt.task_name]
         chain += prev.prerequisite_chain(visited, task_map) if prev

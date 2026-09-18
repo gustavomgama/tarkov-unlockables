@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -115,7 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
     t.bigint "item_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["item_id"], name: "index_favorite_items_on_item_id"
+    t.index ["item_id"], name: "index_favorite_items_on_item_id", unique: true
   end
 
   create_table "item_barters", force: :cascade do |t|
@@ -176,6 +176,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "search_text", default: "", null: false
+    t.index "((data ->> 'caliber'::text))", name: "index_items_on_data_caliber"
+    t.index "((data ->> 'class'::text))", name: "index_items_on_data_class"
     t.index ["bsg_id"], name: "index_items_on_bsg_id", unique: true
     t.index ["categories"], name: "index_items_on_categories", using: :gin
     t.index ["data"], name: "index_items_on_data", using: :gin
@@ -258,6 +260,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "search_text", default: "", null: false
+    t.index ["bsg_id"], name: "index_tasks_on_bsg_id", unique: true
     t.index ["full_name"], name: "index_tasks_on_full_name"
     t.index ["given_by"], name: "index_tasks_on_given_by"
     t.index ["name"], name: "index_tasks_on_name"

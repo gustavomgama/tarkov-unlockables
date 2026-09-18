@@ -21,6 +21,15 @@ class HostileParamsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # The category filter used to build a Postgres array literal by hand, so a
+  # value carrying a quote, brace, comma or backslash made the literal invalid
+  # and the request answered 500 (`PG::InvalidTextRepresentation`).
+  test "items index tolerates filter values with array-literal characters" do
+    [ 'x"y', "x}y{", "back\\slash", "a,b", "NULL", "{1,2}", "x'y", "x\\" ].each do |value|
+      assert_no_server_error(items_url, { filters: { category: [ value ] } })
+    end
+  end
+
   test "tasks index tolerates scalar and array params" do
     [ { trader: ARRAY }, { trader: SCALAR }, { kappa: SCALAR }, { q: ARRAY } ].each do |params|
       assert_no_server_error(tasks_url, params)
@@ -34,10 +43,9 @@ class HostileParamsTest < ActionDispatch::IntegrationTest
   end
 
   test "show routes 404 rather than 500 on a junk id" do
-    get item_url(id: "not-an-id")
-    assert_response :not_found
-
-    get task_url(id: "not-an-id")
-    assert_response :not_found
+    [ item_url(id: "not-an-id"), task_url(id: "not-an-id") ].each do |url|
+      get url
+      assert_response :not_found
+    end
   end
 end

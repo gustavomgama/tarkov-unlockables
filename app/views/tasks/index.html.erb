@@ -8,9 +8,14 @@
         Every trader contract with its unlock path, requirements and rewards — press <kbd>/</kbd> to search.
       </p>
     </div>
-    <p class="font-data text-sm text-[var(--text-muted)]">
-      <span class="text-[var(--text)]"><%= number_with_delimiter(@task_count) %></span> quests
-    </p>
+    <div class="flex items-center gap-3">
+      <p class="font-data text-sm text-[var(--text-muted)]">
+        <span class="text-[var(--text)]"><%= number_with_delimiter(@task_count) %></span> quests
+      </p>
+      <%# /tasks/chains had a controller, a view and tests but no link anywhere,
+          so the only way to reach it was to type the URL. %>
+      <%= link_to "Task chains", chains_tasks_path, class: "chip chip--link" %>
+    </div>
   </div>
 
   <%= form_tag tasks_path, method: :get, class: "flex flex-wrap items-center gap-2" do %>
@@ -36,12 +41,11 @@
         data-search-target="results"
         role="status"
         aria-live="polite"
-        aria-label="Search results"
-      ></div>
+        aria-label="Search results"></div>
     </div>
     <button type="submit" class="btn">Search</button>
     <% if params[:q].present? %>
-      <%= link_to "Clear", tasks_path(trader: params[:trader]), class: "text-sm text-[var(--danger)] hover:underline px-2" %>
+      <%= link_to "Clear", tasks_path(trader: params[:trader]), class: "text-sm text-[var(--danger-ink)] hover:underline px-2" %>
     <% end %>
   <% end %>
 
@@ -50,7 +54,7 @@
           class: "chip chip--tap #{params[:trader].blank? && params[:kappa].blank? ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
           "aria-current": (params[:trader].blank? ? "true" : nil) %>
     <%= link_to tasks_path(q: params[:q], trader: params[:trader], kappa: (params[:kappa].present? ? nil : 1)),
-          class: "chip chip--tap #{params[:kappa].present? ? 'chip--strong border-[var(--danger)] text-[var(--danger)]' : 'chip--link'}",
+          class: "chip chip--tap #{params[:kappa].present? ? 'chip--strong border-[var(--danger)] text-[var(--danger-ink)]' : 'chip--link'}",
           "aria-current": (params[:kappa].present? ? "true" : nil) do %>
       Kappa only <span class="font-data text-[var(--text-muted)]"><%= @kappa_count %></span>
     <% end %>

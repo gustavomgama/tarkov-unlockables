@@ -16,7 +16,7 @@ ENV BUNDLE_DEPLOYMENT=1 \
 
 # Runtime-only deps (kept in final image)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y libpq5 libjemalloc2 libvips42 curl && \
+    apt-get install --no-install-recommends -y libpq5 libjemalloc2 curl && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # ── Build stage: compilers + gems + assets ──────────────────────────

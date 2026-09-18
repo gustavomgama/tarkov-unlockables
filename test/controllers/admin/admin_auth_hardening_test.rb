@@ -6,33 +6,23 @@ module Admin
   # Security: the admin panel must never fall back to a default password.
   # If ADMIN_PASSWORD is unset, every request must be rejected (fail closed).
   class AdminAuthHardeningTest < ActionDispatch::IntegrationTest
-    test "rejects default admin/admin credentials when ADMIN_PASSWORD is unset" do
-      with_admin_password(nil) do
-        headers = {
-          "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "admin")
-        }
-        get admin_root_path, headers: headers
-        assert_response :unauthorized
-      end
-    end
+    # [configured ADMIN_PASSWORD, supplied password, expected status]
+    CREDENTIAL_CASES = [
+      [ nil, "admin", :unauthorized ],
+      [ "s3cret", "s3cret", :success ],
+      [ "s3cret", "wrong", :unauthorized ]
+    ].freeze
 
-    test "accepts the configured ADMIN_PASSWORD" do
-      with_admin_password("s3cret") do
-        headers = {
-          "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "s3cret")
-        }
-        get admin_root_path, headers: headers
-        assert_response :success
-      end
-    end
+    test "admin panel enforces the configured password" do
+      CREDENTIAL_CASES.each do |configured, supplied, expected|
+        with_admin_password(configured) do
+          headers = {
+            "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", supplied)
+          }
+          get admin_root_path, headers: headers
 
-    test "rejects wrong password even when ADMIN_PASSWORD is set" do
-      with_admin_password("s3cret") do
-        headers = {
-          "Authorization" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "wrong")
-        }
-        get admin_root_path, headers: headers
-        assert_response :unauthorized
+          assert_response expected, "ADMIN_PASSWORD=#{configured.inspect}, supplied #{supplied.inspect}"
+        end
       end
     end
 

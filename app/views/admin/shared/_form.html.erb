@@ -1,13 +1,5 @@
 <%= form_with model: [:admin, model], local: true, data: { turbo: false }, class: "max-w-2xl" do |form| %>
-  <% if model.errors.any? %>
-    <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] text-[var(--danger)]">
-      <ul class="list-disc pl-4">
-        <% model.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render "admin/shared/form_errors", model: model %>
 
   <div class="space-y-4">
     <% fields.each do |field| %>
@@ -32,8 +24,5 @@
     <% end %>
   </div>
 
-  <div class="mt-6 flex gap-4">
-    <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
-    <%= link_to "Cancel", [:admin, model.class], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
-  </div>
+  <%= render "admin/shared/form_actions", form: form, cancel_path: [:admin, model.class] %>
 <% end %>

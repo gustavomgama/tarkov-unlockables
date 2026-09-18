@@ -22,13 +22,13 @@ require "test_helper"
 #
 class RequirementTest < ActiveSupport::TestCase
   test "belongs to task" do
-    task = Task.create!(bsg_id: "rq-#{SecureRandom.hex(4)}", full_name: "Req", name: "req")
+    task = create_task("Req", "req")
     requirement = Requirement.create!(task: task, player_level: 5)
     assert_equal task, requirement.task
   end
 
   test "has many previous_tasks with counter cache" do
-    task = Task.create!(bsg_id: "rq2-#{SecureRandom.hex(4)}", full_name: "Req2", name: "req2")
+    task = create_task("Req2", "req2")
     requirement = task.requirements.create!(player_level: 5)
     assert_equal 0, requirement.previous_tasks_count
 
@@ -39,13 +39,13 @@ class RequirementTest < ActiveSupport::TestCase
   # --- Task 11: trader_level jsonb column (default []) ---
 
   test "trader_level defaults to empty array" do
-    task = Task.create!(bsg_id: "tl1-#{SecureRandom.hex(4)}", full_name: "TL", name: "tl")
+    task = create_task("TL", "tl")
     req = task.requirements.create!(player_level: 5)
     assert_equal [], req.trader_level
   end
 
   test "trader_level accepts array of {trader_name, trader_level} hashes" do
-    task = Task.create!(bsg_id: "tl2-#{SecureRandom.hex(4)}", full_name: "TL2", name: "tl2")
+    task = create_task("TL2", "tl2")
     req = task.requirements.create!(
       player_level: 0,
       trader_level: [ { "trader_name" => "peacekeeper", "trader_level" => "3" } ]

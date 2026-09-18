@@ -1,0 +1,3 @@
+# Python dependencies for lib/wiki_parser (see AGENTS.md: wikitext parsing is
+# done with mwparserfromhell, never hand-rolled regex).
+mwparserfromhell==0.7.2

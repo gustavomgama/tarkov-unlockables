@@ -23,7 +23,7 @@ require "test_helper"
 #
 class LeadsToTest < ActiveSupport::TestCase
   test "belongs to task with counter cache" do
-    task = Task.create!(bsg_id: "lt-#{SecureRandom.hex(4)}", full_name: "Lead", name: "lead")
+    task = create_task("Lead", "lead")
     leads_to = task.leads_tos.create!(follow_up_task_name: "Next")
 
     assert_equal task.id, leads_to.task_id
@@ -31,11 +31,11 @@ class LeadsToTest < ActiveSupport::TestCase
   end
 
   test "follow_up_task association is optional" do
-    task = Task.create!(bsg_id: "lt2-#{SecureRandom.hex(4)}", full_name: "Lead2", name: "lead2")
+    task = create_task("Lead2", "lead2")
     leads_to = LeadsTo.create!(task: task, follow_up_task_name: "Unresolved")
     assert_nil leads_to.follow_up_task
 
-    follow = Task.create!(bsg_id: "lt3-#{SecureRandom.hex(4)}", full_name: "Follow", name: "follow")
+    follow = create_task("Follow", "follow")
     leads_to.update!(follow_up_task: follow)
     assert_equal follow, leads_to.follow_up_task
   end

@@ -23,7 +23,7 @@ require "test_helper"
 #
 class CraftResultItemTest < ActiveSupport::TestCase
   test "belongs to craft_result with optional item" do
-    task = Task.create!(bsg_id: "cri2-#{SecureRandom.hex(4)}", full_name: "CRI2", name: "cri2")
+    task = create_task("CRI2", "cri2")
     reward = task.rewards.create!(reward_type: "Item")
     unlock = reward.craft_unlocks.create!(item_name: "Craft", hideout_station: "Workbench", station_level: 1)
     result = unlock.craft_results.create!

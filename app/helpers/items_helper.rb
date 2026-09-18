@@ -32,7 +32,8 @@ module ItemsHelper
 
   # Player-facing name for a raw category key.
   def category_label(raw)
-    CATEGORY_LABELS.fetch(raw.to_s) { raw.to_s.humanize }
+    key = raw.to_s
+    CATEGORY_LABELS.fetch(key) { key.humanize }
   end
 
   # How an applied filter reads back to the user. Without this the pills echo
@@ -68,8 +69,7 @@ module ItemsHelper
   # Returns a display string, or nil when there is nothing readable.
   def caliber_label(raw)
     values = Array(raw).flat_map { |v| v.to_s.split(",") }
-                       .map { |v| v.delete("[]").strip }
-                       .reject(&:blank?)
+                       .filter_map { |v| v.delete("[]").strip.presence }
                        .uniq
     return nil if values.empty?
 
@@ -123,13 +123,22 @@ module ItemsHelper
   # a page full of unresolvable ids still fires a single query.
   def bsg_items(ids)
     ids = Array(ids).compact.uniq
-    cache = (@bsg_item_cache ||= {})
-    missing = ids - cache.keys
-    if missing.any?
-      Item.where(bsg_id: missing).find_each { |i| cache[i.bsg_id] = i }
-      missing.each { |id| cache[id] ||= nil }
-    end
-    ids.filter_map { |id| cache[id] }
+    cache_missing_bsg_items(ids)
+    ids.filter_map { |id| bsg_item_cache[id] }
+  end
+
+  def bsg_item_cache
+    @bsg_item_cache ||= {}
+  end
+
+  # Negative results are cached too, so a page full of unresolvable ids still
+  # fires a single query.
+  def cache_missing_bsg_items(ids)
+    missing = ids - bsg_item_cache.keys
+    return if missing.empty?
+
+    Item.where(bsg_id: missing).find_each { |item| bsg_item_cache[item.bsg_id] = item }
+    missing.each { |id| bsg_item_cache[id] ||= nil }
   end
 
   def bsg_item(id)
@@ -140,24 +149,30 @@ module ItemsHelper
   # [[File:icon.png|46px|Light bleeding]] embeds. Rendering it raw shows the
   # markup instead of the fact, so reduce it to the readable labels and keep
   # the original line structure. Display-only: the stored value is untouched.
+  # Applied in order. Every step is a gsub so the pipeline stays one loop.
+  WIKI_TEXT_STEPS = [
+    [ "]][[", "]], [[" ],
+    [ /\[\[File:[^|\]]*\|[^|\]]*\|([^\]]*)\]\]/, '\1' ],
+    [ /\[\[File:[^|\]]*(?:\|[^\]]*)?\]\]/, " " ],
+    [ /\[\[[^|\]]*\|([^\]]*)\]\]/, '\1' ],
+    [ /\[\[([^\]]*)\]\]/, '\1' ],
+    [ /\[https?:\/\/\S+\s+([^\]]*)\]/, '\1' ],
+    [ "'", "" ],
+    [ /<br\s*\/?>/i, "\n" ],
+    [ /<[^>]+>/, " " ],
+    [ /[ \t]+/, " " ],
+    [ / ?\n ?/, "\n" ],
+    [ /\n{2,}/, "\n" ],
+    # "Removes:Light bleeding" — the embed swallowed the space.
+    [ /:(?=[A-Za-z])/, ": " ]
+  ].freeze
+
   def clean_wiki_text(text)
     return nil if text.blank?
 
-    cleaned = text.to_s.dup
-    cleaned = cleaned.gsub("]][[", "]], [[")
-    cleaned = cleaned.gsub(/\[\[File:[^|\]]*\|[^|\]]*\|([^\]]*)\]\]/, '\1')
-    cleaned = cleaned.gsub(/\[\[File:[^|\]]*(?:\|[^\]]*)?\]\]/, " ")
-    cleaned = cleaned.gsub(/\[\[[^|\]]*\|([^\]]*)\]\]/, '\1')
-    cleaned = cleaned.gsub(/\[\[([^\]]*)\]\]/, '\1')
-    cleaned = cleaned.gsub(/\[https?:\/\/\S+\s+([^\]]*)\]/, '\1')
-    cleaned = cleaned.delete("'")
-    cleaned = cleaned.gsub(/<br\s*\/?>/i, "\n")
-    cleaned = cleaned.gsub(/<[^>]+>/, " ")
-    cleaned = cleaned.gsub(/[ \t]+/, " ")
-    cleaned = cleaned.gsub(/ ?\n ?/, "\n")
-    cleaned = cleaned.gsub(/\n{2,}/, "\n")
-    # "Removes:Light bleeding" — the embed swallowed the space.
-    cleaned = cleaned.gsub(/:(?=[A-Za-z])/, ": ")
+    cleaned = WIKI_TEXT_STEPS.reduce(text.to_s.dup) do |value, (pattern, replacement)|
+      value.gsub(pattern, replacement)
+    end
     cleaned.strip.presence
   end
 
@@ -194,27 +209,50 @@ module ItemsHelper
   # Reads only columns the index already loaded, so a card costs no extra
   # query. Returns [[label, value, tone], …].
   def card_stats(item)
-    d = item.data || {}
-    pairs = []
+    data = item.data || {}
     case item
-    when Item::Ammo
-      pen = d["penetration_power"].presence || d["penetration"].presence
-      pairs << [ "DMG", d["damage"], nil ] if d["damage"].present?
-      pairs << [ "PEN", pen, penetration_tone(pen) ] if pen.present?
-    when Item::Armor
-      pairs << [ "CLASS", d["class"], armor_class_tone(d["class"]) ] if d["class"].present?
-    when Item::Weapon
-      caliber = caliber_label(d["caliber"]) || Item.parse_caliber_from_name(item.full_name)
-      pairs << [ "CAL", caliber, nil ] if caliber
-    when Item::Magazine
-      capacity = magazine_capacity(item)
-      caliber = caliber_label(d["caliber"]) || Item.parse_caliber_from_name(item.full_name)
-      pairs << [ "RNDS", capacity, nil ] if capacity
-      pairs << [ "CAL", caliber, nil ] if caliber
-    when Item::Generic
-      pairs << [ "PART", d["type"], nil ] if d["type"].present?
+    when Item::Ammo then ammo_card_stats(data)
+    when Item::Armor then armor_card_stats(data)
+    when Item::Weapon then caliber_card_stats(item)
+    when Item::Magazine then magazine_card_stats(item)
+    when Item::Generic then generic_card_stats(data)
+    else []
     end
+  end
+
+  def ammo_card_stats(d)
+    pen = d["penetration_power"].presence || d["penetration"].presence
+    damage = d["damage"]
+    pairs = []
+    pairs << [ "DMG", damage, nil ] if damage.present?
+    pairs << [ "PEN", pen, penetration_tone(pen) ] if pen.present?
     pairs
+  end
+
+  def armor_card_stats(d)
+    armor_class = d["class"]
+    return [] if armor_class.blank?
+
+    [ [ "CLASS", armor_class, armor_class_tone(armor_class) ] ]
+  end
+
+  def caliber_card_stats(item)
+    caliber = item_caliber(item)
+    caliber ? [ [ "CAL", caliber, nil ] ] : []
+  end
+
+  def magazine_card_stats(item)
+    pairs = []
+    capacity = magazine_capacity(item)
+    caliber = item_caliber(item)
+    pairs << [ "RNDS", capacity, nil ] if capacity
+    pairs << [ "CAL", caliber, nil ] if caliber
+    pairs
+  end
+
+  def generic_card_stats(d)
+    type = d["type"]
+    type.present? ? [ [ "PART", type, nil ] ] : []
   end
 
   # Two chips is the useful maximum: the specific category and the broad one.
@@ -224,19 +262,23 @@ module ItemsHelper
     labels = category_labels(item)
     return labels if labels.size <= 2
 
-    shorten = ->(s) { s.downcase.delete(" ") }
     picks = [ labels.first, labels.last ].uniq
-    picks.reject { |l| picks.any? { |other| other != l && shorten[other].include?(shorten[l]) } }
+    picks.reject do |label|
+      picks.any? { |other| other != label && shortened_category(other).include?(shortened_category(label)) }
+    end
+  end
+
+  def shortened_category(label)
+    label.downcase.delete(" ")
   end
 
   # Rounds a weapon or magazine accepts, hardest-hitting first. Shares the
   # request-level bsg_id cache, so a page resolves default ammo, presets and
   # the accepted-ammo list in one query.
   def compatible_ammo(item)
-    ids = Array(item.data["allowed_ammo"]).presence || Array(item.data["allowedAmmo"])
-    bsg_items(ids)
-      .select { |i| i.is_a?(Item::Ammo) }
-      .sort_by { |a| -a.data["penetration_power"].to_i }
+    data = item.data
+    ids = Array(data["allowed_ammo"]).presence || Array(data["allowedAmmo"])
+    bsg_items(ids).grep(Item::Ammo).sort_by { |ammo| -ammo.data["penetration_power"].to_i }
   end
 
   # Magazines carry no capacity field; the round count only ever appears in

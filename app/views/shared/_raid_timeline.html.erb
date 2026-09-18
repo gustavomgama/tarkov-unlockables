@@ -5,8 +5,7 @@
     Locals:
       chain — Array<Hash> from Task#prerequisite_chain (start-to-end order; reversed for display)
       current_name — optional String; task name to highlight as current (default: last node)
-      expand — optional Boolean; render the whole chain without a disclosure
-%>
+      expand — optional Boolean; render the whole chain without a disclosure %>
 <% current_name ||= nil %>
 <% expand ||= false %>
 <% ordered = chain.reverse %>
@@ -21,8 +20,7 @@
         <span
           class="absolute -left-[7px] top-1 w-3.5 h-3.5 rounded-full border-2 <%= is_current ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]' %>"
           style="<%= "background: var(--trader-#{trader_key}, var(--bg-elevated));" unless is_current %>"
-          aria-hidden="true"
-        ></span>
+          aria-hidden="true"></span>
         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <% if t[:id] %>
             <%= link_to task_display_name(t[:name]), task_path(t[:id]),

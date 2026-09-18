@@ -14,11 +14,6 @@ export default class extends Controller {
     })
   }
 
-  clear() {
-    this.inputTarget.value = ""
-    this.filter()
-  }
-
   // The box lives inside the filter form; Enter would submit it.
   stopEnter(event) {
     if (event.key === "Enter") event.preventDefault()

@@ -1,71 +1,55 @@
 class ItemsController < ApplicationController
   PER_PAGE = 20
   MAX_PER_PAGE = 100
-  AUTOCOMPLETE_LIMIT = 8
-  AUTOCOMPLETE_MIN_QUERY = 2
+
+  # Unlock associations carry reward → task so the view renders the
+  # "How to Unlock" section and raid timelines with zero extra queries.
+  # Named (like TasksController::SHOW_PRELOADS) so the preload contract is one
+  # list instead of an argument list inside the action.
+  SHOW_PRELOADS = [
+    { item_task_rewards: :task },
+    :item_hideouts,
+    :item_barters,
+    :item_currencies,
+    { offer_unlocks: { reward: :task } },
+    { barter_unlocks: { reward: :task } },
+    { craft_unlocks: { reward: :task } },
+    { barter_requirement_items: { barter_requirement: { barter_unlock: :item } } },
+    { craft_requirement_items: { craft_requirement: { craft_unlock: :item } } }
+  ].freeze
 
   def index
     # Filter dropdowns only change on seed/import: cache the whole block so
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
     # once per hour instead of on every index request. Fetched first so
     # apply_filters can reuse its values instead of re-plucking the tables.
-    @filter_options = Rails.cache.fetch("items/filter_options/v2", expires_in: 1.hour) do
-      {
-        currency: currency_options,
-        category: category_options,
-        armor_class: armor_class_options,
-        caliber: caliber_options,
-        source: source_options
-      }
-    end
+    @filter_options = Rails.cache.fetch("items/filter_options/v2", expires_in: 1.hour) { filter_options }
 
     items = Item.all.order(full_name: :asc)
-    items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
-    items = apply_filters(items) if filter_params.present?
+    items = loose_search_param(items, %w[full_name short_name])
+    filters = filter_params
+    items = apply_filters(items, filters) if filters.present?
     @item_count = items.count
 
-    page = int_param(:page)
-    page = 1 if page < 1
-    per_page = [ int_param(:per_page), 1 ].max
-    per_page = MAX_PER_PAGE if per_page > MAX_PER_PAGE
-    per_page = PER_PAGE if per_page < PER_PAGE
-    @items = items.offset((page - 1) * per_page).limit(per_page)
-    @current_page = page
-    @per_page = per_page
-    @total_pages = (@item_count.to_f / per_page).ceil
+    @current_page = [ int_param(:page), 1 ].max
+    @per_page = int_param(:per_page).clamp(PER_PAGE, MAX_PER_PAGE)
+    @items = items.offset((@current_page - 1) * @per_page).limit(@per_page)
+    @total_pages = (@item_count.to_f / @per_page).ceil
   end
 
-  # Typeahead for the search field. Renders the result rows as HTML so the
-  # row markup lives in one template instead of being rebuilt in JavaScript.
+  # Typeahead for the search field.
   def search
-    query = params[:q].to_s.strip
-    return head :no_content if query.length < AUTOCOMPLETE_MIN_QUERY
-
-    @items = Item.all
-                 .loose_search(query, columns: %w[full_name short_name])
-                 .order(full_name: :asc)
-                 .limit(AUTOCOMPLETE_LIMIT)
-    return head :no_content if @items.empty?
-
-    expires_in 10.minutes, public: true
-    render partial: "items/autocomplete_results", locals: { items: @items }, layout: false
+    autocomplete(Item.all, columns: %w[full_name short_name],
+                            partial: "items/autocomplete_results", local: :items)
   end
 
   def show
-    # Unlock associations carry reward → task so the view renders the
-    # "How to Unlock" section and raid timelines with zero extra queries.
-    @item = Item.includes(
-      { item_task_rewards: :task },
-      :item_hideouts,
-      :item_barters,
-      :item_currencies,
-      { offer_unlocks: { reward: :task } },
-      { barter_unlocks: { reward: :task } },
-      { craft_unlocks: { reward: :task } },
-      { barter_requirement_items: { barter_requirement: { barter_unlock: :item } } },
-      { craft_requirement_items: { craft_requirement: { craft_unlock: :item } } }
-    ).find(params[:id])
-    fresh_when(@item, public: true)
+    @item = Item.includes(SHOW_PRELOADS).find(params[:id])
+    # Deliberately not `fresh_when`: this page renders the favorites toggle (a
+    # form with a session-bound CSRF token) and the toggle's state varies per
+    # request, but the cache key would be the item alone. Caching it publicly
+    # served a stale "Add favorite" after the item was favorited and let a
+    # shared cache hand one visitor's token to another.
   end
 
   private
@@ -78,14 +62,6 @@ class ItemsController < ApplicationController
 
   def caliber_map_bases
     caliber_map.values.flatten.uniq
-  end
-
-  # A query-string value can arrive as an array ("?per_page[]=x"), and an array
-  # has no #to_i: read the first entry, or none.
-  def int_param(name)
-    value = params[name]
-    value = value.first if value.is_a?(Array)
-    value.to_i
   end
 
   # params[:filters] arrives from the query string, so it can be a String or an
@@ -101,118 +77,162 @@ class ItemsController < ApplicationController
     )
   end
 
-  def apply_filters(items)
-    filters = filter_params
+  # Every filter is independent and applied in turn. Each one skips itself
+  # when its whole group is selected, so "all checked" reads as "no filter".
+  # The caller reads params once and passes the permitted filters in.
+  def apply_filters(items, filters)
+    items = filter_exclude_ref(items, filters)
+    items = filter_currency(items, filters)
+    items = filter_category(items, filters)
+    items = filter_armor_class(items, filters)
+    items = filter_caliber(items, filters)
+    items = filter_task_required(items, filters)
+    filter_source(items, filters)
+  end
 
-    # Exclude Ref: drop items obtainable from the Ref trader
-    if Array(filters[:exclude_ref]).include?("1")
-      items = items.where.not(id: ItemCurrency.where(trader: "Ref").select(:item_id))
+  # Values ticked for one filter group, ignoring blank entries.
+  def selected_values(filters, key)
+    Array(filters[key]).reject(&:blank?)
+  end
+
+  # A group that is fully selected is a no-op, so its filter is skipped.
+  def partial_selection?(values, total)
+    values.any? && values.size < total
+  end
+
+  # Items whose categories array overlaps any of the given category names.
+  #
+  # The elements are bound individually (`ARRAY[?]`) rather than joined into a
+  # Postgres array literal by hand: a filter value containing a quote, brace or
+  # comma made the literal invalid, and `?filters[category][]=x"y` answered 500
+  # with a PG array-literal error.
+  def categories_overlap(scope, categories)
+    scope.where("categories && ARRAY[?]::text[]", categories)
+  end
+
+  def filter_exclude_ref(items, filters)
+    return items unless selected_values(filters, :exclude_ref).include?("1")
+
+    items.where.not(id: ItemCurrency.where(trader: "Ref").select(:item_id))
+  end
+
+  def filter_currency(items, filters)
+    currencies = selected_values(filters, :currency)
+    return items unless partial_selection?(currencies, @filter_options[:currency].size)
+
+    items.joins(:item_currencies).where(item_currencies: { currency: currencies }).distinct
+  end
+
+  # Category expands pack/box/bundle variants of each selected base.
+  def filter_category(items, filters)
+    categories = selected_values(filters, :category)
+    return items unless partial_selection?(categories, @filter_options[:category].size)
+
+    all_cats = Item.category_list
+    expanded = categories.flat_map do |cat|
+      [ cat ] + all_cats.select { |c| c.start_with?("#{cat}_") && c != cat }
     end
+    categories_overlap(items, expanded)
+  end
 
-    # Currency: skip if all selected
-    currencies = Array(filters[:currency]).reject(&:blank?)
-    all_currencies = @filter_options[:currency].map { |o| o[:value] }
-    if currencies.any? && currencies.size < all_currencies.size
-      items = items.joins(:item_currencies)
-        .where(item_currencies: { currency: currencies })
-        .distinct
+  def filter_armor_class(items, filters)
+    armor_classes = selected_values(filters, :armor_class)
+    return items unless partial_selection?(armor_classes, @filter_options[:armor_class].size)
+
+    items.where("data->>'class' IN (?)", armor_classes)
+  end
+
+  # Matches data->>'caliber' OR a caliber category (ammo packs, ammo boxes).
+  # Subselects keep the id lists in Postgres instead of materializing
+  # thousands of ids into Ruby for a giant IN (...) list.
+  def filter_caliber(items, filters)
+    calibers = selected_values(filters, :caliber)
+    return items unless partial_selection?(calibers, @filter_options[:caliber].size)
+
+    caliber_ids = Item.where("data->>'caliber' IN (?)", calibers).select(:id)
+    cats = calibers.flat_map { |c| caliber_map[c] || [] }.uniq
+    return items.where(id: caliber_ids) if cats.empty?
+
+    category_ids = categories_overlap(Item, cats).select(:id)
+    items.where(id: caliber_ids).or(items.where(id: category_ids))
+  end
+
+  def filter_task_required(items, filters)
+    return items unless selected_values(filters, :task_required).include?("1")
+
+    items.task_gated
+  end
+
+  SOURCE_VALUES = %w[barter craft trader hideout task_gated].freeze
+  SOURCE_ASSOCIATIONS = {
+    "barter" => :item_barters,
+    "craft" => :item_task_rewards,
+    "trader" => :item_currencies,
+    "hideout" => :item_hideouts
+  }.freeze
+
+  def filter_source(items, filters)
+    sources = selected_values(filters, :source)
+    return items unless partial_selection?(sources, SOURCE_VALUES.size)
+
+    scope = Item.none
+    SOURCE_ASSOCIATIONS.each do |key, association|
+      scope = scope.or(items.joins(association).distinct) if sources.include?(key)
     end
+    scope = scope.or(items.task_gated) if sources.include?("task_gated")
+    scope
+  end
 
-    # Category: skip if all selected; expand pack/box/bundle variants
-    categories = Array(filters[:category]).reject(&:blank?)
-    all_category_bases = @filter_options[:category].map { |o| o[:value] }
-    if categories.any? && categories.size < all_category_bases.size
-      all_cats = Item.category_list
-      expanded = categories.flat_map do |cat|
-        [ cat ] + all_cats.select { |c| c.start_with?("#{cat}_") && c != cat }
-      end
-      pg_array = "{#{expanded.join(',')}}"
-      items = items.where("categories && ?", pg_array)
-    end
-
-    # Armor class: skip if all selected
-    armor_classes = Array(filters[:armor_class]).reject(&:blank?)
-    all_armor_classes = @filter_options[:armor_class].map { |o| o[:value] }
-    if armor_classes.any? && armor_classes.size < all_armor_classes.size
-      items = items.where("data->>'class' IN (?)", armor_classes)
-    end
-
-    # Caliber: skip if all selected — matches data field OR caliber categories.
-    # Subselects keep the id lists in Postgres instead of materializing
-    # thousands of ids into Ruby for a giant IN (...) list.
-    calibers = Array(filters[:caliber]).reject(&:blank?)
-    all_calibers = @filter_options[:caliber].map { |o| o[:value] }
-    if calibers.any? && calibers.size < all_calibers.size
-      # Items matching by data->>'caliber'
-      caliber_ids = Item.where("data->>'caliber' IN (?)", calibers).select(:id)
-      # Items matching by caliber category (ammo packs, ammo boxes)
-      cats_for_calibers = calibers.flat_map { |c| caliber_map[c] || [] }.uniq
-      if cats_for_calibers.any?
-        pg_array = "{#{cats_for_calibers.join(',')}}"
-        category_ids = Item.where("categories && ?", pg_array).select(:id)
-        items = items.where(id: caliber_ids).or(items.where(id: category_ids))
-      else
-        items = items.where(id: caliber_ids)
-      end
-    end
-
-    # Task required: only filter if explicitly checked
-    task_required = Array(filters[:task_required]).reject(&:blank?)
-    if task_required.include?("1")
-      items = items.task_gated
-    end
-
-    # Source: skip if all selected
-    sources = Array(filters[:source]).reject(&:blank?)
-    all_source_values = %w[barter craft trader hideout task_gated]
-    if sources.any? && sources.size < all_source_values.size
-      scope = Item.none
-      scope = scope.or(items.joins(:item_barters).distinct) if sources.include?("barter")
-      scope = scope.or(items.joins(:item_task_rewards).distinct) if sources.include?("craft")
-      scope = scope.or(items.joins(:item_currencies).distinct) if sources.include?("trader")
-      scope = scope.or(items.joins(:item_hideouts).distinct) if sources.include?("hideout")
-      scope = scope.or(items.task_gated) if sources.include?("task_gated")
-      items = scope
-    end
-
-    items
+  # All five dropdown groups are built behind the same cache key, so they are
+  # computed together and only on a cache miss.
+  def filter_options
+    {
+      currency: currency_options,
+      category: category_options,
+      armor_class: armor_class_options,
+      caliber: caliber_options,
+      source: source_options
+    }
   end
 
   def currency_options
-    @currency_options ||= begin
-      counts = ItemCurrency.group(:currency).count
-      counts.sort_by { |c, _| c }.map do |c, count|
-        { value: c, label: c, count: count }
-      end
+    @currency_options ||= ItemCurrency.group(:currency).count.sort_by { |c, _| c }.map do |c, count|
+      { value: c, label: c, count: count }
     end
   end
 
   def category_options
     @category_options ||= begin
-      categories = Item.category_list
-      grouped = {}
-      categories.each do |c|
-        base = c.sub(/_(pack|box|bundle)\z/, "")
-        grouped[base] ||= []
-        grouped[base] << c
-      end
-      # Exclude caliber-like categories (they're in the caliber filter now)
-      caliber_bases = caliber_map_bases
-      grouped.reject! { |base, _| caliber_bases.include?(base) }
-
-      # One grouped query for all variant counts instead of one per category
-      all_variants = grouped.values.flatten
-      variant_counts = all_variants.each_with_object(Hash.new(0)) { |v, h| h[v] = 0 }
-      if all_variants.any?
-        Item.where("categories && ?", "{#{all_variants.join(',')}}")
-            .group(Arel.sql("unnest(categories)")).count
-            .each { |cat, count| variant_counts[cat] = count if variant_counts.key?(cat) }
-      end
+      grouped = grouped_categories
+      variant_counts = variant_counts_for(grouped.values.flatten)
 
       grouped.sort_by { |base, _| base }.map do |base, variants|
         { value: base, label: helpers.category_label(base), count: variants.sum { |v| variant_counts[v] } }
       end
     end
+  end
+
+  # Base category → its pack/box/bundle variants. Drops caliber-like bases
+  # (they belong to the caliber filter now).
+  def grouped_categories
+    grouped = {}
+    Item.category_list.each do |c|
+      base = c.sub(/_(pack|box|bundle)\z/, "")
+      (grouped[base] ||= []) << c
+    end
+    caliber_bases = caliber_map_bases
+    grouped.reject { |base, _| caliber_bases.include?(base) }
+  end
+
+  # One grouped query for all variant counts instead of one per category.
+  def variant_counts_for(variants)
+    counts = variants.each_with_object(Hash.new(0)) { |v, h| h[v] = 0 }
+    return counts if variants.empty?
+
+    categories_overlap(Item, variants)
+        .group(Arel.sql("unnest(categories)")).count
+        .each { |cat, count| counts[cat] = count if counts.key?(cat) }
+    counts
   end
 
   def armor_class_options
@@ -225,27 +245,31 @@ class ItemsController < ApplicationController
   end
 
   def caliber_options
-    @caliber_options ||= begin
-      calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
-
-      calibers.map do |c|
-        cats = caliber_map[c] || []
-        # Union of data-matched and category-matched items (deduplicated by id)
-        count = Item.where("data->>'caliber' = ?", c).or(
-          cats.any? ? Item.where("categories && ?", "{#{cats.join(',')}}") : Item.none
-        ).count
-        { value: c, label: Item.caliber_display(c), count: count }
-      end
+    @caliber_options ||= Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort.map do |c|
+      { value: c, label: Item.caliber_display(c), count: caliber_option_count(c) }
     end
   end
 
+  # Union of data-matched and category-matched items (deduplicated by id).
+  def caliber_option_count(caliber)
+    cats = caliber_map[caliber] || []
+    scope = Item.where("data->>'caliber' = ?", caliber)
+    scope = scope.or(categories_overlap(Item, cats)) if cats.any?
+    scope.count
+  end
+
+  SOURCE_LABELS = {
+    "barter" => "Barter",
+    # The value stays "craft" so existing filtered URLs keep working, but the
+    # data behind it is quest rewards — the item page calls this "Quest".
+    "craft" => "Quest reward",
+    "trader" => "Trader",
+    "hideout" => "Hideout"
+  }.freeze
+
   def source_options
-    @source_options ||= [
-      { value: "barter", label: "Barter", count: Item.joins(:item_barters).distinct.count },
-      { value: "craft", label: "Craft", count: Item.joins(:item_task_rewards).distinct.count },
-      { value: "trader", label: "Trader", count: Item.joins(:item_currencies).distinct.count },
-      { value: "hideout", label: "Hideout", count: Item.joins(:item_hideouts).distinct.count },
-      { value: "task_gated", label: "Task Required", count: Item.task_gated.count }
-    ]
+    @source_options ||= SOURCE_ASSOCIATIONS.map do |value, association|
+      { value: value, label: SOURCE_LABELS[value], count: Item.joins(association).distinct.count }
+    end + [ { value: "task_gated", label: "Task Required", count: Item.task_gated.count } ]
   end
 end

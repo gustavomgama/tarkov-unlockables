@@ -5,6 +5,11 @@ export default class extends Controller {
   static targets = ["grid", "table", "button"]
 
   connect() {
+    // A search or filter with no matches renders the empty state instead of the
+    // grid and table, so the targets are absent: bail out rather than throwing
+    // "Missing target element" on every zero-result page.
+    if (!this.hasGridTarget || !this.hasTableTarget) return
+
     this.show(localStorage.getItem("items_view") === "table" ? "table" : "grid")
   }
 

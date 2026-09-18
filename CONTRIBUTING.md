@@ -32,21 +32,33 @@ bin/rails test
 
 This project uses:
 
-- **RuboCop** for Ruby linting (config in `.rubocop.yml`)
+- **RuboCop** for Ruby linting (Omakase + performance/minitest/capybara, config in `.rubocop.yml`)
+- **erb_lint** for ERB template linting (config in `.erb_lint.yml`)
+- **ESLint + Prettier** for the Stimulus controllers (config in `eslint.config.mjs` and `.prettierrc.json`)
+- **axe-core** for WCAG A/AA checks on the rendered pages (`test/system/accessibility_test.rb`)
 - **Brakeman** for security scanning
 - **Bundler-audit** for gem vulnerability checks
 - **Fasterer** for performance idioms
+- **active_record_doctor** for schema integrity — missing foreign keys/indexes, mismatched column types (`ci:db_doctor`; exceptions with reasons in `.active_record_doctor.rb`)
 - **RubyCritic** for code quality (score ≥ 75 required)
+- **unittest** for the Python wiki parser (`lib/wiki_parser`, needs `requirements.txt`)
 
-Run all checks locally:
+Run the checks through the shared rake tasks so local runs match CI exactly:
 
 ```bash
-bundle exec rubocop
-bundle exec brakeman --no-pager --exit-on-warn
-bundle exec bundler-audit
-bundle exec fasterer
-bundle exec rubycritic --no-browser --format json app/
+bundle exec rake ci:quick   # security + lint (rubocop + erb_lint + eslint/prettier)
+bundle exec rake ci:js      # JS only: ESLint + Prettier
+bundle exec rake ci:db_doctor  # schema integrity (needs the test database)
+bundle exec rake ci:all     # full pipeline
 ```
+
+The JS checks and the accessibility system test use the devDependencies pinned
+in `package-lock.json`, so run `npm ci` once after cloning (or when the lockfile
+changes).
+
+`ci:audit` scores hand-written code (`app config test db/seeds.rb`);
+`db/schema.rb` is generated and `db/migrate/*` are historical snapshots, so
+they are deliberately excluded.
 
 ## Testing
 
@@ -61,7 +73,8 @@ COVERAGE=true bin/rails test
 bin/rails test test/path/to/test_file.rb
 ```
 
-**Coverage requirement**: 99.8% line coverage minimum.
+**Coverage requirement**: 89% line coverage minimum (`rake ci:coverage`); the
+suite currently sits at 100%.
 
 ## Pull Request Process
 

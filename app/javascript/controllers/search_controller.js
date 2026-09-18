@@ -29,7 +29,7 @@ export default class extends Controller {
   focusOnSlash(event) {
     if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return
     const active = document.activeElement
-    if (active && (active.isContentEditable || [ "INPUT", "TEXTAREA", "SELECT" ].includes(active.tagName))) return
+    if (active && (active.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName))) return
 
     event.preventDefault()
     this.inputTarget.focus()
@@ -96,8 +96,11 @@ export default class extends Controller {
     if (links.length === 0) return
 
     event.preventDefault()
-    const index = links.indexOf(document.activeElement)
-    const next = event.key === "ArrowDown" ? index + 1 : index - 1
+    const current = links.indexOf(document.activeElement)
+    const step = event.key === "ArrowDown" ? 1 : -1
+    // Nothing in the list is focused yet (current is -1): down starts at the
+    // first entry, up wraps onto the last.
+    const next = current === -1 ? (step === 1 ? 0 : links.length - 1) : current + step
     links[(next + links.length) % links.length].focus()
   }
 }

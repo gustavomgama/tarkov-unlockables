@@ -29,5 +29,26 @@ module TakovDb
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # The site needs none of these APIs, so they are denied outright instead of
+    # relying on the browser default. Anything not listed stays at its default
+    # (not restricted by this header) — this is a deny list, not an allow list.
+    config.permissions_policy do |policy|
+      policy.camera :none
+      policy.display_capture :none
+      policy.geolocation :none
+      policy.gyroscope :none
+      policy.microphone :none
+      policy.midi :none
+      policy.payment :none
+      policy.usb :none
+    end
+
+    # Rails 8's `config.permissions_policy` still emits the deprecated
+    # `Feature-Policy` header; browsers read `Permissions-Policy`. Send the
+    # modern header too, with the same denials, so neither parser is left out.
+    config.action_dispatch.default_headers["Permissions-Policy"] = %w[
+      camera display-capture geolocation gyroscope microphone midi payment usb
+    ].map { |directive| "#{directive}=()" }.join(", ")
   end
 end

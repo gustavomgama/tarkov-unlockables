@@ -9,13 +9,10 @@ require "test_helper"
 class SeedsTest < ActiveSupport::TestCase
   fixtures :items, :tasks
 
-  # Mirror seeds.rb's resolution block — extracted here to avoid running the
-  # full seeds pipeline (which requires all offlinedata/* files).
+  # Runs the real step seeds.rb runs, not a copy of it. The full seeds
+  # pipeline is skipped because it needs all offlinedata/* files.
   def resolve_item_task_rewards
-    ItemTaskReward.where(task_id: nil).find_each do |itr|
-      task = Task.find_by(full_name: itr.task_name) || Task.find_by(name: itr.task_name)
-      itr.update!(task_id: task.id) if task
-    end
+    Importers::ItemTaskRewardResolver.call
   end
 
   setup do

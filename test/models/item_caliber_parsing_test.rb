@@ -42,12 +42,7 @@ class ItemCaliberParsingTest < ActiveSupport::TestCase
   end
 
   test "populates data caliber for preset items missing it" do
-    item = Item::Generic.create!(
-      bsg_id: "calparse-#{SecureRandom.hex(4)}",
-      full_name: "Test Gun 9X19 Submachine Gun Default",
-      short_name: "TG",
-      categories: [ "preset" ]
-    )
+    item = create_item("Test Gun 9X19 Submachine Gun Default", klass: Item::Generic, short_name: "TG", categories: [ "preset" ])
     Item.populate_calibers_from_names
     item.reload
     assert_equal "9x19mm Parabellum", item.data["caliber"]
@@ -56,13 +51,7 @@ class ItemCaliberParsingTest < ActiveSupport::TestCase
   end
 
   test "does not overwrite existing caliber data" do
-    item = Item::Generic.create!(
-      bsg_id: "calparse2-#{SecureRandom.hex(4)}",
-      full_name: "Test Gun 9X19 Submachine Gun Default",
-      short_name: "TG",
-      categories: [ "preset" ],
-      data: { "caliber" => "9x39mm" }
-    )
+    item = create_item("Test Gun 9X19 Submachine Gun Default", klass: Item::Generic, short_name: "TG", categories: [ "preset" ], data: { "caliber" => "9x39mm" })
     Item.populate_calibers_from_names
     item.reload
     assert_equal "9x39mm", item.data["caliber"]

@@ -4,8 +4,7 @@
     Locals:
       scale — Array<Boolean> of length 6 (true = lit)
       tone  — CSS colour value shared by every lit block
-      label — screen-reader description of what the lit blocks mean
-%>
+      label — screen-reader description of what the lit blocks mean %>
 <div class="ac-grid" style="--tone: <%= tone %>" role="img" aria-label="<%= label %>">
   <% scale.each_with_index do |lit, i| %>
     <div class="ac-cell <%= "ac-cell--on" if lit %>" aria-hidden="true"><%= i + 1 %></div>

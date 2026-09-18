@@ -13,10 +13,13 @@
  Item.populate_calibers_from_names
 
  puts "Resolving item_task_rewards.task_id..."
- ItemTaskReward.where(task_id: nil).find_each do |itr|
-  task = Task.find_by(full_name: itr.task_name) || Task.find_by(name: itr.task_name)
-  itr.update!(task_id: task.id) if task
- end
+ Importers::ItemTaskRewardResolver.call
+
+ # A count mismatch means the importer dropped rows, not that the data is odd:
+ # 52 blank-id quests once collapsed into one row and 51 quests disappeared
+ # silently. Fail the seed instead of serving an incomplete site.
+ integrity_problems = Importers::Integrity.problems
+ abort "❌ Seed integrity: #{integrity_problems.join('; ')}" if integrity_problems.any?
 
  puts "Done. Items: #{Item.count}, Tasks: #{Task.count}, " \
      "LeadsTos: #{LeadsTo.count}, Requirements: #{Requirement.count}, " \

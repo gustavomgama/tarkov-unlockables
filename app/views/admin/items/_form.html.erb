@@ -1,13 +1,5 @@
 <%= form_for item, as: :item, url: (item.persisted? ? admin_item_path(item) : admin_items_path), html: { class: "max-w-2xl", data: { turbo: false } } do |form| %>
-  <% if item.errors.any? %>
-    <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] text-[var(--danger)]">
-      <ul class="list-disc pl-4">
-        <% item.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render "admin/shared/form_errors", model: item %>
 
   <div class="space-y-4">
     <div>
@@ -64,8 +56,5 @@
 
   <%= render "obtain_fields", form: form, item: item %>
 
-  <div class="mt-6 flex gap-4">
-    <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
-    <%= link_to "Cancel", [:admin, :items], class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
-  </div>
+  <%= render "admin/shared/form_actions", form: form, cancel_path: [:admin, :items] %>
 <% end %>

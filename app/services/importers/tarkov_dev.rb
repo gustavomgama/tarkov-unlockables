@@ -10,6 +10,14 @@ module Importers
     ARMOR_PROPS = %w[class].freeze
     COMMON_PROPS = %w[types categories containsItems].freeze
 
+    # Properties to keep per BSG propertiesType (the "ItemProperties" prefix is
+    # stripped before lookup).
+    TYPE_PROPS = {
+      "Weapon" => WEAPON_PROPS,
+      "Ammo" => AMMO_PROPS,
+      "Armor" => ARMOR_PROPS
+    }.freeze
+
     def self.import!(source: SOURCE, traders_source: TRADERS_SOURCE)
       new(source, traders_source).import!
     end
@@ -21,8 +29,7 @@ module Importers
     end
 
     def import!
-      data = JSON.parse(File.read(@source))
-      items = data.dig("data", "items") || data
+      items = document.dig("data", "items") || document
       items.each do |bsg_id, raw|
         item = Item.find_by(bsg_id: bsg_id)
         next unless item
@@ -31,6 +38,13 @@ module Importers
     end
 
     private
+
+    # Parsed once and reused: the import used to read the file here and again in
+    # item_categories, re-parsing the whole multi-megabyte document for items
+    # whose categories needed resolving.
+    def document
+      @document ||= JSON.parse(File.read(@source))
+    end
 
     def load_trader_names
       data = JSON.parse(File.read(@traders_source))
@@ -43,15 +57,15 @@ module Importers
     end
 
     def import_item(item, raw)
-      item.links = [ raw["wikiLink"], raw["link"] ].compact if raw["wikiLink"] || raw["link"]
+      links = [ raw["wikiLink"], raw["link"] ].compact
+      item.links = links if links.any?
       item.images = [ raw["iconLink"], raw["gridImageLink"], raw["baseImageLink"],
                      raw["inspectImageLink"], raw["image512pxLink"], raw["image8xLink"] ].compact
       item.data = item.data.merge(kept_properties(raw))
       # Preset items come from the index with only ["preset"]; resolve their
       # BSG category IDs into real categories (armor, equipment, ...).
-      if item.categories.include?("preset")
-        item.categories = item.categories | resolved_categories(raw)
-      end
+      categories = item.categories
+      item.categories |= resolved_categories(raw) if categories.include?("preset")
       item.save!
       import_buy_from_trader(item, raw["buyFromTrader"] || [])
     end
@@ -62,21 +76,20 @@ module Importers
     end
 
     def item_categories
-      @item_categories ||= JSON.parse(File.read(@source)).dig("data", "itemCategories") || {}
+      document.dig("data", "itemCategories") || {}
     end
 
     def kept_properties(raw)
       props = {}
-      COMMON_PROPS.each { |k| props[k] = raw[k] if raw[k] }
+      COMMON_PROPS.each do |k|
+        value = raw[k]
+        props[k] = value if value
+      end
 
       properties_type = raw.dig("properties", "propertiesType").to_s.sub(/\AItemProperties/, "")
-      case properties_type
-      when "Weapon"
-        WEAPON_PROPS.each { |k| props[k] = raw.dig("properties", k) if raw.dig("properties", k) }
-      when "Ammo"
-        AMMO_PROPS.each { |k| props[k] = raw.dig("properties", k) if raw.dig("properties", k) }
-      when "Armor"
-        ARMOR_PROPS.each { |k| props[k] = raw.dig("properties", k) if raw.dig("properties", k) }
+      Array(TYPE_PROPS[properties_type]).each do |k|
+        value = raw.dig("properties", k)
+        props[k] = value if value
       end
       props
     end

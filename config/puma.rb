@@ -2,17 +2,22 @@
 
 # Puma Configuration
 
-# Workers: number of processes (default: 2 for 1-2GB RAM)
-# Set WEB_CONCURRENCY=2 on the host for production
-workers ENV.fetch("WEB_CONCURRENCY") { 2 }
+# Workers: number of processes. Puma is meant to run either in single mode
+# (workers 0) or in cluster mode with 2+. A single forked worker is warned
+# about and buys nothing: no copy-on-write saving and doubled memory. The
+# Render starter instance sets WEB_CONCURRENCY=1, so treat 1 as single mode.
+# The count must be set explicitly: Puma 8 already defaults workers from
+# WEB_CONCURRENCY, so simply not calling `workers` would still fork one.
+# In test the app is booted single-mode (Capybara's Puma server ignores the
+# worker count), so default to 1 there — otherwise the cluster-only fork hooks
+# below are registered and Puma warns that they will never run.
+default_workers = ENV["RAILS_ENV"] == "test" ? 1 : 2
+workers_count = Integer(ENV.fetch("WEB_CONCURRENCY") { default_workers })
+workers(workers_count > 1 ? workers_count : 0)
 
 # Threads: per-worker thread pool (default: 5)
-# Set RAILS_MAX_THREADS=5 on the host for production
 threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
 threads threads_count, threads_count
-
-# Preload application for Copy-on-Write (CoW) memory savings
-preload_app!
 
 # Port configuration
 port ENV.fetch("PORT") { 3000 }
@@ -29,19 +34,20 @@ plugin :tmp_restart
 # Solid Queue supervisor (if using)
 plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 
-# PID file configuration
-pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
+# Preloading and the fork hooks only apply in cluster mode.
+if workers_count > 1
+  # Preload application for Copy-on-Write (CoW) memory savings
+  preload_app!
 
-# Connection handling
-# Allow Puma to handle graceful shutdown
-before_worker_boot do
-  # Re-establish DB connections after fork
-  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-end
+  before_fork do
+    # Disconnect DB before fork to avoid sharing connections across processes
+    ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+  end
 
-before_fork do
-  # Disconnect DB before fork to avoid connection issues
-  ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+  before_worker_boot do
+    # Re-establish DB connections after fork
+    ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+  end
 end
 
 # Production optimizations

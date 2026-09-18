@@ -1,0 +1,5 @@
+<%# Submit + cancel row for an admin form. Locals: form, cancel_path %>
+<div class="mt-6 flex gap-4">
+  <%= form.submit class: "px-4 py-2 bg-[var(--accent)] text-[var(--bg-dark)] font-bold cursor-pointer hover:bg-[var(--accent-hover)] transition-colors" %>
+  <%= link_to "Cancel", cancel_path, class: "px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)] transition-colors" %>
+</div>

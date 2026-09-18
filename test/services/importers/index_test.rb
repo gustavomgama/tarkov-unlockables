@@ -228,4 +228,14 @@ class Importers::IndexTest < ActiveSupport::TestCase
     assert_instance_of Item::Generic, generic
     assert_equal({}, generic.data)
   end
+
+  # A record with no bsg_id cannot join to an item: it must be skipped rather
+  # than create a row keyed on nil.
+  test "skips a record with a blank bsg_id" do
+    write_fixture([ { "bsg_id" => "", "full_name" => "No Id", "properties" => {} } ])
+
+    assert_no_difference "Item.count" do
+      run_import!
+    end
+  end
 end

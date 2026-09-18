@@ -1,25 +1,42 @@
 require "test_helper"
 
 class TasksControllerTest < ActionDispatch::IntegrationTest
+  include ItemsTestHelpers
+
   fixtures :all
 
-  test "should get index" do
-    get tasks_url
+  # Every test in this file starts by rendering a page and asserting it
+  # answered; the pair is not worth repeating.
+  def get_ok(path)
+    get path
     assert_response :success
   end
 
+  test "should get index" do
+    get_ok(tasks_url)
+  end
+
+  # The chains page had a controller, a view and tests but no link anywhere, so
+  # the only way to reach it was to type the URL.
+  test "index links to the task chains page" do
+    get tasks_url
+
+    assert_response :success
+    assert_select "a[href=?]", chains_tasks_path, text: "Task chains"
+  end
+
   test "index search by full_name returns matching tasks" do
-    task1 = Task.create!(bsg_id: "st1_#{SecureRandom.hex(4)}", full_name: "The Punisher Part 1", name: "the-punisher-part-1", given_by: "Prapor")
-    task2 = Task.create!(bsg_id: "st2_#{SecureRandom.hex(4)}", full_name: "Wet Job Part 6", name: "wet-job-part-6", given_by: "Peacekeeper")
+    create_task("The Punisher Part 1", "the-punisher-part-1", given_by: "Prapor")
+    create_task("Wet Job Part 6", "wet-job-part-6", given_by: "Peacekeeper")
 
     get tasks_url(q: "Punisher")
+
     assert_response :success
     # Must contain Punisher but must NOT contain Wet Job (search filtered)
     assert_match /Punisher/, response.body
     assert_no_match /Wet Job/, response.body
   ensure
-    task1&.destroy
-    task2&.destroy
+    Task.where(name: %w[the-punisher-part-1 wet-job-part-6]).delete_all
   end
 
   test "index filters by trader" do
@@ -30,8 +47,8 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index can narrow to the Kappa set" do
-    kappa = Task.create!(bsg_id: "k+#{SecureRandom.hex(4)}", full_name: "Kappa Quest", name: "kappa-quest", given_by: "Prapor", kappa_required: true)
-    other = Task.create!(bsg_id: "n+#{SecureRandom.hex(4)}", full_name: "Not Kappa Quest", name: "not-kappa-quest", given_by: "Prapor", kappa_required: false)
+    create_task("Kappa Quest", "kappa-quest", given_by: "Prapor", kappa_required: true)
+    create_task("Not Kappa Quest", "not-kappa-quest", given_by: "Prapor", kappa_required: false)
 
     get tasks_url(kappa: "1")
 
@@ -41,7 +58,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     # The chip keeps the selection visible and reversible.
     assert_select "a[aria-current=?]", "true", text: /Kappa only/
   ensure
-    Task.where(id: [ kappa&.id, other&.id ]).delete_all
+    Task.where(name: %w[kappa-quest not-kappa-quest]).delete_all
   end
 
   test "show renders task header and unlock path from the prerequisite graph" do
@@ -59,8 +76,28 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
     # unlock timeline renders each node in the chain
     assert_select "h2", text: "Unlock path"
-    assert_select ".timeline-node", text: /Task Two/
-    assert_select ".timeline-node", text: /Task One/
+    assert_select ".timeline-node", text: /Task (One|Two)/
+    assert_select ".timeline-node", count: 2
+  end
+
+  # A previous-task row links the task when it resolves and falls back to a
+  # plain chip when it does not (the source has references by name only).
+  test "show links resolved prerequisites and chips unresolved ones" do
+    previous = create_task("Resolved Previous", "resolved-previous", given_by: "Prapor")
+    task = create_task("Prereq Task", "prereq-task", given_by: "Prapor")
+    requirement = task.requirements.create!(player_level: 0, trader_level: [])
+    requirement.previous_tasks.create!(task: previous, task_name: previous.name)
+    requirement.previous_tasks.create!(task: nil, task_name: "ghost-quest")
+
+    get_ok(task_url(task))
+
+    # Scoped to the requirement row: the unlock timeline links the same task,
+    # so an unscoped assertion would pass even with this link removed.
+    assert_select ".spec__val a[href=?]", task_path(previous), text: "Resolved Previous"
+    assert_select ".spec__val span.chip", text: "Ghost Quest"
+  ensure
+    task&.destroy
+    previous&.destroy
   end
 
   test "show links the quest's own trader and wiki page" do
@@ -74,7 +111,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "show renders a trader-level requirement with no prerequisites" do
     # Without the timeline (no prerequisites) a trader gate used to appear
     # nowhere on the page.
-    task = Task.create!(bsg_id: "tl-#{SecureRandom.hex(4)}", full_name: "Trader Gated", name: "trader-gated", given_by: "Jaeger")
+    task = create_task("Trader Gated", "trader-gated", given_by: "Jaeger")
     task.requirements.create!(player_level: 0, trader_level: [ { "trader_name" => "jaeger", "trader_level" => "4" } ])
 
     get task_url(task)
@@ -89,6 +126,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     task&.destroy
   end
 
+  # The hero's marker chips are the page's "is this quest special" answer.
+  test "show marks a Kappa and Lightkeeper quest" do
+    task = create_task("Special Quest", "special-quest", given_by: "Prapor",
+                       kappa_required: true, lightkeeper_required: true)
+
+    get_ok(task_url(task))
+
+    assert_select ".chip", text: "Kappa required"
+    assert_select ".chip", text: "Lightkeeper required"
+  ensure
+    task&.destroy
+  end
+
   test "show renders every reward type and leads-to" do
     get task_url(tasks(:one))
 
@@ -98,21 +148,65 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", item_path(items(:one)), minimum: 1, text: "Test Item One"
     assert_select "span", text: /Prapor LL2/        # offer unlock
     assert_select "span", text: /Workbench Lv\.1/   # craft unlock
+    assert_select "span", text: "×2"                # loose item quantity
 
     assert_select "h2", text: "Leads to"
     assert_select "a[href=?]", task_path(tasks(:two)), text: "Task Two"
+    # The hero also carries a "Leads to" stat with the follow-up count.
+    assert_select ".stat__key", text: "Leads to"
+    assert_select ".stat__val", text: "1"
   end
 
   test "show renders gracefully when a task has no requirements or rewards" do
-    bare = Task.create!(bsg_id: "bare_#{SecureRandom.hex(4)}", full_name: "Bare Task", name: "bare-task", given_by: "Jaeger")
+    bare = create_task("Bare Task", "bare-task", given_by: "Jaeger")
 
-    get task_url(bare)
-    assert_response :success
+    get_ok(task_url(bare))
     assert_select "h1", text: "Bare Task"
     assert_select "p", text: "No rewards listed."
     assert_select "h2", text: "Unlock path", count: 0
   ensure
     bare&.destroy
+  end
+
+  # The chains page renders one panel per trader, ordered by trader name. Task
+  # names order the source list (the controller sorts tasks by full_name), so
+  # these two new chains are built in an order that disagrees with the trader
+  # order — otherwise the assertion would pass on insertion order alone.
+  test "chains orders traders by name, not by task order" do
+    later = create_chain_task("Alpha Start", "alpha-start", given_by: "Zzz Trader")
+    create_chain_task("Alpha Next", "alpha-next", given_by: "Zzz Trader", previous: later)
+    sooner = create_chain_task("Beta Start", "beta-start", given_by: "Aaa Trader")
+    create_chain_task("Beta Next", "beta-next", given_by: "Aaa Trader", previous: sooner)
+
+    get_ok(chains_tasks_url)
+
+    slugs = css_select("section[aria-labelledby^=chain-]").map { |section| section["aria-labelledby"].sub("chain-", "") }
+
+    assert_includes slugs, "aaa-trader"
+    assert_includes slugs, "zzz-trader"
+    assert_equal slugs.sort, slugs, "trader panels must be ordered by trader name"
+  ensure
+    Task.where(full_name: [ "Alpha Start", "Alpha Next", "Beta Start", "Beta Next" ]).destroy_all
+  end
+
+  # The index row carries the quest's trader, its follow-up count and the two
+  # special markers; none of them were asserted.
+  test "index rows show the trader, follow-up count and markers" do
+    task = create_task("Marked Quest", "marked-quest", given_by: "Prapor",
+                       kappa_required: true, lightkeeper_required: true)
+    task.leads_tos.create!(follow_up_task_name: "next-quest")
+    task.leads_tos.create!(follow_up_task_name: "another-quest")
+
+    get_ok(tasks_url)
+
+    row = css_select("a.task-row").find { |anchor| anchor.text.include?("Marked Quest") }
+    assert row, "the new quest should have a row on the index"
+
+    assert_includes row.text, "Prapor"
+    assert_includes row.text, "2 follows"
+    assert_equal [ "Kappa", "Lightkeeper" ], row.css(".chip").map(&:text)
+  ensure
+    task&.destroy
   end
 
   test "search suggests quests as rows" do
@@ -122,19 +216,37 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", task_path(tasks(:one))
   end
 
-  test "search ignores a short query and returns nothing when unmatched" do
-    get search_tasks_url(q: "a")
-    assert_response :no_content
+  # The suggestion row marks a special quest; Lightkeeper wins over Kappa.
+  test "search suggestion rows mark special quests" do
+    lightkeeper = create_task("Lighthouse Quest", "lighthouse-quest", given_by: "Prapor",
+                              lightkeeper_required: true, kappa_required: true)
+    kappa = create_task("Kappa Only Quest", "kappa-only-quest", given_by: "Prapor", kappa_required: true)
 
-    get search_tasks_url(q: "zzzzzzzzzzzz")
-    assert_response :no_content
+    get search_tasks_url(q: "quest")
+
+    assert_response :success
+    assert_select "a[href=?]", task_path(lightkeeper) do
+      assert_select ".chip", text: "Lighthouse"
+    end
+    assert_select "a[href=?]", task_path(kappa) do
+      assert_select ".chip", text: "Kappa"
+    end
+  ensure
+    Task.where(name: %w[lighthouse-quest kappa-only-quest]).delete_all
+  end
+
+  test "search ignores a short query and returns nothing when unmatched" do
+    [ "a", "zzzzzzzzzzzz" ].each do |query|
+      get search_tasks_url(q: query)
+      assert_response :no_content
+    end
   end
 
   test "show renders a quest whose rewards carry nothing" do
     # The controller eager loads the items behind each reward. Empty reward
     # collections left those preloads unused, which Bullet reports and raises
     # on in development, 500ing the page.
-    task = Task.create!(bsg_id: "empty-#{SecureRandom.hex(4)}", full_name: "Empty Rewards", name: "empty-rewards", given_by: "Prapor")
+    task = create_task("Empty Rewards", "empty-rewards", given_by: "Prapor")
     task.rewards.create!(reward_type: "start_rewards")
     task.rewards.create!(reward_type: "finish_rewards")
 
@@ -153,6 +265,22 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "404"
   end
 
+  # The page preloads a graph before rendering. A conditional request that is
+  # still fresh must answer 304 *before* that work: otherwise Bullet raises on
+  # the preloads the skipped view never used (500 in development) and production
+  # pays for a graph nobody reads.
+  test "show answers a fresh conditional request with 304" do
+    task = create_task("Conditional Quest", "conditional-quest")
+
+    get_ok(task_url(task))
+
+    get task_url(task), headers: { "If-None-Match" => response.headers["ETag"] }
+
+    assert_response :not_modified
+  ensure
+    task&.destroy
+  end
+
   test "chains groups each trader's deepest prerequisite chain" do
     get chains_tasks_url
 
@@ -164,11 +292,33 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select ".timeline-node", text: /Task Two/
   end
 
+  # `chains` preloads an unloaded relation, so a 304 returns before the graph is
+  # ever iterated — no unused eager loading to trip Bullet.
+  test "chains answers a fresh conditional request with 304" do
+    get_ok(chains_tasks_url)
+
+    get chains_tasks_url, headers: { "If-None-Match" => response.headers["ETag"] }
+
+    assert_response :not_modified
+  end
+
   test "chains page renders no trader sections for a shapeless graph" do
     Task.all.find_each { |t| t.update_columns(given_by: nil) }
 
-    get chains_tasks_url
-    assert_response :success
+    get_ok(chains_tasks_url)
     assert_select ".timeline-node", count: 0
+  end
+
+  # A trader whose deepest chain is a single task has no chain to draw, so the
+  # section is skipped rather than rendering a one-node "chain".
+  test "chains page omits a trader whose tasks have no prerequisites" do
+    lonely = create_task("Lonely Quest", "lonely-quest", given_by: "TestTrader")
+
+    get chains_tasks_url
+
+    assert_response :success
+    assert_not_includes response.body, "Lonely Quest"
+  ensure
+    lonely&.destroy
   end
 end

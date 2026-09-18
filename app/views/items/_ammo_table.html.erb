@@ -5,8 +5,7 @@
       ammo    — collection of Item::Ammo, already ordered
       title   — panel heading (also names the table)
       note    — optional one-line explanation under the table
-      current — optional item to highlight as the one being viewed
-%>
+      current — optional item to highlight as the one being viewed %>
 <% current ||= nil %>
 <% heading_id = "#{title.parameterize}-head" %>
 <section class="panel" aria-labelledby="<%= heading_id %>">

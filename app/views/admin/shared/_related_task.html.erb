@@ -1,0 +1,7 @@
+<%# Link to the task an admin resource belongs to. Locals: task %>
+<% if task %>
+  <div class="mt-6 pt-6 border-t border-[var(--border)]">
+    <h2 class="text-lg font-bold text-[var(--text-bright)] mb-2">Task</h2>
+    <%= link_to task.full_name, [:admin, task], class: "text-[var(--accent)] hover:underline" %>
+  </div>
+<% end %>

@@ -15,6 +15,10 @@ FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
 
+  # ESLint/Prettier (ci:js) and the accessibility system test inject axe-core
+  # from node_modules, so the JS dependencies are part of setup too.
+  system!("npm ci") if File.exist?("package-lock.json")
+
   # puts "\n== Copying sample files =="
   # unless File.exist?("config/database.yml")
   #   FileUtils.cp "config/database.yml.sample", "config/database.yml"

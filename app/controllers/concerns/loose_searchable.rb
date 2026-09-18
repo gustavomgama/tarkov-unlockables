@@ -13,10 +13,19 @@ module LooseSearchable
     }.freeze
 
     # @param query [String] the search term
-    # @param columns [Array<String>] column names to search (must be strings, not symbols)
+    # @param columns [Array<String, Symbol>] column names to search
     # @return [ActiveRecord::Relation]
     def loose_search(query, columns:)
       return all if query.blank?
+
+      # A resource can declare no searchable columns (AdminCrud#search_columns
+      # defaults to an empty list). Nothing can match, and building the WHERE
+      # from zero conditions would raise, so treat it like a blank query.
+      #
+      # Symbols are accepted (the admin controllers declare their searchable
+      # columns as symbols) and normalised so the checks below are string-only.
+      columns = Array(columns).map(&:to_s)
+      return all if columns.empty?
 
       stripped_query = query.to_s.gsub(/[^a-zA-Z0-9]/, "")
       return all if stripped_query.blank?
@@ -29,18 +38,19 @@ module LooseSearchable
       end
 
       like_value = "%#{stripped_query}%"
-      conditions = columns.map do |col|
-        # brakeman:ignore SQL
-        # col is a hardcoded column name from caller (e.g., "full_name"); never user input
-        Arel.sql("regexp_replace(#{col}::text, '[^a-zA-Z0-9]', '', 'g') ILIKE ?")
+      conditions = columns.map do |column|
+        # Each column is checked against the model's own columns and then quoted
+        # as an identifier, so the interpolation is safe by construction rather
+        # than by a caller's promise (this used to carry a Brakeman ignore).
+        unless column_names.include?(column)
+          raise ArgumentError, "unknown search column: #{column.inspect}"
+        end
+
+        quoted = connection.quote_column_name(column)
+        Arel.sql("regexp_replace(#{quoted}::text, '[^a-zA-Z0-9]', '', 'g') ILIKE ?")
       end
 
       where(conditions.join(" OR "), *Array.new(columns.size, like_value))
-    end
-
-    # Builds the indexed search blob from raw attribute values.
-    def build_search_text(*values)
-      values.join(" ").gsub(/[^a-zA-Z0-9]/, "").downcase
     end
   end
 end

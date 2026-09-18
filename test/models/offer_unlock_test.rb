@@ -25,7 +25,7 @@ require "test_helper"
 #
 class OfferUnlockTest < ActiveSupport::TestCase
   test "belongs to reward with optional item" do
-    task = Task.create!(bsg_id: "ou-#{SecureRandom.hex(4)}", full_name: "OU", name: "ou")
+    task = create_task("OU", "ou")
     reward = task.rewards.create!(reward_type: "Item")
 
     unlock = reward.offer_unlocks.create!(item_name: "Offer", trader_name: "Prapor", trader_level: 1)

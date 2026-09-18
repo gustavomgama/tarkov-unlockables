@@ -1,48 +1,43 @@
 class TasksController < ApplicationController
   def index
     tasks = Task.all
-    tasks = tasks.loose_search(params[:q], columns: %w[full_name name]) if params[:q].present?
+    tasks = loose_search_param(tasks, %w[full_name name])
     tasks = tasks.where(given_by: params[:trader]) if params[:trader].present?
     # 221 of 468 quests count toward Kappa; players chase that set specifically.
     tasks = tasks.where(kappa_required: true) if params[:kappa].present?
     @tasks = tasks.order(full_name: :asc)
     @task_count = tasks.count
-    # Trader list only changes on import: cache instead of DISTINCT on every request.
-    @traders = Rails.cache.fetch("tasks/traders", expires_in: 1.hour) do
-      Task.distinct.pluck(:given_by).compact.sort
-    end
-    @kappa_count = Rails.cache.fetch("tasks/kappa_count", expires_in: 1.hour) do
-      Task.where(kappa_required: true).count
-    end
+    @traders = cached_traders
+    @kappa_count = cached_kappa_count
   end
 
-  # Typeahead for the quest search field. Mirrors ItemsController#search.
+  # Typeahead for the quest search field.
   def search
-    query = params[:q].to_s.strip
-    return head :no_content if query.length < ItemsController::AUTOCOMPLETE_MIN_QUERY
-
-    @tasks = Task.all
-                 .loose_search(query, columns: %w[full_name name])
-                 .order(full_name: :asc)
-                 .limit(ItemsController::AUTOCOMPLETE_LIMIT)
-    return head :no_content if @tasks.empty?
-
-    expires_in 10.minutes, public: true
-    render partial: "tasks/autocomplete_results", locals: { tasks: @tasks }, layout: false
+    autocomplete(Task.all, columns: %w[full_name name],
+                            partial: "tasks/autocomplete_results", local: :tasks)
   end
+
+  # The association graph the show page renders. Preloaded *after* the freshness
+  # check: a 304 skips the view, and Bullet raises on every preload the skipped
+  # view never touched (which 500s cached-page revalidation in development) while
+  # production pays for a graph nobody reads.
+  SHOW_PRELOADS = [
+    { requirements: { previous_tasks: :task } },
+    { rewards: [
+      { loose_items: :item },
+      { offer_unlocks: :item },
+      { barter_unlocks: :item },
+      { craft_unlocks: :item }
+    ] },
+    { leads_tos: :follow_up_task }
+  ].freeze
 
   def show
-    @task = Task.includes(
-      requirements: { previous_tasks: :task },
-      rewards: [
-        { loose_items: :item },
-        { offer_unlocks: :item },
-        { barter_unlocks: :item },
-        { craft_unlocks: :item }
-      ],
-      leads_tos: :follow_up_task
-    ).find(params[:id])
+    @task = Task.find(params[:id])
     fresh_when(@task, public: true)
+    return if performed?
+
+    ActiveRecord::Associations::Preloader.new(records: [ @task ], associations: SHOW_PRELOADS).call
   end
 
   def chains
@@ -56,6 +51,20 @@ class TasksController < ApplicationController
   end
 
   private
+
+  # Trader list and Kappa count only change on import, so cache them instead
+  # of running DISTINCT/count on every request.
+  def cached_traders
+    Rails.cache.fetch("tasks/traders", expires_in: 1.hour) do
+      Task.distinct.pluck(:given_by).compact.sort
+    end
+  end
+
+  def cached_kappa_count
+    Rails.cache.fetch("tasks/kappa_count", expires_in: 1.hour) do
+      Task.where(kappa_required: true).count
+    end
+  end
 
   def build_trader_chains(tasks)
     map = tasks.index_by(&:name)

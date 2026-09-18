@@ -1,0 +1,10 @@
+<%# Validation errors for an admin form. Locals: model %>
+<% if model.errors.any? %>
+  <div class="mb-6 p-4 bg-[var(--danger)]/10 border border-[var(--danger)] text-[var(--danger-ink)]">
+    <ul class="list-disc pl-4">
+      <% model.errors.each do |error| %>
+        <li><%= error.full_message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

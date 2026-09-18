@@ -27,16 +27,21 @@
   --border-strong: #363d47;
   --success: #6a9a4a;
   --danger: #b8433a;
+  /* Text-weight red for links, labels and error copy on the dark surfaces.
+     WCAG AA needs 4.5:1; #b8433a measures 3.7:1 as text, so it stays the
+     solid badge/button background (bright text on it passes) and this
+     lighter red carries the text. */
+  --danger-ink: #c97069;
 
   /* Lethality ramp: one colour language shared by armor class and
      penetration, so a number's meaning reads without the threshold table.
      Class 1 (light) → class 6 (heavy). */
-  --ac1: #5b6b7a;
-  --ac2: #4f7a6a;
+  --ac1: #798692;
+  --ac2: #678c7e;
   --ac3: #7c8a44;
   --ac4: #a8903f;
   --ac5: #b5703a;
-  --ac6: #b0463a;
+  --ac6: #c16d63;
 
   --badge-task: #7a6b8a;
   --badge-barter: #5a8a8a;
