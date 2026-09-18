@@ -132,6 +132,39 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     ammo&.destroy
   end
 
+  # The wiki ballistics chart's levels, lit where the round penetrates (4+).
+  test "show renders the wiki effectiveness ladder for ammo" do
+    ammo = Item::Ammo.create!(
+      bsg_id: "ae-#{SecureRandom.hex(4)}", full_name: "Charted Ammo", short_name: "CA",
+      armor_class_effectiveness: { "1" => 6, "2" => 6, "3" => 5, "4" => 4, "5" => 3, "6" => 0 },
+      data: { "caliber" => "5.45x39mm", "damage" => 50, "penetration_power" => 37 }
+    )
+
+    get item_url(ammo)
+    assert_response :success
+    assert_select "span.stat__key", text: "Bullet effectiveness against armor class"
+    assert_select ".ac-grid .ac-cell", count: 6
+    assert_select ".ac-grid .ac-cell--on", count: 4
+    assert_select "dd.stat__note", text: "penetrates class 4 and below"
+    assert_select "a[href=?]", "https://escapefromtarkov.fandom.com/wiki/Ballistics"
+  ensure
+    ammo&.destroy
+  end
+
+  test "show falls back to the penetration estimate with no chart row" do
+    ammo = Item::Ammo.create!(
+      bsg_id: "af-#{SecureRandom.hex(4)}", full_name: "Uncharted Ammo", short_name: "UA",
+      data: { "caliber" => "5.45x39mm", "damage" => 50, "penetration_power" => 37 }
+    )
+
+    get item_url(ammo)
+    assert_response :success
+    assert_select "span.stat__key", text: "Reliable penetration by armor class"
+    assert_select "span.stat__key", text: "Bullet effectiveness against armor class", count: 0
+  ensure
+    ammo&.destroy
+  end
+
   test "show renders armor stats partial for Item::Armor" do
     armor = Item::Armor.create!(
       bsg_id: "ar-#{SecureRandom.hex(4)}",

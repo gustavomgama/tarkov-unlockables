@@ -26,4 +26,24 @@ class AmmoControllerTest < ActionDispatch::IntegrationTest
   ensure
     [ weak, strong ].each { |i| i&.destroy }
   end
+
+  # The chart's effectiveness levels are the rule where a round has them, even
+  # when its penetration would put it two classes lower.
+  test "min_class follows the wiki levels, not the penetration estimate" do
+    charted = Item::Ammo.create!(
+      bsg_id: "am3-#{SecureRandom.hex(4)}", full_name: "Charted Round", short_name: "CR",
+      armor_class_effectiveness: { "1" => 6, "2" => 6, "3" => 6, "4" => 4, "5" => 3, "6" => 0 },
+      data: { "caliber" => "Caliber556x45NATO", "penetration_power" => 24, "damage" => 40 }
+    )
+
+    get ammo_url(min_class: 4)
+    assert_response :success
+    assert_match item_path(charted), response.body
+
+    get ammo_url(min_class: 5)
+    assert_response :success
+    assert_no_match item_path(charted), response.body
+  ensure
+    charted&.destroy
+  end
 end

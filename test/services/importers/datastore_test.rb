@@ -180,13 +180,24 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     ]
   end
 
-  def import!
+  def import!(ballistics: true)
     write("items", item_rows)
     write("tasks", task_rows)
     write("hideout_stations", hideout_rows)
     write("traders", trader_rows)
     write("maps", map_rows)
+    write("ballistics", ballistics_rows) if ballistics
     Importers::Datastore.import!(source: @source)
+  end
+
+  # The wiki chart names the round but only some rows carry a bsg id.
+  def ballistics_rows
+    [
+      { "name" => "5.45x39mm PS", "bsg_id" => "a1", "caliber" => "5.45x39mm", "group" => "rifle",
+        "vs_armor_class" => { "1" => 6, "2" => 6, "3" => 5, "4" => 4, "5" => 2, "6" => 0 } },
+      { "name" => "12.7x108mm B-32", "bsg_id" => nil, "caliber" => "12.7x108mm", "group" => "other",
+        "vs_armor_class" => { "1" => 6, "2" => 6, "3" => 6, "4" => 6, "5" => 6, "6" => 6 } }
+    ]
   end
 
   def map_rows
@@ -265,6 +276,24 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
 
     assert_nil Item.find_by(bsg_id: "d1")
     assert_equal 3, Item.count
+  end
+
+  test "imports the wiki effectiveness levels onto the round they name" do
+    import!
+
+    assert_equal({ "1" => 6, "2" => 6, "3" => 5, "4" => 4, "5" => 2, "6" => 0 },
+                 Item.find_by!(bsg_id: "a1").armor_class_effectiveness)
+    # The round without a bsg id is reported nowhere and applied nowhere.
+    assert_empty Item.find_by!(bsg_id: "w1").armor_class_effectiveness
+  end
+
+  # The chart is a separate pipeline step; a datastore built without it still
+  # loads every item, just without effectiveness levels.
+  test "imports without a ballistics file" do
+    import!(ballistics: false)
+
+    assert_equal 3, Item.count
+    assert_empty Item.find_by!(bsg_id: "a1").armor_class_effectiveness
   end
 
   # A quest that unlocks the offer is proof enough: the item record itself can

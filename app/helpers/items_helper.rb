@@ -104,12 +104,18 @@ module ItemsHelper
   # down so the label states the reliable case, not the lucky one.
   # ponytail: single constant, retune here when the wipe changes it.
   def penetration_class(value)
-    (value.to_f / 10).floor.clamp(0, 6)
+    Item.penetration_class(value)
   end
 
   def penetration_tone(value)
     n = penetration_class(value)
     n.zero? ? "var(--ac1)" : "var(--ac#{n})"
+  end
+
+  # A round's place on the lethality ramp: the wiki chart's armor class where
+  # the round has a row, the penetration estimate where it does not.
+  def ammo_tone(round)
+    round.wiki_effectiveness? ? armor_class_tone(round.defeats_class) : penetration_tone(round.penetration)
   end
 
   # Armor class value (1–6) as a filled bar scale.

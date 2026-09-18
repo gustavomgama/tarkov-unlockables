@@ -1,4 +1,6 @@
-<% pen = item.data["penetration_power"].presence || item.data["penetration"].presence %>
+<% pen = item.penetration %>
+<% defeated = item.defeats_class %>
+<% levels = item.armor_class_levels %>
 <% tracer = item.data["tracer"].presence %>
 <% ammo_type = item.data["ammo_type"].presence || item.data["ammoType"].presence %>
 
@@ -12,11 +14,10 @@
   <% end %>
 
   <% if pen.present? %>
-    <% classes = penetration_class(pen) %>
-    <div class="stat stat--xl stat--tone" style="--tone: <%= penetration_tone(pen) %>">
+    <div class="stat stat--xl stat--tone" style="--tone: <%= ammo_tone(item) %>">
       <dt class="stat__key">Penetration</dt>
       <dd class="stat__val"><%= pen %></dd>
-      <dd class="stat__note"><%= classes.zero? ? "no armor penetration" : "beats class #{classes} and below" %></dd>
+      <dd class="stat__note"><%= defeated.zero? ? "no armor penetration" : "penetrates class #{defeated} and below" %></dd>
     </div>
   <% end %>
 
@@ -29,10 +30,17 @@
 
 </dl>
 
-<% if pen.present? %>
+<% if levels %>
+  <div class="stat stat--wide">
+    <span class="stat__key">Bullet effectiveness against armor class</span>
+    <%= render "items/effectiveness", levels: levels, defeated: item.defeated_armor_classes %>
+    <%= render "items/armor_class_note", kind: :effectiveness %>
+  </div>
+<% elsif pen.present? %>
+  <% classes = penetration_class(pen) %>
   <div class="stat stat--wide">
     <span class="stat__key">Reliable penetration by armor class</span>
-    <%= render "items/armor_scale", scale: penetration_scale(pen), tone: penetration_tone(pen),
+    <%= render "items/armor_scale", scale: penetration_scale(pen), tone: ammo_tone(item),
           label: classes.zero? ? "Does not defeat any armor class" : "Reliably defeats armor classes 1 through #{classes}" %>
     <%= render "items/armor_class_note", kind: :penetration %>
   </div>

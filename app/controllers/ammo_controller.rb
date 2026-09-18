@@ -1,6 +1,7 @@
 class AmmoController < ApplicationController
   # Every round grouped by caliber, hardest-hitting first within each group.
-  # `min_class` keeps only rounds that defeat at least that armor class.
+  # `min_class` keeps the rounds that penetrate at least that armor class —
+  # the wiki chart's effectiveness level 4 and up (Item::Ammo#defeats_class).
   def index
     @min_class = params[:min_class].to_i.clamp(0, 6)
     grouped = Item::Ammo.all.group_by { |round| Item.caliber_display(round.data["caliber"]).presence || "Other" }

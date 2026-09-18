@@ -58,11 +58,14 @@ so "how do I get X" and "what is X for" are both single lookups.
 
 The ballistics files come from the wiki's [Ballistics](https://escapefromtarkov.fandom.com/wiki/Ballistics)
 page, the only source that publishes **how effective each round is against
-each armor class** (and the scale those six numbers are read on). Every other
-column on that page repeats a value the dataset already holds, so
-`99_verify.py` compares them rather than trusting the parse: 1,000+ values
-against the API's ammo properties at ≥95% agreement, and both armor-material
-destructibility numbers against `reference.json`.
+each armor class** (and the scale those six numbers are read on). The app reads
+the levels into `items.armor_class_effectiveness` and treats **level 4 and up
+as penetrating that class** (`Item::Ammo#defeats_class`; rounds without a chart
+row fall back to the penetration estimate). Every other column on that page
+repeats a value the dataset already holds, so `99_verify.py` compares them
+rather than trusting the parse: 1,000+ values against the API's ammo properties
+at ≥95% agreement, and both armor-material destructibility numbers against
+`reference.json`.
 
 ## Rebuild
 

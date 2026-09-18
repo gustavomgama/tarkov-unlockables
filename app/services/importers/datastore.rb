@@ -84,6 +84,7 @@ module Importers
       ActiveRecord::Base.transaction do
         truncate!
         import_items
+        import_ballistics
         import_slots
         import_tasks
         import_task_graph
@@ -126,6 +127,26 @@ module Importers
 
       acquisition = raw["acquisition"]
       acquisition.is_a?(Hash) && OBTAINABLE_KINDS.any? { |kind| Array(acquisition[kind]).any? }
+    end
+
+    # The wiki's ballistics chart, joined to the item it names. Optional: a
+    # datastore built without `25_ballistics.py` simply has no effectiveness
+    # levels, and the views fall back to the penetration approximation.
+    def import_ballistics
+      path = @source.join("ballistics.ndjson")
+      return unless path.exist?
+
+      levels = path.each_line.filter_map do |line|
+        row = JSON.parse(line)
+        [ row["bsg_id"], row["vs_armor_class"] ] if row["bsg_id"]
+      end.to_h
+      return if levels.empty?
+
+      Item.transaction do
+        Item.where(bsg_id: levels.keys).find_each do |item|
+          item.update_columns(armor_class_effectiveness: levels[item.bsg_id])
+        end
+      end
     end
 
     # Items a quest unlocks at a trader, as a barter or as a craft. A few of

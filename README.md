@@ -20,7 +20,9 @@ Answering questions like:
 - `/traders` — loyalty thresholds and what each trader sells.
 - `/maps` — raid length, bosses, extracts and transits.
 - `/keys` — every key a quest asks for, and which quests need it.
-- `/ammo` — every round by caliber, sorted by penetration.
+- `/ammo` — every round by caliber, sorted by penetration, with each round's
+  armor-class effectiveness from the wiki ballistics chart. A round penetrates
+  an armor class at effectiveness level 4 or higher.
 - `/armor` — body armor and helmets by class, durability and movement penalty.
 
 ## Setup

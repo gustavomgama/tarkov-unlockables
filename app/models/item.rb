@@ -2,20 +2,21 @@
 #
 # Table name: items
 #
-#  id          :bigint           not null, primary key
-#  type        :string           default("Item::Generic"), not null
-#  bsg_id      :string
-#  slug        :string
-#  full_name   :string
-#  short_name  :string
-#  wiki_title  :string
-#  categories  :text             default([]), is an Array
-#  links       :text             default([]), is an Array
-#  images      :text             default([]), is an Array
-#  data        :jsonb            not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  search_text :string           default(""), not null
+#  id                        :bigint           not null, primary key
+#  type                      :string           default("Item::Generic"), not null
+#  bsg_id                    :string
+#  slug                      :string
+#  full_name                 :string
+#  short_name                :string
+#  wiki_title                :string
+#  categories                :text             default([]), is an Array
+#  links                     :text             default([]), is an Array
+#  images                    :text             default([]), is an Array
+#  data                      :jsonb            not null
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  search_text               :string           default(""), not null
+#  armor_class_effectiveness :jsonb            not null
 #
 # Indexes
 #
@@ -190,6 +191,15 @@ class Item < ApplicationRecord
     Rails.cache.fetch("items/caliber_category_map", expires_in: 1.hour) do
       build_caliber_category_map
     end
+  end
+
+  # Community approximation: roughly 10 penetration per armor class, rounded
+  # down so a label states the reliable case, not the lucky one. It is only a
+  # fallback now — the wiki ballistics chart (see Item::Ammo) is the source
+  # where it has a row.
+  # ponytail: single constant, retune here when the wipe changes it.
+  def self.penetration_class(value)
+    (value.to_f / 10).floor.clamp(0, 6)
   end
 
   # Full category list backing filter expansion. Cached: changes only on import.

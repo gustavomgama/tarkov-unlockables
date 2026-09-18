@@ -10,7 +10,8 @@ Current shape of `tarkov_db_development` after `db:seed` vs the dataset:
 
 | | canonical | Postgres | why they differ |
 | --- | ---: | ---: | --- |
-| items | 5,481 | 5,481 | 1:1 on `bsg_id`. Slots, grids, `properties`, `physical` and acquisition collapse into the `data` jsonb. |
+| items | 5,481 | 3,527 | 1:1 on `bsg_id` **minus the 1,954 items with no acquisition route** — nothing buys, barters, crafts or rewards them, so `Importers::Datastore` drops them (`obtainable?`). Slots, grids, `properties`, `physical` and acquisition collapse into the `data` jsonb. |
+| ballistics levels | 190 chart rows | 169 `items.armor_class_effectiveness` | the wiki chart joins on `bsg_id`: 4 rows name a round the snapshot lacks and 17 name rounds the importer dropped, so 169 land. 5 of the 174 stored rounds have no chart row and keep `{}`, which the views read as "use the penetration estimate". |
 | tasks | 517 | 517 | 1:1 on `bsg_id`. Objectives, needed keys and the map name are stored; most reward kinds are dropped. |
 | buy routes | 2,658 `buy` + 3,202 `index_offers` | 3,248 `item_currencies` | one row per `(trader, currency, level)`, the two sources deduped; price, `price_rub` and buy limit stored. |
 | barter offers | 789 | 840 `item_barters` | one row per offer; inputs in `item_barter_requirements`, plus limit, restock and the task gate. |
