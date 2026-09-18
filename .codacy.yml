@@ -1,0 +1,29 @@
+---
+# Codacy / GitHub code-scanning settings.
+#
+# Both exclusions are generated output or a deliberate style, not fixable code:
+#
+# - `app/assets/builds/tailwind.css` is the compiled bundle, rebuilt from
+#   app/views by `rails tailwindcss:build` (the `assets` CI step fails if the
+#   committed copy is stale), so the CSS rules report Tailwind's own output;
+# - `app/assets/tailwind/application.css` is Tailwind v4's entry file
+#   (`@import "tailwindcss" source(none)`), which the CSS rules cannot parse;
+# - `datastore/scripts/` is the numbered pipeline (`10_fetch`,
+#   `20_build_canonical`, …) with long procedural functions by design. Its 200-odd
+#   style findings predate this branch, and the pipeline answers for its own
+#   correctness through `99_verify.py`.
+#
+# Bandit is NOT excluded anywhere: `bandit.yml` in the repo root skips only B101
+# (assertions in the verifier), so the security rules keep running.
+#
+# Tool names per https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+exclude_paths:
+  - "app/assets/builds/**"
+  - "app/assets/tailwind/**"
+engines:
+  pylintpython3:
+    exclude_paths:
+      - "datastore/scripts/**"
+  prospector:
+    exclude_paths:
+      - "datastore/scripts/**"

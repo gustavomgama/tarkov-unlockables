@@ -1,0 +1,3 @@
+# The datastore scripts are not stdlib-only: the wikitext parsers need
+# mwparserfromhell. Pinned to the version the venv ships (~/.pyvenv-tarkov).
+mwparserfromhell==0.7.2

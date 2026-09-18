@@ -17,6 +17,9 @@ Sources:
 
 Run: ~/.pyvenv-tarkov/bin/python datastore/scripts/20_build_canonical.py
 """
+# The pipeline names its scripts 10_fetch / 20_build_canonical / …, which Pylint
+# reads as a module name, and a handle, that are not snake_case.
+# pylint: disable=invalid-name
 from __future__ import annotations
 
 import glob

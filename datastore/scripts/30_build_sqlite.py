@@ -469,7 +469,7 @@ def main():
     for table, expected in (("map_extracts", len(extracts)), ("map_transits", len(transits)),
                             ("map_bosses", len(bosses)), ("map_boss_helpers", len(helpers)),
                             ("map_enemies", len(enemies))):
-        got = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+        got = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]  # nosec B608 - table is a literal table name
         if got != expected:
             raise ValueError(f"{table}: generated {expected} rows but {got} landed "
                              f"({expected - got} dropped by the primary key)")
@@ -490,7 +490,7 @@ def main():
         stats_block = r.get("stats") or {}
         phys, econ, wk = r["physical"], r["economy"], r.get("wiki") or {}
         cur.execute(
-            "INSERT INTO items VALUES (" + ",".join("?" * 45) + ")",
+            "INSERT INTO items VALUES (" + ",".join("?" * 45) + ")",  # nosec B608 - placeholders only, no values
             (
                 r["bsg_id"], r["slug"], r["name"], r["short_name"], r["description"], r["name_source"],
                 int(bool(r["quest_item"])), r["properties_type"],
@@ -633,7 +633,7 @@ def main():
     tables = [r[0] for r in con.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '%_fts%' ORDER BY name")]
     for t in tables:
-        lines.append(f"| {t} | {con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]} |")
+        lines.append(f"| {t} | {con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]} |")  # nosec B608 - t from sqlite_master
     con.close()
     os.makedirs(C.REPORTS, exist_ok=True)
     with open(os.path.join(C.REPORTS, "03_sqlite_stats.md"), "w", encoding="utf-8") as fh:

@@ -24,6 +24,9 @@ build stays reproducible offline. Pass --refresh to re-download.
 
 Run: ~/.pyvenv-tarkov/bin/python datastore/scripts/25_ballistics.py [--refresh]
 """
+# The pipeline names its scripts 10_fetch / 20_build_canonical / …, which Pylint
+# reads as a module name, and a handle, that are not snake_case.
+# pylint: disable=invalid-name
 from __future__ import annotations
 
 import hashlib
@@ -63,6 +66,7 @@ CHART_WIDTH = 2 + len(STATS) + ARMOR_CLASSES
 
 
 def norm_name(value):
+    """A display name reduced to the letters and digits used to match it."""
     return re.sub(r"[^a-z0-9]+", "", (value or "").lower())
 
 
@@ -76,7 +80,8 @@ def fetch(refresh=False):
     else:
         url = API.format(title=urllib.parse.quote(TITLE))
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-        with urllib.request.urlopen(request, timeout=60) as resp:
+        # The scheme is the https:// in the API constant above, never caller input.
+        with urllib.request.urlopen(request, timeout=60) as resp:  # nosec B310
             raw = resp.read()
         payload = json.loads(raw.decode("utf-8"))
         with open(RAW, "wb") as fh:
@@ -104,6 +109,7 @@ def fetch(refresh=False):
 # --- wikitext helpers ----------------------------------------------------
 
 def tables(code):
+    """Every wikitable on the page, in document order."""
     return [t for t in code.filter_tags() if str(t.tag) == "table"]
 
 
@@ -260,14 +266,15 @@ def parse_materials(table, reference):
 
 
 def build():
+    """Parse the page into (ammo rows, armor classes, armor materials)."""
     code = mwparserfromhell.parse(fetch(refresh="--refresh" in sys.argv))
 
     groups = parse_groups(find_table(code, "Rifle Rounds"))
     ammo = parse_chart(find_table(code, "Penetration power"), groups)
     classes = parse_armor_classes(find_table(code, "Effectiveness level"))
-    reference = json.load(open(os.path.join(C.CANON, "reference.json"), encoding="utf-8"))
-    materials = parse_materials(find_table(code, "Destructibility"),
-                                reference["armor_materials"])
+    with open(os.path.join(C.CANON, "reference.json"), encoding="utf-8") as handle:
+        materials = parse_materials(find_table(code, "Destructibility"),
+                                    json.load(handle)["armor_materials"])
 
     # The page is name-only; the app joins on the BSG id. Rows the snapshot
     # does not have stay unmatched with a null id rather than being dropped.
@@ -287,6 +294,7 @@ def build():
 
 
 def main():
+    """Write the three canonical files and report what landed."""
     ammo, classes, materials = build()
     C.write_jsonl(os.path.join(C.CANON, "ballistics.ndjson"), ammo)
     C.write_jsonl(os.path.join(C.CANON, "armor_classes.ndjson"), classes)

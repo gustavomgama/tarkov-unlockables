@@ -88,7 +88,10 @@ Reconnaissance and coverage reports:
 ~/.pyvenv-tarkov/bin/python 01_coverage.py # source overlap, name resolution, integrity -> reports/01_coverage.md
 ```
 
-Requirements: python 3.14 venv with stdlib only (`~/.pyvenv-tarkov/bin/python`);
+Requirements: python 3.14 venv (`~/.pyvenv-tarkov/bin/python`) with the one
+dependency in `scripts/requirements.txt` — `mwparserfromhell`, used by the
+wikitext steps (`20_build_canonical.py`, `25_ballistics.py`, `99_verify.py`) and
+by the inline cross-check in `70_crosscheck.py`. Everything else is stdlib.
 `fetched/` is committed-in-spirit but regenerable, and the build works offline
 once it exists. `offlinedata/tarkovmarket/` is gitignored — if it is missing,
 market names/URLs are simply absent and the build still succeeds.

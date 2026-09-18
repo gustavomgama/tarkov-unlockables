@@ -1,0 +1,8 @@
+# Codacy detects this file for its Bandit engine.
+#
+# B101 (assert) fires on datastore/scripts/99_verify.py, which is a wall of
+# assertions by design: `check()` catches AssertionError and a non-zero exit is
+# the pipeline's gate. Every other Bandit rule stays on, including in that file
+# (its SQL-string checks are the ones B608 flags).
+skips:
+  - B101
