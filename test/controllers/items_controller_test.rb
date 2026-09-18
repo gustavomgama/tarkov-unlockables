@@ -22,6 +22,10 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     # only way to apply a selection before the change handler runs.
     assert_select "details.filter-group", minimum: 1
     assert_select "noscript button[type=submit]", text: "Apply filters"
+    # The search field works without JavaScript too: a submit button, and the
+    # field lives in the same form so submitting keeps the filters.
+    assert_select "form#filter-form input[name=q]"
+    assert_select "form#filter-form button[type=submit]", text: "Search"
     # Dead JS-only affordances must not come back.
     assert_select "button[data-action='filter-group#toggle']", count: 0
     assert_select "div[data-mobile-nav-target='menu']", count: 0

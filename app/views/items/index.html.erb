@@ -40,6 +40,8 @@
         ></div>
       </div>
 
+      <button type="submit" class="btn">Search</button>
+
       <%= select_tag :per_page, options_for_select([ 20, 50, 100 ], @per_page || 20),
             class: "input w-auto", "aria-label": "Items per page",
             data: { action: "change->filter-form#submit" } %>
