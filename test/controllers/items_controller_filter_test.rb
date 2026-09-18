@@ -269,7 +269,13 @@ class ItemsControllerFilterTest < ActionDispatch::IntegrationTest
   # The "craft" value has always filtered quest rewards (item_task_rewards); the
   # option said "Craft" while the item page calls the same data "Quest". The
   # value is unchanged so existing filtered URLs keep working.
+  # The filter joins item_task_rewards, so the test seeds its own row: another
+  # test destroys every item, which would leave the join empty and make this
+  # order-dependent (it passed locally and failed in CI).
   test "the source filter names the quest-reward option and still accepts the craft value" do
+    item = create_item("Quest Reward Item")
+    item.item_task_rewards.create!(task_name: "some-quest")
+
     get items_url
 
     assert_response :success
@@ -279,5 +285,8 @@ class ItemsControllerFilterTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "table tbody tr", minimum: 1
+  ensure
+    ItemTaskReward.where(item_id: item&.id).delete_all
+    item&.destroy
   end
 end
