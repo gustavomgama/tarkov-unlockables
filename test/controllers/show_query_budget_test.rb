@@ -31,8 +31,11 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
   #            with three costs 17, because the preloads batch.
   #   28 → 30  two MAX() scans for the layout's data-freshness line, cached
   #            hourly (see ApplicationHelper#data_freshness).
+  #   30 → 32  barter and craft recipes (inputs, tools, duration) preload two
+  #            more nested graphs. Also flat: one query per graph regardless
+  #            of how many requirement rows an offer has.
   test "items#show query budget" do
-    assert_query_budget("items#show", item_url(items(:one)), 30)
+    assert_query_budget("items#show", item_url(items(:one)), 32)
   end
 
   test "tasks#index query budget" do
@@ -42,12 +45,13 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
   # The listing renders the filter dropdowns, which are cached for an hour in
   # production but recomputed on every request here (the test env's cache store
   # is a null store), so this is the uncached worst case.
+  #   16 → 18  the trader filter group and the maps list joined the dropdowns.
   test "items#index query budget" do
-    assert_query_budget("items#index", items_url, 16)
+    assert_query_budget("items#index", items_url, 18)
   end
 
   test "items#index search query budget" do
-    assert_query_budget("items#index search", items_url(q: "Test"), 16)
+    assert_query_budget("items#index search", items_url(q: "Test"), 18)
   end
 
   # The typeahead is a fragment, not a page: it must stay a single query.
@@ -80,18 +84,28 @@ class ShowQueryBudgetTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # The "Used in" lists preload both unlock graphs.
+  # The "Used in" lists preload both unlock graphs. The first barter legitimately
+  # adds the batched reads for its graph (rewards, tasks, item_barters, the
+  # requirement's item), so the baseline is taken with one row already present:
+  # what must stay flat is the cost of the *next* three.
   test "items#show stays flat as used-in rows are added" do
     item = items(:one)
+    task = create_task("Budget Used Task", "budget-used-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+    build_used_in_unlock(reward, item, :barter,
+                         requirement: { trader: "Prapor", trader_level: "7" }, count: 1)
 
     assert_flat("items#show", item_url(item), shown: ".srcrow") do
-      task = create_task("Budget Used Task", "budget-used-task", given_by: "Prapor")
-      reward = task.rewards.create!(reward_type: "finish_rewards")
       3.times do |i|
         build_used_in_unlock(reward, item, :barter,
-                             requirement: { trader_name: "Prapor", trader_level: i + 7 }, count: i + 1)
+                             requirement: { trader: "Prapor", trader_level: (i + 8).to_s }, count: i + 2)
       end
     end
+  ensure
+    BarterRequirementItem.where(item_name: item&.full_name).delete_all
+    BarterRequirement.where(barter_unlock_id: BarterUnlock.where(item_id: item&.id).select(:id)).delete_all
+    ItemBarter.where(item_id: item&.id).delete_all
+    task&.destroy
   end
 
   # The leads panel preloads every follow-up task.

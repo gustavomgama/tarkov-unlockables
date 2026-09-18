@@ -1,0 +1,37 @@
+# The item and task pages link each trader name to its trader page, so the
+# fixture set needs the traders those rows name for the link walk to resolve.
+prapor:
+  bsg_id: trader_prapor
+  slug: prapor
+  name: Prapor
+  currency: RUB
+
+therapist:
+  bsg_id: trader_therapist
+  slug: therapist
+  name: Therapist
+  currency: RUB
+
+peacekeeper:
+  bsg_id: trader_peacekeeper
+  slug: peacekeeper
+  name: Peacekeeper
+  currency: USD
+
+mechanic:
+  bsg_id: trader_mechanic
+  slug: mechanic
+  name: Mechanic
+  currency: RUB
+
+jaeger:
+  bsg_id: trader_jaeger
+  slug: jaeger
+  name: Jaeger
+  currency: RUB
+
+ref:
+  bsg_id: trader_ref
+  slug: ref
+  name: Ref
+  currency: RUB

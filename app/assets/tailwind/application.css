@@ -592,6 +592,13 @@
     font-size: 0.75rem;
     color: var(--text-muted);
   }
+  /* A link inside a sentence needs a cue other than colour (WCAG 1.4.1), and
+     these rows are prose: the trader name, the quest name, the station. */
+  .srcrow__title a,
+  .srcrow__meta a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 
   /* Comparison table: one row per round, numbers right-aligned. */
   .ammo-table {

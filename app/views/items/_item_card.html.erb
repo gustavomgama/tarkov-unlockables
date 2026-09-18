@@ -21,6 +21,14 @@
       </div>
     <% end %>
 
+    <% if task_gated_item_ids([ card ])[card.id] %>
+      <div class="mt-1.5">
+        <%# The tone is mixed with black the same way .srcbadge does it: the raw
+            --badge-task with bright text measures 4.34:1, under AA. %>
+        <span class="chip" style="--tone: var(--badge-task); background: color-mix(in srgb, var(--badge-task) 75%, black); color: var(--text-bright)">Task-gated</span>
+      </div>
+    <% end %>
+
     <% chips = category_chips(card) %>
     <% if chips.any? %>
       <div class="mt-1.5 flex flex-wrap gap-1">

@@ -66,10 +66,21 @@ module ItemsTestHelpers
   end
   # A barter/craft unlock row feeding +item+, with one requirement row that
   # consumes it (+count+ of it). Used by the "Used in" and query-budget tests.
+  # A barter/craft that consumes +item+. The "Used in" panel reads the item's
+  # own requirement rows (item_barter_requirements / item_hideout_requirements),
+  # which hang off the ItemBarter/ItemHideout row — the same shape the datastore
+  # importer builds.
   def build_used_in_unlock(reward, item, prefix, requirement:, count:, unlock: {})
-    created = reward.public_send("#{prefix}_unlocks").create!(item: item, item_name: item.full_name, **unlock)
-    created.public_send("#{prefix}_requirements").create!(**requirement)
-           .public_send("#{prefix}_requirement_items")
-           .create!(item: item, item_name: item.full_name, count: count)
+    reward.public_send("#{prefix}_unlocks").create!(item: item, item_name: item.full_name, **unlock)
+    # A craft is an ItemHideout row; a barter is an ItemBarter row. Each owns
+    # the requirement rows the "Used in" panel reads.
+    owner_assoc, requirement_assoc = if prefix == :craft
+      [ :item_hideouts, :item_hideout_requirements ]
+    else
+      [ :item_barters, :item_barter_requirements ]
+    end
+    owner = item.public_send(owner_assoc).create!(**requirement)
+    owner.public_send(requirement_assoc)
+         .create!(item: item, item_name: item.full_name, count: count)
   end
 end

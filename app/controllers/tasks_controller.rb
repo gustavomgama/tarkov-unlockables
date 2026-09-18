@@ -3,12 +3,18 @@ class TasksController < ApplicationController
     tasks = Task.all
     tasks = loose_search_param(tasks, %w[full_name name])
     tasks = tasks.where(given_by: params[:trader]) if params[:trader].present?
-    # 221 of 468 quests count toward Kappa; players chase that set specifically.
+    tasks = tasks.where(map_name: params[:map]) if params[:map].present?
+    # Players chase the Kappa set specifically.
     tasks = tasks.where(kappa_required: true) if params[:kappa].present?
     @tasks = tasks.order(full_name: :asc)
     @task_count = tasks.count
     @traders = cached_traders
     @kappa_count = cached_kappa_count
+    @maps = cached_maps
+    # How many keys each task asks for, for the row chips (one query).
+    @key_counts = Task.where("jsonb_array_length(needed_keys) > 0")
+                      .pluck(:id, Arel.sql("jsonb_array_length(needed_keys)"))
+                      .to_h
   end
 
   # Typeahead for the quest search field.
@@ -29,7 +35,8 @@ class TasksController < ApplicationController
       { barter_unlocks: :item },
       { craft_unlocks: :item }
     ] },
-    { leads_tos: :follow_up_task }
+    { leads_tos: :follow_up_task },
+    { gated_currencies: :item }
   ].freeze
 
   def show
@@ -57,6 +64,12 @@ class TasksController < ApplicationController
   def cached_traders
     Rails.cache.fetch("tasks/traders", expires_in: 1.hour) do
       Task.distinct.pluck(:given_by).compact.sort
+    end
+  end
+
+  def cached_maps
+    Rails.cache.fetch("tasks/maps", expires_in: 1.hour) do
+      Task.where.not(map_name: [ nil, "" ]).distinct.order(:map_name).pluck(:map_name)
     end
   end
 

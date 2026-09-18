@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-# Seeds.rb is a thin orchestrator: 4 importers + 1 cross-table resolution step.
+# Seeds.rb is a thin orchestrator: one importer + 1 cross-table resolution step.
 # We don't reload the entire fixtures pipeline (too heavy, would pollute DB);
 # instead we verify the resolution step's behaviour in isolation with the same
 # logic the orchestrator runs.

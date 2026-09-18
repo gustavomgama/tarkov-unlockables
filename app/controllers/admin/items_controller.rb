@@ -12,10 +12,10 @@ class Admin::ItemsController < Admin::ApplicationController
       # symbols keep a single comma/newline-delimited string working too.
       :categories, :links, :images,
       categories: [], links: [], images: [],
-      item_currencies_attributes: %i[id trader currency min_trader_level task_unlock _destroy],
+      item_currencies_attributes: %i[id trader currency min_trader_level price price_rub buy_limit task_unlock _destroy],
       item_task_rewards_attributes: %i[id task_id task_name _destroy],
-      item_hideouts_attributes: %i[id station level _destroy],
-      item_barters_attributes: %i[id trader trader_level currency cost item_name _destroy]
+      item_hideouts_attributes: %i[id craft_id station level count duration _destroy],
+      item_barters_attributes: %i[id barter_id trader trader_level currency cost item_name count buy_limit restock_amount _destroy]
     )
 
     raw[:categories] = split_list(raw[:categories], ",")

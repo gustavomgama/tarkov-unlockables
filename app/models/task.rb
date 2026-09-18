@@ -14,11 +14,17 @@
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  search_text          :string           default(""), not null
+#  map_id               :string
+#  map_name             :string
+#  experience           :integer
+#  faction              :string
+#  needed_keys          :jsonb            not null
 #
 # Indexes
 #
 #  index_tasks_on_full_name         (full_name)
 #  index_tasks_on_given_by          (given_by)
+#  index_tasks_on_map_name          (map_name)
 #  index_tasks_on_name              (name)
 #  index_tasks_on_search_text_trgm  (search_text) USING gin
 #
@@ -29,6 +35,11 @@ class Task < ApplicationRecord
   has_many :requirements, dependent: :destroy
   has_many :rewards, dependent: :destroy
   has_many :item_task_rewards, dependent: :destroy
+  # Source order, which is how the game lists them.
+  has_many :task_objectives, -> { order(:position) }, dependent: :destroy
+  # Trader offers this quest makes purchasable (item_currencies.task_id).
+  has_many :gated_currencies, -> { where(task_unlock: true) },
+           class_name: "ItemCurrency", dependent: :nullify, inverse_of: :task
 
   # Pointers from other tasks: a task that leads to this one, or that requires it
   # as a prerequisite. Both columns are optional but their FK is restrict, so
@@ -53,13 +64,13 @@ class Task < ApplicationRecord
   # passes a preloaded name → task map (built once per request in the
   # controller as @task_map); nested calls share it. Called without a map
   # (console, tests) it builds one — 3 queries total instead of ~3 per level.
-  def prerequisite_chain(visited = [], task_map = nil)
+  def prerequisite_chain(visited = [], task_map = nil, alternative: false)
     task_map ||= Task.includes(requirements: :previous_tasks).index_by(&:name)
     return [] if visited.include?(id)
     visited << id
 
     # Read through the map's preloaded copy: the object this was called on
-    # (e.g. an unlock's task) has no preloaded requirements, so touching
+    # (e.g., an unlock's task) has no preloaded requirements, so touching
     # self.requirements would fire one query per chain node.
     node = task_map[name] || self
     requirements = node.requirements
@@ -70,13 +81,15 @@ class Task < ApplicationRecord
       full_name:           full_name,
       given_by:            given_by,
       player_level:        first_req&.player_level.to_i,
-      trader_requirements: first_req&.trader_level || []
+      trader_requirements: first_req&.trader_level || [],
+      # Set when the wiki lists this guess as one of several alternatives.
+      alternative:         alternative
     } ]
 
     requirements.each do |req|
       req.previous_tasks.each do |pt|
         prev = task_map[pt.task_name]
-        chain += prev.prerequisite_chain(visited, task_map) if prev
+        chain += prev.prerequisite_chain(visited, task_map, alternative: pt.alternative) if prev
       end
     end
 

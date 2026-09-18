@@ -1,0 +1,29 @@
+<% content_for :title, "Maps" %>
+<% content_for :description, "Escape from Tarkov maps: raid length, bosses, extracts and transits." %>
+
+<div class="space-y-4 sm:space-y-5">
+  <div>
+    <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]">Maps</h1>
+    <p class="mt-1 text-sm text-[var(--text-muted)]">
+      Raid length, bosses and where you can leave.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
+    <% @maps.each do |map| %>
+      <%= link_to map_path(map.slug), class: "card" do %>
+        <div class="card__body">
+          <span class="card__name"><%= map.name %></span>
+          <span class="block text-xs text-[var(--text-muted)]">
+            <span class="font-data"><%= map.raid_duration %></span> min ·
+            <%= map.players %> players
+          </span>
+          <% boss_names = Array(map.bosses).filter_map { |boss| boss["name"] } %>
+          <% if boss_names.any? %>
+            <span class="block text-xs text-[var(--text-muted)]"><%= boss_names.to_sentence %></span>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

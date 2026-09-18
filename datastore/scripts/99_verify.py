@@ -7,6 +7,9 @@ writes a pass/fail table to `reports/04_verification.md`. Designed to be the
 
 Run: ~/.pyvenv-tarkov/bin/python datastore/scripts/99_verify.py
 """
+# The pipeline names its scripts 10_fetch / 20_build_canonical / …, which Pylint
+# reads as a module name, and a handle, that are not snake_case.
+# pylint: disable=invalid-name
 from __future__ import annotations
 
 import json
@@ -54,7 +57,8 @@ def main():
     # -- canonical shape ---------------------------------------------------
     check("canonical files exist", lambda: ", ".join(
         f"{n}.ndjson" for n in ("items", "tasks", "traders", "barters", "crafts",
-                                "hideout_stations", "maps", "categories")
+                                "hideout_stations", "maps", "categories", "ballistics",
+                                "armor_classes", "armor_materials")
         if not os.path.exists(os.path.join(C.CANON, f"{n}.ndjson"))) or "all present")
     check("items unique bsg_id", lambda: f"{len(item_ids)} distinct of {len(items)}"
           if len(item_ids) == len(items) else (_ for _ in ()).throw(AssertionError("duplicate bsg_id")))
@@ -121,6 +125,8 @@ def main():
     check("task graph is a well-formed DAG", lambda: _task_graph(tasks))
     check("wiki weapon variants map 1:1 to presets", lambda: _weapon_variants())
     check("wiki build parts agree with preset parts", lambda: _build_parts_agree())
+    check("ballistics chart agrees with the API", _ballistics)
+    check("armor materials agree with reference.json", _armor_materials)
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -310,7 +316,9 @@ def _task_graph(tasks):
     assert not orphans, f"{len(orphans)} prerequisite ids not in the dataset"
     kappa = sum(1 for t in tasks if t["graph"]["kappa_chain"])
     light = sum(1 for t in tasks if t["graph"]["lightkeeper_chain"])
-    assert kappa == 13, f"kappa chain changed: {kappa}"
+    # 16 since the wiki prerequisite merge (13 before): the wiki lists
+    # prerequisites the API's taskRequirements omitted, widening the closure.
+    assert kappa == 16, f"kappa chain changed: {kappa}"
     assert light == 7, f"lightkeeper chain changed: {light}"
     deep = max(t["graph"]["depth"] for t in tasks)
     assert deep >= 10, f"max chain depth only {deep}"
@@ -353,7 +361,7 @@ def _wiki_tables(con):
     out = {}
     for t in ("item_wiki_slots", "item_wiki_meta", "item_wiki_trader_offers",
               "item_conflicts", "item_compatibility", "item_grids"):
-        out[t] = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+        out[t] = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # nosec B608
         assert out[t] > 0, f"{t} is empty"
     wiki_conf = con.execute("SELECT COUNT(*) FROM item_conflicts WHERE source='officialwiki'").fetchone()[0]
     assert wiki_conf >= 2000, f"only {wiki_conf} wiki conflicts in sqlite"
@@ -455,6 +463,87 @@ def _wiki_crosscheck():
             f"{s['ballistics_disagreements']} numeric disagreements")
 
 
+def _ballistics():
+    """The ammo and penetration chart is the only source for the per-armor-class
+    effectiveness column, and it repeats the API's ammo properties everywhere
+    else — so it is checked for shape, then pinned against the API value by
+    value, which is what proves the column mapping is right."""
+    rows = list(C.load_jsonl(os.path.join(C.CANON, "ballistics.ndjson")))
+    classes = list(C.load_jsonl(os.path.join(C.CANON, "armor_classes.ndjson")))
+    assert len(rows) >= 180, f"only {len(rows)} rounds in the chart"
+    assert [c["armor_class"] for c in classes] == list(range(7)), \
+        f"armor scale is not 0-6: {[c['armor_class'] for c in classes]}"
+    assert all(c["label"] and c["bullets_stopped"] for c in classes), "a class row is blank"
+
+    for row in rows:
+        assert row["caliber"] and row["group"], f"{row['name']} has no caliber or group"
+        assert set(row["vs_armor_class"]) == {str(c) for c in range(1, 7)}, \
+            f"{row['name']}: armor-class keys are {sorted(row['vs_armor_class'])}"
+        levels = row["vs_armor_class"].values()
+        assert all(isinstance(v, int) and 0 <= v <= 6 for v in levels), \
+            f"{row['name']}: effectiveness outside 0-6 ({list(levels)})"
+        assert row["projectile_count"] >= 1, f"{row['name']}: projectile_count < 1"
+
+    unmatched = [row["name"] for row in rows if not row["bsg_id"]]
+    assert len(unmatched) <= 10, f"{len(unmatched)} chart rows match no item: {unmatched[:3]}"
+
+    compared, agreed, diffs = _chart_vs_api(rows)
+    assert compared >= 1000, f"only {compared} chart values could be compared to the API"
+    pct = agreed * 100 // compared
+    assert pct >= 95, f"only {pct}% of the chart equals the API ({len(diffs)} disagreements)"
+    joined = sum(1 for row in rows if row["bsg_id"])
+    return (f"{len(rows)} rounds, {joined} joined to items, {compared} values compared "
+            f"to the API, {pct}% equal, {len(diffs)} wiki-vs-API disagreements")
+
+
+def _chart_vs_api(rows):
+    """Every chart column the API also carries, compared value by value. The API
+    keeps accuracy, recoil and bleed as fractions and the wiki rounds them to
+    whole percents, hence the scale of 100 and the 1.0 tolerance."""
+    fields = [
+        ("damage", "damage", 1), ("projectile_count", "projectileCount", 1),
+        ("penetration_power", "penetrationPower", 1), ("armor_damage", "armorDamage", 1),
+        ("speed", "initialSpeed", 1), ("accuracy", "accuracyModifier", 100),
+        ("recoil", "recoilModifier", 100), ("light_bleed", "lightBleedModifier", 100),
+        ("heavy_bleed", "heavyBleedModifier", 100),
+    ]
+    items = {i["bsg_id"]: i for i in C.load_jsonl(os.path.join(C.CANON, "items.ndjson"))}
+    compared = agreed = 0
+    diffs = []
+    for row in rows:
+        props = (items.get(row["bsg_id"]) or {}).get("properties") or {}
+        for field, prop, scale in fields:
+            mine, api = row[field], props.get(prop)
+            if mine is None or api is None:
+                continue
+            compared += 1
+            if abs(api * scale - mine) <= 1:
+                agreed += 1
+            else:
+                diffs.append((row["name"], field, mine, round(api * scale, 2)))
+    return compared, agreed, diffs
+
+
+def _armor_materials():
+    """The page repeats `reference.json`'s destructibility numbers, so this pins
+    the wiki against the API: a drift in either source fails the build."""
+    rows = list(C.load_jsonl(os.path.join(C.CANON, "armor_materials.ndjson")))
+    ref = json.load(open(os.path.join(C.CANON, "reference.json"), encoding="utf-8"))
+    materials = ref["armor_materials"]
+    assert len(rows) == len(materials), \
+        f"the page lists {len(rows)} materials, reference.json has {len(materials)}"
+    for row in rows:
+        assert row["reference"] in materials, f"{row['material']} has no reference.json counterpart"
+        want = materials[row["reference"]]
+        assert row["destructibility"] == want["destructibility"], \
+            (f"{row['material']} destructibility {row['destructibility']} "
+             f"!= {want['destructibility']}")
+        assert row["explosive_destructibility"] == want["explosionDestructibility"], \
+            (f"{row['material']} explosive destructibility {row['explosive_destructibility']} "
+             f"!= {want['explosionDestructibility']}")
+    return f"{len(rows)} materials, both numbers equal to reference.json"
+
+
 def _weapon_variants():
     rows = list(C.load_jsonl(os.path.join(C.CANON, "weapon_variants.ndjson")))
     assert len(rows) >= 100, f"only {len(rows)} wiki weapon variants"
@@ -507,7 +596,7 @@ def _map_tables():
     con = sqlite3.connect(os.path.join(C.DS, "tarkov.sqlite3"))
     out = []
     for table, exp in sorted(expected.items()):
-        got = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+        got = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]  # nosec B608
         assert got == exp, f"{table} has {got} rows, canonical has {exp}"
         out.append(f"{table}={got}")
     return f"{len(expected)} map tables complete ({', '.join(out)})"
@@ -638,7 +727,8 @@ def _no_empty_tables(con):
     tables = [r[0] for r in con.execute(
         "SELECT name FROM sqlite_master WHERE type='table' "
         "AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'items_fts_%'")]
-    empty = [t for t in tables if con.execute(f"SELECT 1 FROM {t} LIMIT 1").fetchone() is None]
+    empty = [t for t in tables
+             if con.execute(f"SELECT 1 FROM {t} LIMIT 1").fetchone() is None]  # nosec B608
     assert not empty, f"empty tables: {empty}"
     return f"{len(tables)} tables all non-empty"
 

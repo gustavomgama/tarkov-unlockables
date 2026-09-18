@@ -61,12 +61,53 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     Task.where(name: %w[kappa-quest not-kappa-quest]).delete_all
   end
 
+  test "index filters by map and the task page links back to the map" do
+    task = Task.create!(bsg_id: "mp-#{SecureRandom.hex(4)}", full_name: "Customs Job", name: "customs-job",
+                        given_by: "Prapor", map_name: "Customs")
+    other = Task.create!(bsg_id: "mp2-#{SecureRandom.hex(4)}", full_name: "Woods Job", name: "woods-job",
+                         given_by: "Prapor", map_name: "Woods")
+
+    get tasks_url(map: "Customs")
+
+    assert_response :success
+    assert_match "Customs Job", response.body
+    assert_no_match(/Woods Job/, response.body)
+    assert_select "nav[aria-label='Filter by map'] a[aria-current='true']", text: "Customs"
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "a[href=?]", tasks_path(map: "Customs"), text: "Customs quests"
+  ensure
+    Task.where(id: [ task&.id, other&.id ]).delete_all
+  end
+
+  test "index marks tasks that need keys" do
+    key_task = Task.create!(bsg_id: "kt-#{SecureRandom.hex(4)}", full_name: "Keyed Task", name: "keyed-task",
+                            given_by: "Prapor",
+                            needed_keys: [ { "map_name" => "Customs", "item_id" => nil, "item_name" => "A key" },
+                                           { "map_name" => "Customs", "item_id" => nil, "item_name" => "B key" } ])
+    plain = Task.create!(bsg_id: "pt-#{SecureRandom.hex(4)}", full_name: "Plain Task", name: "plain-task",
+                         given_by: "Prapor")
+
+    get tasks_url
+
+    assert_response :success
+    assert_select "a.task-row[href=?]", task_path(key_task), text: /Key ×2/
+    assert_select "a.task-row[href=?]", task_path(plain) do
+      assert_select ".chip", text: /Key ×/, count: 0
+    end
+  ensure
+    [ key_task, plain ].each(&:destroy)
+  end
+
   test "show renders task header and unlock path from the prerequisite graph" do
     get task_url(tasks(:one))
 
     assert_response :success
     assert_select "h1", text: "Task One"
     assert_select "p", text: /Prapor/
+    assert_select "a[href=?]", trader_path("prapor"), text: "Prapor"
 
     # requirement + previous-task link (Task One requires Task Two)
     assert_select "dt", text: "Player level"
@@ -106,6 +147,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a[href=?]", tasks_path(trader: tasks(:one).given_by), text: /quests/
     assert_select "a[href=?]", tasks(:one).wiki_link, text: "Wiki walkthrough"
+  end
+
+  test "show marks an alternative prerequisite with or" do
+    child = Task.create!(bsg_id: "altc-#{SecureRandom.hex(4)}", full_name: "Alt Child", name: "alt-child", given_by: "Prapor")
+    parent = Task.create!(bsg_id: "altp-#{SecureRandom.hex(4)}", full_name: "Alt Parent", name: "alt-parent", given_by: "Prapor")
+    child.requirements.create!(player_level: 0)
+         .previous_tasks.create!(task: parent, task_name: parent.name, alternative: true)
+
+    get task_url(child)
+
+    assert_response :success
+    assert_select ".timeline-node span", text: "or", minimum: 1
+  ensure
+    child&.destroy
+    parent&.destroy
   end
 
   test "show renders a trader-level requirement with no prerequisites" do
@@ -155,6 +211,72 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     # The hero also carries a "Leads to" stat with the follow-up count.
     assert_select ".stat__key", text: "Leads to"
     assert_select ".stat__val", text: "1"
+  end
+
+  test "show lists the trader offers the quest unlocks" do
+    task = Task.create!(bsg_id: "gate-#{SecureRandom.hex(4)}", full_name: "Gate Quest", name: "gate-quest", given_by: "Therapist")
+    item = Item.create!(bsg_id: "gate-item-#{SecureRandom.hex(4)}", full_name: "Gated Salewa", short_name: "GS")
+    item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 3,
+                                 task_unlock: true, task: task)
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "h2", text: "Unlocks trader offers"
+    assert_select "a[href=?]", item_path(item), text: "Gated Salewa"
+    assert_select "span", text: /Therapist LL3/
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+    task&.destroy
+  end
+
+  test "show reads the quest XP and faction" do
+    task = Task.create!(bsg_id: "xp-#{SecureRandom.hex(4)}", full_name: "XP Quest", name: "xp-quest",
+                        given_by: "Prapor", experience: 12_345, faction: "BEAR")
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select ".stat", text: /12,345/
+    assert_select ".chip", text: /BEAR only/
+  ensure
+    task&.destroy
+  end
+
+  test "show lists the keys a quest needs, grouped by map" do
+    task = Task.create!(bsg_id: "key-#{SecureRandom.hex(4)}", full_name: "Key Quest", name: "key-quest",
+                        given_by: "Prapor",
+                        needed_keys: [ { "map_name" => "Shoreline", "item_id" => nil,
+                                         "item_name" => "Dorm room 306 key" } ])
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=keys-head]" do
+      assert_select "h2", text: "Keys needed"
+      assert_select "dt", text: "Shoreline"
+      assert_select ".chip", text: "Dorm room 306 key"
+    end
+  ensure
+    task&.destroy
+  end
+
+  test "show renders standing and skill rewards" do
+    task = Task.create!(bsg_id: "std-#{SecureRandom.hex(4)}", full_name: "Standing Quest", name: "standing-quest",
+                        given_by: "Prapor")
+    task.rewards.create!(reward_type: "finish_rewards",
+                         data: { "trader_standing" => [ { "trader_slug" => "therapist", "standing" => 0.15 } ],
+                                 "skill_level_reward" => [ { "skill" => "Strength", "level" => 2 } ] })
+
+    get task_url(task)
+
+    assert_response :success
+    assert_select ".srcrow", text: /Standing/
+    assert_select ".srcrow", text: /Therapist \+0.15 rep/
+    assert_select ".srcrow", text: /Strength level 2/
+  ensure
+    task&.destroy
   end
 
   test "show renders gracefully when a task has no requirements or rewards" do

@@ -13,7 +13,8 @@
 #   - dockerCommand runs Puma directly (not Thruster): Thruster listens on
 #     a fixed port, Render requires $PORT (default 10000).
 #   - preDeployCommand migrates before traffic cutover; a failed migration
-#     cancels the deploy. The entrypoint's db:prepare is a backstop.
+#     cancels the deploy. The entrypoint's db:prepare is a backstop and it
+#     seeds the canonical dataset when the database is empty (first deploy).
 #   - WEB_CONCURRENCY=1 fits the starter 512MB instance; raise with plan.
 #   - If you later switch DATABASE_URL to a pooled string, migrations must
 #     run against the direct string (Neon docs).

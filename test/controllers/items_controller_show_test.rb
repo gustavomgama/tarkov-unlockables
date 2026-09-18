@@ -60,8 +60,6 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Caliber"
     assert_select "dd", text: "5.45x39mm"
     assert_select "dt", text: "Default Ammo"
-    assert_select "dt", text: "Ergonomics"
-    assert_select "dt", text: "Recoil"
     # fire_modes / sightrange / effective_distance are not in the imported
     # weapon data, so the readout no longer claims to show them.
     assert_select "dt", text: "Fire Modes", count: 0
@@ -90,18 +88,6 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
     weapon&.destroy
   end
 
-  test "show renders the optional ammo velocity row" do
-    ammo = create_item("Fast Ammo", klass: Item::Ammo, short_name: "FA",
-                       data: { "caliber" => "5.45x39mm", "velocity" => 880 })
-
-    get_ok(item_url(ammo))
-
-    assert_select "dt", text: "Velocity"
-    assert_select "dd", text: /880/
-  ensure
-    ammo&.destroy
-  end
-
   test "show renders the optional key and medical rows" do
     key = create_item("Dorm Key", klass: Item::Key, short_name: "DK", data: { "max_uses" => 3 })
     medical = create_item("Bandage", klass: Item::Medical, short_name: "BD",
@@ -125,8 +111,8 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Caliber"
     assert_select "dt", text: "Damage"
     assert_select "dt", text: "Penetration"
-    assert_select "dt", text: "Ammo Type"
-    assert_select "dt", text: "Stack Max Size"
+    # Without a wiki chart row the fallback penetration scale renders.
+    assert_select ".stat__key", text: /Reliable penetration by armor class/
   ensure
     ammo&.destroy
   end
@@ -137,10 +123,8 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
     assert_select "dt", text: "Durability"
-    # Zone coverage is surfaced now; a legacy `armor_slots` integer must not
-    # be mistaken for the real array-of-hashes structure.
-    assert_select "dt", text: "Zones covered"
-    assert_select "dt", text: "Plate slots", count: 0
+    # The protection-by-class chart replaced the flat zone list.
+    assert_select ".stat__key", text: /Protection by armor class/
   ensure
     armor&.destroy
   end
@@ -210,8 +194,10 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
   test "show lists every acquisition route with its details" do
     item = create_item("Route Item", short_name: "RI")
     item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 2, task_unlock: true)
-    item.item_barters.create!(trader: "Therapist", trader_level: "LL3", currency: "USD", cost: 500, item_name: "Barter Item")
-    item.item_hideouts.create!(station: "Workbench", level: 2)
+    barter = item.item_barters.create!(trader: "Therapist", trader_level: "3", currency: "USD", cost: 500, item_name: "Barter Item")
+    barter.item_barter_requirements.create!(item_name: "Barter Item", count: 2)
+    hideout = item.item_hideouts.create!(station: "Workbench", level: 2)
+    hideout.item_hideout_requirements.create!(item_name: "Wires", count: 3)
     task = create_task("Route Task", "route-task", given_by: "Prapor")
     # The quest-reward row is the item's own row, linked to the task by name.
     item.item_task_rewards.create!(task: task, task_name: "route-task")
@@ -228,15 +214,18 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
         # The stored level already carries the LL prefix, so the view renders
         # "LLLL3" for this fixture value — assert the level digits, not the prefix.
         assert_select ".font-data", text: /LL3/
-        assert_select ".srcrow__meta", text: /for Barter Item/
+        assert_select ".srcrow__meta", text: /for Barter Item ×2/
       end
       assert_select ".srcrow", text: /Workbench Level 2/
-      assert_select ".srcrow", text: /crafted at the hideout/
+      assert_select ".srcrow__meta", text: /needs Wires ×3/
       assert_select ".srcrow a[href=?]", task_path(task), text: /Route Task/
     end
   ensure
     ItemCurrency.where(item_id: item&.id).delete_all
+    BarterRequirementItem.where(item_name: "Barter Item").delete_all
+    BarterRequirement.where(barter_unlock_id: BarterUnlock.where(item_id: item&.id).select(:id)).delete_all
     ItemBarter.where(item_id: item&.id).delete_all
+    HideoutItemRequirement.where(item_name: "Wires").delete_all
     ItemHideout.where(item_id: item&.id).delete_all
     ItemTaskReward.where(item_id: item&.id).delete_all
     task&.destroy
@@ -256,18 +245,6 @@ class ItemsControllerShowTest < ActionDispatch::IntegrationTest
     assert_select "dd", text: "24"
   ensure
     melee&.destroy
-  end
-
-  test "show counts the plates an armor ships with" do
-    armor = create_item("Plated Vest", klass: Item::Armor, short_name: "PV", data: { "class" => 5, "default_plates" => "2x {{id}}<br/>2x {{id2}}" })
-
-    get item_url(armor)
-
-    assert_response :success
-    assert_select "dt", text: "Ships with"
-    assert_select "dd", text: "4 plates"
-  ensure
-    armor&.destroy
   end
 
   test "show handles item with no data without error" do

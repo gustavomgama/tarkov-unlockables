@@ -1,0 +1,16 @@
+# A station page renders its crafts inside a level loop, so the fixture
+# stations need a level for the page to reach the craft rows (and for the
+# controller's `includes(:item)` preload to be used rather than flagged).
+workbench_level_1:
+  hideout_station: workbench
+  level: 1
+  construction_time: 0
+  station_requirements: []
+  trader_requirements: []
+
+lavatory_level_1:
+  hideout_station: lavatory
+  level: 1
+  construction_time: 0
+  station_requirements: []
+  trader_requirements: []

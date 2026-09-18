@@ -23,6 +23,50 @@ module TasksHelper
     end
   end
 
+  # Reward kinds that live in `rewards.data` instead of a table, with the
+  # badge they render under.
+  REWARD_DATA_KINDS = {
+    "trader_standing" => [ "Standing", "badge-offer" ],
+    "skill_level_reward" => [ "Skill", "badge-currency" ],
+    "trader_unlock" => [ "Trader unlock", "badge-offer" ],
+    "trader_dialogue_unlock" => [ "Dialogue", "badge-offer" ],
+    "achievement" => [ "Achievement", "badge-task" ],
+    "customization" => [ "Customization", "badge-hideout" ]
+  }.freeze
+
+  def reward_data_groups(reward)
+    data = reward.data.is_a?(Hash) ? reward.data : {}
+    REWARD_DATA_KINDS.filter_map do |kind, (label, badge)|
+      rows = Array(data[kind])
+      next if rows.empty?
+      [ label, badge, rows.map { |row| reward_data_line(kind, row) } ]
+    end
+  end
+
+  def reward_data_line(kind, row)
+    case kind
+    when "trader_standing"
+      "#{row['trader_slug'].to_s.titleize} #{format('%+g', row['standing'].to_f)} rep"
+    when "skill_level_reward"
+      "#{row['skill']} level #{row['level']}"
+    when "trader_unlock", "trader_dialogue_unlock"
+      row["trader_name"].presence || row["trader_slug"].to_s.titleize
+    when "achievement"
+      row["name"]
+    when "customization"
+      row["customizationType"].to_s.titleize
+    else
+      row.values.compact.join(" ")
+    end
+  end
+
+  def reward_count(task)
+    task.rewards.sum do |reward|
+      reward_groups(reward).sum { |_, rows, _| rows.size } +
+        reward_data_groups(reward).sum { |_, _, lines| lines.size }
+    end
+  end
+
   # Trader level a requirement asks for, as [[name, level], …]. One formatter
   # for both the requirements panel and the timeline nodes.
   def trader_requirements(requirement)

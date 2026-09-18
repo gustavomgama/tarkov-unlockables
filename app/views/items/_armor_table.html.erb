@@ -1,0 +1,39 @@
+<%# One armor class compared. Locals: armors (ordered), title, armor_class. %>
+<section class="panel" aria-labelledby="<%= title.parameterize %>-head">
+  <div class="panel__head">
+    <h2 id="<%= title.parameterize %>-head" class="panel__title"><%= title %></h2>
+    <span class="panel__note flex items-center gap-2">
+      <%= link_to "Rounds that pen it", ammo_path(min_class: armor_class), class: "chip chip--link" %>
+      <span class="font-data"><%= armors.size %></span> items
+    </span>
+  </div>
+  <div class="panel__body panel__body--flush">
+    <div class="overflow-x-auto">
+      <table class="ammo-table">
+        <caption class="sr-only"><%= title %> — sorted by durability</caption>
+        <thead>
+          <tr>
+            <th scope="col">Armor</th>
+            <th scope="col">Durability</th>
+            <th scope="col">Material</th>
+            <th scope="col">Speed</th>
+            <th scope="col">Turn</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% armors.each do |armor| %>
+            <% speed = armor.data["speedPenalty"] %>
+            <% turn = armor.data["turnPenalty"] %>
+            <tr>
+              <th scope="row"><%= link_to armor.full_name, item_path(armor) %></th>
+              <td><%= armor.data["durability"].presence || "—" %></td>
+              <td class="muted"><%= armor.data["material"].presence || "—" %></td>
+              <td><%= speed.nil? ? "—" : "#{(speed.to_f * 100).round}%" %></td>
+              <td><%= turn.nil? ? "—" : "#{(turn.to_f * 100).round}%" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

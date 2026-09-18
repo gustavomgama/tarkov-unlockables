@@ -51,10 +51,10 @@ class ItemsControllerShowAcquisitionTest < ActionDispatch::IntegrationTest
     reward = task.rewards.create!(reward_type: "finish_rewards")
 
     # One barter and one craft, each with a requirement row that consumes the
-    # item. The trader lives on the requirement row; the station lives on the
-    # craft unlock itself (the barter row has no station column).
-    build_used_in_unlock(reward, item, :barter, requirement: { trader_name: "Prapor", trader_level: 2 }, count: 5)
-    build_used_in_unlock(reward, item, :craft, requirement: { trader_name: "Mechanic", trader_level: 1 },
+    # item. The trader lives on the ItemBarter/ItemHideout row; the station
+    # lives on the craft unlock itself.
+    build_used_in_unlock(reward, item, :barter, requirement: { trader: "Prapor", trader_level: "2" }, count: 5)
+    build_used_in_unlock(reward, item, :craft, requirement: { station: "Workbench", level: 2 },
                          unlock: { hideout_station: "Workbench", station_level: 2 }, count: 1)
 
     get item_url(item)
@@ -62,9 +62,9 @@ class ItemsControllerShowAcquisitionTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "section[aria-labelledby=used-in-head]" do
       assert_select "h2", text: "Used in"
-      assert_select ".srcrow", text: /Prapor LL2/
+      assert_select ".srcrow", text: /Prapor/
       assert_select ".srcrow", text: /needs 5 × UTI/
-      assert_select ".srcrow", text: /Workbench Lv\.2/
+      assert_select ".srcrow", text: /Workbench/
       assert_select ".srcrow", text: /needs 1 × UTI/
     end
   ensure

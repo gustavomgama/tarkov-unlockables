@@ -1,57 +1,124 @@
-<%# What this item is worth: the barters and crafts it feeds. The other half
-    of "should I keep this", and the question the item page could not answer.
-    Locals: item %>
-<% barters = item.barter_requirement_items.select { |ri| ri.barter_requirement&.barter_unlock } %>
-<% crafts  = item.craft_requirement_items.select { |ri| ri.craft_requirement&.craft_unlock } %>
+<%# What this item is worth: the barters and crafts it feeds, the quests that
+    accept it, the slots it fits and the quests that need it as a key. Locals:
+    item, barters, crafts, objectives (requirement/item rows), fits
+    ([slot, parent id, parent]) and key_tasks. Capped because one item (GP
+    coin) feeds hundreds of barters. %>
+<% limit = 12 %>
+<% fits = Array(fits) %>
+<% key_tasks = Array(key_tasks) %>
 
 <div class="panel__body panel__body--flush">
-  <% barters.each do |entry| %>
-    <% requirement = entry.barter_requirement %>
-    <% unlock = requirement.barter_unlock %>
+  <% barters.first(limit).each do |entry| %>
+    <% barter = entry.item_barter %>
     <div class="srcrow">
       <span class="srcbadge" style="--tone: var(--badge-barter)">Barter</span>
       <div class="srcrow__body">
         <p class="srcrow__title">
-          <% if unlock.item %>
-            gives <%= link_to unlock.item.full_name, item_path(unlock.item) %>
-          <% else %>
-            gives <%= unlock.item_name %>
+          gives <%= link_to barter.item.full_name, item_path(barter.item) %>
+          <% if barter.count.to_i > 1 %>
+            <span class="font-data text-[var(--text-bright)]">×<%= barter.count %></span>
           <% end %>
         </p>
         <p class="srcrow__meta">
-          <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= requirement.trader_name.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
-          <% if requirement.trader_name.present? %>
-            <%= requirement.trader_name.titleize %>
-            <span class="font-data">LL<%= requirement.trader_level %></span>
+          <span class="trader-dot inline-block align-middle mr-1.5" style="background: var(--trader-<%= barter.trader.to_s.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
+          <% if barter.trader.present? %>
+            <%= link_to barter.trader.titleize, trader_path(barter.trader.parameterize) %>
           <% else %>
-            trader not recorded
+            Unknown trader
           <% end %>
+          <span class="font-data">LL<%= barter.trader_level %></span>
           · needs <span class="font-data"><%= entry.count || 1 %></span> × <%= item.short_name.presence || item.full_name %>
+          <% if barter.task %>
+            · unlocked by <%= link_to barter.task.full_name, task_path(barter.task) %>
+          <% end %>
         </p>
       </div>
     </div>
   <% end %>
+  <% if barters.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= barters.size - limit %> more barters.</p>
+  <% end %>
 
-  <% crafts.each do |entry| %>
-    <% requirement = entry.craft_requirement %>
-    <% unlock = requirement.craft_unlock %>
+  <% crafts.first(limit).each do |entry| %>
+    <% craft = entry.item_hideout %>
     <div class="srcrow">
       <span class="srcbadge" style="--tone: var(--badge-craft)">Craft</span>
       <div class="srcrow__body">
         <p class="srcrow__title">
-          <% if unlock.item %>
-            crafts into <%= link_to unlock.item.full_name, item_path(unlock.item) %>
-          <% else %>
-            crafts into <%= unlock.item_name %>
+          crafts into <%= link_to craft.item.full_name, item_path(craft.item) %>
+          <% if craft.count.to_i > 1 %>
+            <span class="font-data text-[var(--text-bright)]">×<%= craft.count %></span>
           <% end %>
         </p>
         <p class="srcrow__meta">
-          <% if unlock.hideout_station.present? %>
-            <%= unlock.hideout_station %> <span class="font-data">Lv.<%= unlock.station_level %></span> ·
+          <% if craft.station.present? %>
+            <%= craft.station %> <span class="font-data">Lv.<%= craft.level %></span> ·
           <% end %>
           needs <span class="font-data"><%= entry.count || 1 %></span> × <%= item.short_name.presence || item.full_name %>
+          <% if entry.is_tool %>
+            <span class="text-[var(--text-muted)]">(tool, not consumed)</span>
+          <% end %>
+          <% if craft.task %>
+            · unlocked by <%= link_to craft.task.full_name, task_path(craft.task) %>
+          <% end %>
         </p>
       </div>
     </div>
+  <% end %>
+  <% if crafts.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= crafts.size - limit %> more crafts.</p>
+  <% end %>
+
+  <%# Quest hand-ins: one row per task, even when several objectives of that
+      task accept this item. %>
+  <% handins = objectives.select { |o| o.task_objective }.uniq { |o| o.task_objective.task_id } %>
+  <% handins.first(limit).each do |entry| %>
+    <% objective = entry.task_objective %>
+    <% task = objective.task %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-task)">Hand-in</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title"><%= link_to task.full_name, task_path(task) %></p>
+        <p class="srcrow__meta">
+          <%= objective.description %>
+          <% if objective.count.to_i > 1 %>
+            <span class="font-data">×<%= objective.count %></span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+  <% if handins.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= handins.size - limit %> more quests.</p>
+  <% end %>
+
+  <%# Slots this item fits, as [slot name, parent id, parent name]. %>
+  <% fits.first(limit).each do |fit| %>
+    <%= render "items/fit_row", fit: fit %>
+  <% end %>
+  <% if fits.size > limit %>
+    <details class="disclosure">
+      <summary class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= fits.size - limit %> more slots</summary>
+      <% fits.drop(limit).each do |fit| %>
+        <%= render "items/fit_row", fit: fit %>
+      <% end %>
+    </details>
+  <% end %>
+  <% if fits.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= fits.size - limit %> more slots.</p>
+  <% end %>
+
+  <%# Quests that need this item as a key. %>
+  <% key_tasks.first(limit).each do |task| %>
+    <div class="srcrow">
+      <span class="srcbadge" style="--tone: var(--badge-task)">Key</span>
+      <div class="srcrow__body">
+        <p class="srcrow__title"><%= link_to task.full_name, task_path(task) %></p>
+        <p class="srcrow__meta">this key opens the way</p>
+      </div>
+    </div>
+  <% end %>
+  <% if key_tasks.size > limit %>
+    <p class="px-4 py-3 text-xs text-[var(--text-muted)]">and <%= key_tasks.size - limit %> more quests.</p>
   <% end %>
 </div>

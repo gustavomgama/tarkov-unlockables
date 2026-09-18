@@ -1,7 +1,5 @@
 <% capacity = item.data["capacity"].presence || magazine_capacity(item) %>
 <% caliber = caliber_label(item.data["caliber"]) %>
-<% ergonomics = item.data["ergonomics"].presence %>
-<% recoil = item.data["recoil"].presence %>
 
 <dl class="stats">
   <% if capacity %>
@@ -18,21 +16,4 @@
       <dd class="stat__val"><%= caliber %></dd>
     </div>
   <% end %>
-
-  <% if ergonomics.present? && ergonomics.to_f.nonzero? %>
-    <div class="stat">
-      <dt class="stat__key">Ergonomics</dt>
-      <dd class="stat__val"><%= ergonomics.to_f.positive? ? "+#{ergonomics}" : ergonomics %></dd>
-      <dd class="stat__note">while equipped</dd>
-    </div>
-  <% end %>
 </dl>
-
-<% if recoil.present? && recoil.to_f.nonzero? %>
-  <dl class="specs">
-    <div class="spec">
-      <dt class="spec__key">Recoil</dt>
-      <dd class="spec__val"><%= recoil.to_f.positive? ? "+#{recoil}" : recoil %></dd>
-    </div>
-  </dl>
-<% end %>

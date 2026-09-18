@@ -5,12 +5,22 @@
 <% gated_currency = item.item_currencies.find(&:task_unlock?) %>
 <% by_task = unlocks.group_by { |unlock| unlock.reward&.task } %>
 
+<%# [badge label, task, badge tone]. The task is nil when the unlock exists
+    but its quest could not be matched. A task-gated trader offer whose quest
+    canonical knows is folded in here, so it gets the same chain treatment. %>
+<% rows = by_task.map do |task, group|
+     [ group.map { |u| u.class.name.demodulize.sub("Unlock", "").titleize }.uniq.join(" + "),
+       task, "--badge-offer" ]
+   end %>
+<% if (gated_task = gated_currency&.task) && rows.none? { |_, task, _| task == gated_task } %>
+  <% rows << [ "Trader", gated_task, "--badge-task" ] %>
+<% end %>
+
 <div class="panel__body panel__body--flush">
-  <% if by_task.any? %>
-    <% by_task.each do |task, group| %>
-      <% types = group.map { |u| u.class.name.demodulize.sub("Unlock", "").titleize }.uniq %>
+  <% if rows.any? %>
+    <% rows.each do |(label, task, tone)| %>
       <div class="srcrow">
-        <span class="srcbadge" style="--tone: var(--badge-offer)"><%= types.join(" + ") %></span>
+        <span class="srcbadge" style="--tone: var(<%= tone %>)"><%= label %></span>
         <div class="srcrow__body">
           <% if task %>
             <% chain = task.prerequisite_chain([], task_map) %>

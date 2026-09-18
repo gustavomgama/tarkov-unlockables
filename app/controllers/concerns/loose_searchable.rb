@@ -30,6 +30,8 @@ module LooseSearchable
       stripped_query = query.to_s.gsub(/[^a-zA-Z0-9]/, "")
       return all if stripped_query.blank?
 
+      columns = Array(columns).map(&:to_s)
+
       # Fast path: stripped query hits the trigram GIN index on search_text
       # instead of regexp_replace() seq-scanning the table.
       covered = SEARCH_TEXT_COVERED[name]
@@ -45,7 +47,8 @@ module LooseSearchable
         unless column_names.include?(column)
           raise ArgumentError, "unknown search column: #{column.inspect}"
         end
-
+        # Quoted identifier: the column is validated above, and quoting keeps
+        # the SQL string safe even if a caller ever passes something dynamic.
         quoted = connection.quote_column_name(column)
         Arel.sql("regexp_replace(#{quoted}::text, '[^a-zA-Z0-9]', '', 'g') ILIKE ?")
       end

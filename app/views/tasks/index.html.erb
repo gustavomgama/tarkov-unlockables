@@ -18,12 +18,14 @@
     </div>
   </div>
 
+  <%# Filter state carried through every chip and the search form, so
+      narrowing by one facet never drops another. %>
+  <% filters = { trader: params[:trader].presence, map: params[:map].presence,
+                 kappa: params[:kappa].presence } %>
+
   <%= form_tag tasks_path, method: :get, class: "flex flex-wrap items-center gap-2" do %>
-    <% if params[:trader].present? %>
-      <%= hidden_field_tag :trader, params[:trader] %>
-    <% end %>
-    <% if params[:kappa].present? %>
-      <%= hidden_field_tag :kappa, params[:kappa] %>
+    <% filters.each do |key, value| %>
+      <%= hidden_field_tag key, value if value.present? %>
     <% end %>
     <div class="relative flex-1 min-w-[10rem]"
          data-controller="search"
@@ -45,22 +47,23 @@
     </div>
     <button type="submit" class="btn">Search</button>
     <% if params[:q].present? %>
-      <%= link_to "Clear", tasks_path(trader: params[:trader]), class: "text-sm text-[var(--danger-ink)] hover:underline px-2" %>
+      <%= link_to "Clear", tasks_path(filters), class: "text-sm text-[var(--danger-ink)] hover:underline px-2" %>
     <% end %>
   <% end %>
 
   <nav class="flex flex-wrap gap-1.5" aria-label="Filter by trader">
-    <%= link_to "All traders", tasks_path(q: params[:q], kappa: params[:kappa].presence),
+    <%= link_to "All traders", tasks_path(filters.except(:trader)),
           class: "chip chip--tap #{params[:trader].blank? && params[:kappa].blank? ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
           "aria-current": (params[:trader].blank? ? "true" : nil) %>
-    <%= link_to tasks_path(q: params[:q], trader: params[:trader], kappa: (params[:kappa].present? ? nil : 1)),
+    <%= link_to tasks_path(params[:kappa].present? ? filters.except(:kappa) : filters.merge(kappa: 1)),
           class: "chip chip--tap #{params[:kappa].present? ? 'chip--strong border-[var(--danger)] text-[var(--danger-ink)]' : 'chip--link'}",
+
           "aria-current": (params[:kappa].present? ? "true" : nil) do %>
       Kappa only <span class="font-data text-[var(--text-muted)]"><%= @kappa_count %></span>
     <% end %>
     <% @traders.each do |trader| %>
       <% active = params[:trader] == trader %>
-      <%= link_to tasks_path(q: params[:q], trader: trader, kappa: params[:kappa].presence),
+      <%= link_to tasks_path(filters.merge(trader: trader)),
             class: "chip chip--tap #{active ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
             "aria-current": (active ? "true" : nil) do %>
         <span class="trader-dot" style="background: var(--trader-<%= trader.parameterize %>, var(--text-muted));" aria-hidden="true"></span>
@@ -68,6 +71,19 @@
       <% end %>
     <% end %>
   </nav>
+
+  <% if @maps.any? %>
+    <nav class="flex flex-wrap gap-1.5" aria-label="Filter by map">
+      <% @maps.each do |map| %>
+        <% active = params[:map] == map %>
+        <%= link_to tasks_path(active ? filters.except(:map) : filters.merge(map: map)),
+              class: "chip chip--tap #{active ? 'chip--strong border-[var(--accent)] text-[var(--accent)]' : 'chip--link'}",
+              "aria-current": (active ? "true" : nil) do %>
+          <%= map %>
+        <% end %>
+      <% end %>
+    </nav>
+  <% end %>
 
   <% if @tasks.none? %>
     <div class="panel">
@@ -86,6 +102,9 @@
             <h2 class="text-sm font-bold text-[var(--text-bright)] truncate"><%= task.full_name %></h2>
             <span class="block text-xs text-[var(--text-muted)]">
               <%= task.given_by.to_s.titleize %>
+              <% if task.map_name.present? %>
+                · <%= task.map_name %>
+              <% end %>
               <% if task.leads_tos_count.to_i.positive? %>
                 · <span class="font-data"><%= task.leads_tos_count %></span> follow<%= "s" if task.leads_tos_count != 1 %>
               <% end %>
@@ -96,6 +115,9 @@
           <% end %>
           <% if task.lightkeeper_required %>
             <span class="chip" style="background: var(--trader-lightkeeper); color: var(--text-bright)">Lightkeeper</span>
+          <% end %>
+          <% if @key_counts[task.id] %>
+            <span class="chip" style="background: var(--badge-currency); color: var(--text-bright)">Key ×<%= @key_counts[task.id] %></span>
           <% end %>
         <% end %>
       <% end %>

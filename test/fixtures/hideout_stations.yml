@@ -1,0 +1,14 @@
+# The item page links each hideout craft to its station page, so the fixture
+# set needs the stations those rows name (Workbench, Lavatory) for the link
+# walk to resolve.
+workbench:
+  bsg_id: station_workbench
+  slug: workbench
+  name: Workbench
+  position: 1
+
+lavatory:
+  bsg_id: station_lavatory
+  slug: lavatory
+  name: Lavatory
+  position: 2

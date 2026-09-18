@@ -29,6 +29,48 @@ class TasksHelperTest < ActionView::TestCase
     assert_equal "Barter", reward_label("Barter", LooseItem.new(item_name: "5000 Roubles"))
   end
 
+  # The reward kinds that live in `rewards.data` instead of a table, one line
+  # each. Every branch of reward_data_line is exercised here.
+  test "reward_data_groups renders each data-backed reward kind" do
+    reward = create_task("Data Reward Task").rewards.create!(
+      reward_type: "finish_rewards",
+      data: {
+        "trader_standing" => [ { "trader_slug" => "prapor", "standing" => 0.25 } ],
+        "skill_level_reward" => [ { "skill" => "Strength", "level" => 3 } ],
+        "trader_unlock" => [ { "trader_name" => "Jaeger" } ],
+        "trader_dialogue_unlock" => [ { "trader_slug" => "mechanic" } ],
+        "achievement" => [ { "name" => "Test Achievement" } ],
+        "customization" => [ { "customizationType" => "clothing" } ]
+      }
+    )
+
+    groups = reward_data_groups(reward).to_h { |label, _badge, lines| [ label, lines ] }
+
+    assert_equal [ "Prapor +0.25 rep" ], groups["Standing"]
+    assert_equal [ "Strength level 3" ], groups["Skill"]
+    assert_equal [ "Jaeger" ], groups["Trader unlock"]
+    assert_equal [ "Mechanic" ], groups["Dialogue"]
+    assert_equal [ "Test Achievement" ], groups["Achievement"]
+    assert_equal [ "Clothing" ], groups["Customization"]
+  end
+
+  test "reward_data_groups skips a kind with no rows" do
+    reward = create_task("No Data Reward Task").rewards.create!(reward_type: "finish_rewards", data: {})
+
+    assert_equal [], reward_data_groups(reward)
+  end
+
+  test "reward_data_groups treats non-hash data as empty" do
+    reward = create_task("Bad Data Reward Task").rewards.create!(reward_type: "finish_rewards")
+    reward.update_column(:data, "not a hash")
+
+    assert_equal [], reward_data_groups(reward)
+  end
+
+  test "reward_data_line falls back to the row's values" do
+    assert_equal "a b", reward_data_line("something_new", { "x" => "a", "y" => "b" })
+  end
+
   test "trader_requirement_label omits an empty trader name" do
     assert_equal "LL4", trader_requirement_label({ "trader_name" => "", "trader_level" => "4" })
     assert_equal "Peacekeeper LL3",

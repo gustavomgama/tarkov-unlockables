@@ -10,6 +10,7 @@ require "test_helper"
 #  task_name      :string
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
+#  alternative    :boolean          default(FALSE), not null
 #
 # Indexes
 #

@@ -96,10 +96,18 @@ class AccessibilityTest < ApplicationSystemTestCase
     PAGES.each { |label, path| assert_no_violations(instance_exec(&path), "#{label} (390px)") }
 
     visit items_path
-    find(".site-menu > summary").click
+    # The menu may already be open from an earlier page in this test (the
+    # disclosure keeps its state), and clicking an open summary would be
+    # intercepted by the panel it reveals.
+    find(".site-menu > summary").click unless has_selector?(".site-menu[open]")
     assert_no_violations(items_path, "items index (390px, menu open)", navigate: false)
 
-    all("details.filter-group > summary").each(&:click)
+    # Close the menu again: its panel overlays the filter row, so the next
+    # clicks would be intercepted.
+    find(".site-menu > summary").click if has_selector?(".site-menu[open]")
+
+    # Same for the filter groups: open the ones that are still closed.
+    all("details.filter-group:not([open]) > summary").each(&:click)
     assert_no_violations(items_path, "items index (390px, filters open)", navigate: false)
   end
 

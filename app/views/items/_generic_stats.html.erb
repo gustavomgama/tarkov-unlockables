@@ -1,5 +1,4 @@
 <% part_type = item.data["type"].presence %>
-<% ergonomics = item.data["ergonomics"].presence %>
 <% stab = item.data["stab_damage"].presence %>
 <% slash = item.data["slash_damage"].presence %>
 <% base = bsg_item(item.data["base_item"]) %>
@@ -31,19 +30,11 @@
   </dl>
 <% end %>
 
-<% if (ergonomics.present? && ergonomics.to_f.nonzero?) || base %>
+<% if base %>
   <dl class="specs">
-    <% if base %>
-      <div class="spec">
-        <dt class="spec__key">Base item</dt>
-        <dd class="spec__val"><%= link_to base.full_name, item_path(base) %></dd>
-      </div>
-    <% end %>
-    <% if ergonomics.present? && ergonomics.to_f.nonzero? %>
-      <div class="spec">
-        <dt class="spec__key">Ergonomics</dt>
-        <dd class="spec__val"><%= ergonomics.to_f.positive? ? "+#{ergonomics}" : ergonomics %></dd>
-      </div>
-    <% end %>
+    <div class="spec">
+      <dt class="spec__key">Base item</dt>
+      <dd class="spec__val"><%= link_to base.full_name, item_path(base) %></dd>
+    </div>
   </dl>
 <% end %>

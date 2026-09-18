@@ -1,0 +1,8 @@
+{"material": "Aramid", "reference": "Aramid", "destructibility": 0.1875, "explosive_destructibility": 0.15}
+{"material": "UHMWPE", "reference": "UHMWPE", "destructibility": 0.3375, "explosive_destructibility": 0.3}
+{"material": "Combined Materials", "reference": "Combined", "destructibility": 0.375, "explosive_destructibility": 0.2}
+{"material": "Titan", "reference": "Titan", "destructibility": 0.4125, "explosive_destructibility": 0.375}
+{"material": "Aluminium", "reference": "Aluminium", "destructibility": 0.45, "explosive_destructibility": 0.45}
+{"material": "Armor steel", "reference": "ArmoredSteel", "destructibility": 0.525, "explosive_destructibility": 0.45}
+{"material": "Ceramic", "reference": "Ceramic", "destructibility": 0.6, "explosive_destructibility": 0.525}
+{"material": "Glass", "reference": "Glass", "destructibility": 0.6, "explosive_destructibility": 0.6}

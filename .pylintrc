@@ -1,0 +1,12 @@
+# Pylint, as detected by Codacy for its pylintpython3 engine.
+#
+# The datastore pipeline is not Pylint-governed: its scripts are numbered
+# modules (10_fetch, 20_build_canonical, …) with long procedural functions, and
+# its own gate is 99_verify.py (74 checks, non-zero exit). Pylint on that
+# directory reports ~1,500 style findings that this repo does not intend to
+# fix, so it is not analysed.
+#
+# Everything else — lib/wiki_parser and any future Python — keeps the full
+# default rule set.
+[MAIN]
+ignore-paths=datastore/

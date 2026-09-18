@@ -12,6 +12,11 @@
 | items | 5481 |
 | weapon_variants | 103 |
 
+## Task graph
+
+- wiki prerequisite edges merged: 134
+- wiki edges skipped to keep the graph acyclic: 4
+
 ## Item display-name provenance
 
 | source | items |
@@ -23,6 +28,9 @@
 
 ## File sizes
 
+- `armor_classes.ndjson` — 0.0 MB
+- `armor_materials.ndjson` — 0.0 MB
+- `ballistics.ndjson` — 0.1 MB
 - `barters.ndjson` — 0.4 MB
 - `categories.ndjson` — 0.1 MB
 - `crafts.ndjson` — 0.2 MB

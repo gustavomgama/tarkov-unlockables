@@ -1,0 +1,11 @@
+<%# A slot this item fits. Locals: fit ([slot name, parent id, parent name]). %>
+<% slot_name, parent_id, parent_name = fit %>
+<div class="srcrow">
+  <span class="srcbadge" style="--tone: var(--badge-currency)">Fits</span>
+  <div class="srcrow__body">
+    <p class="srcrow__title">
+      <%= link_to parent_name, item_path(parent_id) %>
+      <span class="text-[var(--text-muted)]">(<%= slot_name %>)</span>
+    </p>
+  </div>
+</div>

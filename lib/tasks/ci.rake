@@ -94,9 +94,14 @@ namespace :ci do
 
     # Line coverage was 100% while 36 branches (the nil, blank and empty-data
     # sides of guards) were never exercised — branch coverage is what actually
-    # holds those paths. 216 of 217 are covered; the last one is
-    # environment-dependent (the `unless Rails.env.development?` on the
-    # catch-all rescue_from, which only takes its other side in development).
+    # holds those paths. 231 of 239 are covered. The eight that are not:
+    #   - the `unless Rails.env.development?` on the catch-all rescue_from,
+    #     which only takes its other side in development, and
+    #   - seven defensive branches in Importers::Datastore (a malformed
+    #     ballistics row, a reward kind that is not a hash, a slot with no
+    #     allowed items, an empty reward bucket). The importer's own test
+    #     covers the canonical shapes; these guard against a source file that
+    #     is wrong in a way the committed data never is.
     branches = branch_coverage_percent
     puts "Branch coverage: #{branches}%"
     abort "❌ Branch coverage is #{branches}% — requires 95%" if branches < 95
