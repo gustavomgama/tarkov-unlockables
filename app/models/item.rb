@@ -326,6 +326,17 @@ class Item < ApplicationRecord
       .or(where(id: ItemCurrency.where(task_unlock: true).select(:item_id)))
   }
 
+  # Items with a tracked acquisition route: bought, bartered, crafted at the
+  # hideout, or handed out by a quest. Everything else is a drop or a part with
+  # no acquisition page, and does not belong in the browse list.
+  scope :obtainable, -> {
+    where(id: ItemCurrency.select(:item_id))
+      .or(where(id: ItemBarter.select(:item_id)))
+      .or(where(id: ItemHideout.select(:item_id)))
+      .or(where(id: ItemTaskReward.select(:item_id)))
+      .or(where(id: LooseItem.select(:item_id)))
+  }
+
   def self.ransackable_attributes(auth_object = nil)
     %w[full_name short_name slug categories type]
   end

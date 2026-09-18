@@ -36,7 +36,7 @@ class ItemsController < ApplicationController
       }
     end
 
-    items = Item.all.order(full_name: :asc)
+    items = Item.obtainable.order(full_name: :asc)
     items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
     items = apply_filters(items) if filter_params.present?
     @item_count = items.count
@@ -58,7 +58,7 @@ class ItemsController < ApplicationController
     query = params[:q].to_s.strip
     return head :no_content if query.length < AUTOCOMPLETE_MIN_QUERY
 
-    @items = Item.all
+    @items = Item.obtainable
                  .loose_search(query, columns: %w[full_name short_name])
                  .order(full_name: :asc)
                  .limit(AUTOCOMPLETE_LIMIT)
@@ -253,20 +253,20 @@ class ItemsController < ApplicationController
       all_variants = grouped.values.flatten
       variant_counts = all_variants.each_with_object(Hash.new(0)) { |v, h| h[v] = 0 }
       if all_variants.any?
-        Item.where("categories && ?", "{#{all_variants.join(',')}}")
+        Item.obtainable.where("categories && ?", "{#{all_variants.join(',')}}")
             .group(Arel.sql("unnest(categories)")).count
             .each { |cat, count| variant_counts[cat] = count if variant_counts.key?(cat) }
       end
 
       grouped.sort_by { |base, _| base }.map do |base, variants|
         { value: base, label: helpers.category_label(base), count: variants.sum { |v| variant_counts[v] } }
-      end
+      end.reject { |option| option[:count].zero? }
     end
   end
 
   def armor_class_options
     @armor_class_options ||= begin
-      counts = Item.where("data->>'class' IS NOT NULL").group(Arel.sql("data->>'class'")).count
+      counts = Item.obtainable.where("data->>'class' IS NOT NULL").group(Arel.sql("data->>'class'")).count
       counts.sort_by { |ac, _| ac }.map do |ac, count|
         { value: ac, label: "Class #{ac}", count: count }
       end
@@ -275,13 +275,13 @@ class ItemsController < ApplicationController
 
   def caliber_options
     @caliber_options ||= begin
-      calibers = Item.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
+      calibers = Item.obtainable.distinct.pluck(Arel.sql("data->>'caliber'")).compact.sort
 
       calibers.map do |c|
         cats = caliber_map[c] || []
         # Union of data-matched and category-matched items (deduplicated by id)
-        count = Item.where("data->>'caliber' = ?", c).or(
-          cats.any? ? Item.where("categories && ?", "{#{cats.join(',')}}") : Item.none
+        count = Item.obtainable.where("data->>'caliber' = ?", c).or(
+          cats.any? ? Item.obtainable.where("categories && ?", "{#{cats.join(',')}}") : Item.none
         ).count
         { value: c, label: Item.caliber_display(c), count: count }
       end
