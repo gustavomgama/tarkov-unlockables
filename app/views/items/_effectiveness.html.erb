@@ -1,0 +1,24 @@
+<%# The wiki's effectiveness ladder: the level 0-6 the ballistics chart gives
+    this round against each armor class, lit where the round penetrates
+    (level 4 and up).
+    Locals:
+      levels   — six 0-6 levels, armor class 1 through 6
+      defeated — the armor classes the round penetrates, in order
+%>
+<% penetrated = levels.each_with_index.filter_map { |level, i| i + 1 if level >= Item::Ammo::EFFECTIVE_LEVEL } %>
+<% summary =
+     if defeated.empty?
+       "Penetrates no armor class"
+     else
+       "Penetrates armor classes #{defeated.first} through #{defeated.last}"
+     end %>
+<div class="ac-grid" style="--tone: var(--accent)" role="img"
+     aria-label="<%= summary %>. Effectiveness by armor class: <%= levels.each_with_index.map { |level, i| "class #{i + 1} level #{level}" }.to_sentence %>">
+  <% levels.each_with_index do |level, i| %>
+    <div class="ac-cell <%= "ac-cell--on" if penetrated.include?(i + 1) %>" aria-hidden="true"><%= level %></div>
+  <% end %>
+</div>
+<p class="mt-1.5 text-[0.6875rem] text-[var(--text-muted)]">
+  Armor class 1 to 6, left to right. A cell is lit when the round penetrates
+  that class — effectiveness level <%= Item::Ammo::EFFECTIVE_LEVEL %> or higher.
+</p>

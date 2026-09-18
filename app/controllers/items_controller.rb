@@ -4,14 +4,31 @@ class ItemsController < ApplicationController
   AUTOCOMPLETE_LIMIT = 8
   AUTOCOMPLETE_MIN_QUERY = 2
 
+  # The association graph the show page renders. Preloaded after the freshness
+  # check: a 304 skips the view, and Bullet flags every preload the skipped
+  # view never touched as an unused eager load.
+  SHOW_PRELOADS = [
+    :item_currencies,
+    { item_task_rewards: :task },
+    { item_hideouts: [ :item_hideout_requirements, :task ] },
+    { item_barters: [ :item_barter_requirements, :task ] },
+    { offer_unlocks: { reward: :task } },
+    { barter_unlocks: { reward: :task } },
+    { craft_unlocks: { reward: :task } },
+    { item_barter_requirements: { item_barter: [ :item, :task ] } },
+    { item_hideout_requirements: { item_hideout: [ :item, :task ] } },
+    { task_objective_items: { task_objective: :task } }
+  ].freeze
+
   def index
     # Filter dropdowns only change on seed/import: cache the whole block so
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
     # once per hour instead of on every index request. Fetched first so
     # apply_filters can reuse its values instead of re-plucking the tables.
-    @filter_options = Rails.cache.fetch("items/filter_options/v2", expires_in: 1.hour) do
+    @filter_options = Rails.cache.fetch("items/filter_options/v3", expires_in: 1.hour) do
       {
         currency: currency_options,
+        trader: trader_options,
         category: category_options,
         armor_class: armor_class_options,
         caliber: caliber_options,
@@ -52,20 +69,33 @@ class ItemsController < ApplicationController
   end
 
   def show
+    # Freshness first, on the bare record: a conditional request that is still
+    # fresh returns before the association graph or the mod-graph queries run.
+    @item = Item.find(params[:id])
+    fresh_when(@item, public: true)
+    return if performed?
+
     # Unlock associations carry reward → task so the view renders the
     # "How to Unlock" section and raid timelines with zero extra queries.
-    @item = Item.includes(
-      { item_task_rewards: :task },
-      :item_hideouts,
-      :item_barters,
-      :item_currencies,
-      { offer_unlocks: { reward: :task } },
-      { barter_unlocks: { reward: :task } },
-      { craft_unlocks: { reward: :task } },
-      { barter_requirement_items: { barter_requirement: { barter_unlock: :item } } },
-      { craft_requirement_items: { craft_requirement: { craft_unlock: :item } } }
-    ).find(params[:id])
-    fresh_when(@item, public: true)
+    ActiveRecord::Associations::Preloader.new(records: [ @item ], associations: SHOW_PRELOADS).call
+
+    # Mod graph: plain queries turned into hashes, so nothing is eager-loaded
+    # for the items that have no slots (Bullet reads that as a wasted query).
+    slot_rows = @item.item_slots.order(:position).pluck(:id, :name, :required)
+    allowed = ItemSlotAllowedItem.where(item_slot_id: slot_rows.map(&:first))
+                                 .joins(:item)
+                                 .pluck(:item_slot_id, "items.id", "items.full_name")
+    @item_slots = slot_rows.map do |slot_id, name, required|
+      matches = allowed.select { |row| row[0] == slot_id }
+      { name: name, required: required, allowed: matches.map { |row| row.drop(1) } }
+    end
+    @item_fits = ItemSlotAllowedItem.where(item_id: @item.id)
+                                    .joins(item_slot: :item)
+                                    .pluck("item_slots.name", "items.id", "items.full_name")
+    # Tasks that need this item as a key (needed_keys is jsonb on tasks).
+    @item_key_tasks = Task.where("needed_keys @> ?::jsonb", [ { "item_id" => @item.id } ].to_json)
+                          .order(:full_name)
+                          .to_a
   end
 
   private
@@ -95,7 +125,7 @@ class ItemsController < ApplicationController
     raw = params[:filters]
     raw = ActionController::Parameters.new unless raw.is_a?(ActionController::Parameters)
     raw.permit(
-      { currency: [] }, { category: [] }, { armor_class: [] },
+      { currency: [] }, { trader: [] }, { category: [] }, { armor_class: [] },
       { caliber: [] }, { task_required: [] }, { source: [] },
       { exclude_ref: [] }
     )
@@ -115,6 +145,16 @@ class ItemsController < ApplicationController
     if currencies.any? && currencies.size < all_currencies.size
       items = items.joins(:item_currencies)
         .where(item_currencies: { currency: currencies })
+        .distinct
+    end
+
+    # Trader: skip if all selected. "What can I buy from Therapist?" the
+    # README asks; the Source filter only says "some trader".
+    traders = Array(filters[:trader]).reject(&:blank?)
+    all_traders = @filter_options[:trader].map { |o| o[:value] }
+    if traders.any? && traders.size < all_traders.size
+      items = items.joins(:item_currencies)
+        .where(item_currencies: { trader: traders })
         .distinct
     end
 
@@ -187,6 +227,15 @@ class ItemsController < ApplicationController
     end
   end
 
+  def trader_options
+    @trader_options ||= begin
+      counts = ItemCurrency.group(:trader).distinct.count(:item_id)
+      counts.sort_by { |trader, _| trader.to_s }.map do |trader, count|
+        { value: trader, label: trader.to_s.titleize, count: count }
+      end
+    end
+  end
+
   def category_options
     @category_options ||= begin
       categories = Item.category_list
@@ -242,7 +291,9 @@ class ItemsController < ApplicationController
   def source_options
     @source_options ||= [
       { value: "barter", label: "Barter", count: Item.joins(:item_barters).distinct.count },
-      { value: "craft", label: "Craft", count: Item.joins(:item_task_rewards).distinct.count },
+      # The value stays "craft" so existing filtered URLs keep working, but the
+      # data behind it is quest rewards — the item page calls this "Quest".
+      { value: "craft", label: "Quest reward", count: Item.joins(:item_task_rewards).distinct.count },
       { value: "trader", label: "Trader", count: Item.joins(:item_currencies).distinct.count },
       { value: "hideout", label: "Hideout", count: Item.joins(:item_hideouts).distinct.count },
       { value: "task_gated", label: "Task Required", count: Item.task_gated.count }

@@ -1,8 +1,7 @@
-<% pen = item.data["penetration_power"].presence || item.data["penetration"].presence %>
-<% velocity = item.data["velocity"].presence %>
-<% stack = item.data["stackMaxSize"].presence || item.data["stack_max_size"].presence %>
+<% pen = item.penetration %>
+<% defeated = item.defeats_class %>
+<% levels = item.armor_class_levels %>
 <% tracer = item.data["tracer"].presence %>
-<% recoil = item.data["recoil"].presence %>
 <% ammo_type = item.data["ammo_type"].presence || item.data["ammoType"].presence %>
 
 <dl class="stats">
@@ -15,11 +14,10 @@
   <% end %>
 
   <% if pen.present? %>
-    <% classes = penetration_class(pen) %>
-    <div class="stat stat--xl stat--tone" style="--tone: <%= penetration_tone(pen) %>">
+    <div class="stat stat--xl stat--tone" style="--tone: <%= ammo_tone(item) %>">
       <dt class="stat__key">Penetration</dt>
       <dd class="stat__val"><%= pen %></dd>
-      <dd class="stat__note"><%= classes.zero? ? "no armor penetration" : "beats class #{classes} and below" %></dd>
+      <dd class="stat__note"><%= defeated.zero? ? "no armor penetration" : "penetrates class #{defeated} and below" %></dd>
     </div>
   <% end %>
 
@@ -30,42 +28,31 @@
     </div>
   <% end %>
 
-  <% if velocity.present? %>
-    <div class="stat">
-      <dt class="stat__key">Velocity</dt>
-      <dd class="stat__val"><%= velocity %> <span class="text-[0.6875rem] font-normal text-[var(--text-muted)]">m/s</span></dd>
-    </div>
-  <% end %>
 </dl>
 
-<% if pen.present? %>
+<% if levels %>
+  <div class="stat stat--wide">
+    <span class="stat__key">Bullet effectiveness against armor class</span>
+    <%= render "items/effectiveness", levels: levels, defeated: item.defeated_armor_classes %>
+    <%= render "items/armor_class_note", kind: :effectiveness %>
+  </div>
+<% elsif pen.present? %>
+  <% classes = penetration_class(pen) %>
   <div class="stat stat--wide">
     <span class="stat__key">Reliable penetration by armor class</span>
-    <%= render "items/armor_scale", scale: penetration_scale(pen), tone: penetration_tone(pen),
+    <%= render "items/armor_scale", scale: penetration_scale(pen), tone: ammo_tone(item),
           label: classes.zero? ? "Does not defeat any armor class" : "Reliably defeats armor classes 1 through #{classes}" %>
     <%= render "items/armor_class_note", kind: :penetration %>
   </div>
 <% end %>
 
-<% if ammo_type.present? || stack.present? || recoil.present? || tracer.present? %>
+<% if ammo_type.present? || tracer.present? %>
   <dl class="specs">
     <%# "bullet" is the default for every round; a row saying so is noise. %>
     <% if ammo_type.present? && ammo_type.to_s.downcase != "bullet" %>
       <div class="spec">
         <dt class="spec__key">Ammo Type</dt>
         <dd class="spec__val"><%= ammo_type.titleize %></dd>
-      </div>
-    <% end %>
-    <% if stack.present? %>
-      <div class="spec">
-        <dt class="spec__key">Stack Max Size</dt>
-        <dd class="spec__val"><%= stack %></dd>
-      </div>
-    <% end %>
-    <% if recoil.present? && recoil.to_s != "0" %>
-      <div class="spec">
-        <dt class="spec__key">Recoil</dt>
-        <dd class="spec__val"><%= recoil.to_s.start_with?("-", "+") ? recoil : "+#{recoil}" %></dd>
       </div>
     <% end %>
     <% if tracer.present? && tracer.to_s.downcase != "false" %>

@@ -1,0 +1,123 @@
+<% content_for :title, @station.name %>
+<% content_for :description, "#{@station.name} — Escape from Tarkov hideout station build costs and crafts." %>
+
+<div class="space-y-4 sm:space-y-6">
+  <nav class="crumbs no-print" aria-label="Breadcrumb">
+    <%= link_to "Hideout", stations_path %>
+    <span aria-hidden="true">/</span>
+    <span class="text-[var(--text)]"><%= @station.name %></span>
+  </nav>
+
+  <section class="panel">
+    <div class="panel__body flex gap-4 sm:gap-6">
+      <% if @station.image_url.present? %>
+        <img src="<%= @station.image_url %>" alt="" width="96" height="96"
+             class="w-20 sm:w-24 shrink-0 object-contain">
+      <% end %>
+      <div class="min-w-0">
+        <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]"><%= @station.name %></h1>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">
+          <span class="font-data"><%= @station.hideout_levels.size %></span> levels
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <% @station.hideout_levels.each do |level| %>
+    <section class="panel" aria-labelledby="level-<%= level.id %>">
+      <div class="panel__head">
+        <h2 id="level-<%= level.id %>" class="panel__title">Level <%= level.level %></h2>
+        <% if level.construction_time.to_i.positive? %>
+          <span class="panel__note">builds in <span class="font-data"><%= distance_of_time_in_words(level.construction_time) %></span></span>
+        <% end %>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <% item_reqs = level.hideout_item_requirements %>
+        <% station_reqs = Array(level.station_requirements) %>
+        <% trader_reqs = Array(level.trader_requirements) %>
+
+        <% if item_reqs.any? %>
+          <div class="srcrow">
+            <span class="srcbadge" style="--tone: var(--badge-currency)">Items</span>
+            <div class="srcrow__body">
+              <ul class="space-y-1">
+                <% item_reqs.each do |req| %>
+                  <li class="srcrow__title">
+                    <% if req.item %>
+                      <%= link_to req.item.full_name, item_path(req.item) %>
+                    <% else %>
+                      <%= req.item_name %>
+                    <% end %>
+                    <span class="font-data text-[var(--text-muted)]">×<%= req.count %></span>
+                    <% if req.found_in_raid %>
+                      <span class="chip">found in raid</span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+
+        <% if station_reqs.any? %>
+          <div class="srcrow">
+            <span class="srcbadge" style="--tone: var(--badge-hideout)">Stations</span>
+            <div class="srcrow__body">
+              <ul class="space-y-1">
+                <% station_reqs.each do |req| %>
+                  <li class="srcrow__title">
+                    <%= link_to req["station_name"], station_path(req["station_name"].to_s.parameterize) %>
+                    <span class="font-data text-[var(--text-muted)]">Level <%= req["level"] %></span>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+
+        <% if trader_reqs.any? %>
+          <div class="srcrow">
+            <span class="srcbadge" style="--tone: var(--badge-offer)">Traders</span>
+            <div class="srcrow__body">
+              <ul class="space-y-1">
+                <% trader_reqs.each do |req| %>
+                  <li class="srcrow__title">
+                    <%= req["name"] %>
+                    <% if req["level"].present? %>
+                      <span class="font-data text-[var(--text-muted)]">LL<%= req["level"] %></span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+
+        <% crafts = @crafts_by_level[level.level] || [] %>
+        <% if crafts.any? %>
+          <div class="srcrow">
+            <span class="srcbadge" style="--tone: var(--badge-craft)">Crafts</span>
+            <div class="srcrow__body">
+              <ul class="space-y-1">
+                <% crafts.each do |craft| %>
+                  <li class="srcrow__title">
+                    <%= link_to craft.item.full_name, item_path(craft.item) %>
+                    <% if craft.count.to_i > 1 %>
+                      <span class="font-data text-[var(--text-muted)]">×<%= craft.count %></span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+
+        <% if item_reqs.empty? && station_reqs.empty? && trader_reqs.empty? && crafts.empty? %>
+          <div class="panel__body">
+            <p class="text-sm text-[var(--text-muted)]">No requirements recorded.</p>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>

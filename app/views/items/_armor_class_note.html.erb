@@ -1,6 +1,7 @@
 <%# The ladder is an approximation of an opaque mechanic, so it says so
     rather than presenting itself as a hard rule.
-    Locals: kind — :penetration (a round) or :protection (a plate) %>
+    Locals: kind — :penetration (a round, estimated), :effectiveness (a round,
+    from the wiki chart) or :protection (a plate) %>
 <% kind ||= :penetration %>
 <details class="disclosure mt-2">
   <summary class="text-[0.6875rem] text-[var(--text-muted)]">How this is worked out</summary>
@@ -11,12 +12,21 @@
       plate takes about 60 penetration to be beaten reliably. Plates also lose
       durability as they absorb hits, and the rating above is the plate's, not
       the whole vest's.
+    <% elsif kind == :effectiveness %>
+      The <%= link_to "wiki's ballistics chart", "https://escapefromtarkov.fandom.com/wiki/Ballistics",
+            class: "underline hover:text-[var(--accent)]", target: "_blank", rel: "noopener" %>
+      rates every round 0 to 6 against each armor class, from "Pointless" (0)
+      to "Usually ignores" (6). Level 4, "Effective", is where the round
+      penetrates: it stops 3 to 5 rounds on average, and quickly does better as
+      the plate wears. The levels above are that rating, class by class; a
+      round still lands reduced damage on a plate it does not penetrate.
     <% else %>
       Penetration decides which armor plates a round defeats. Each class step
       needs roughly 10 more penetration than the one below it, so 31 beats
       class 3 reliably and only has a chance against class 4. Rounds that do
       not penetrate still land reduced damage, and a worn plate is easier to
-      get through.
+      get through. This round has no row on the wiki's ballistics chart, so
+      this is the estimate.
     <% end %>
     These bands are the community's working approximation of an opaque
     in-game calculation, not official numbers.

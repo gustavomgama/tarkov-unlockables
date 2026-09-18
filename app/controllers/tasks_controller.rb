@@ -3,7 +3,8 @@ class TasksController < ApplicationController
     tasks = Task.all
     tasks = tasks.loose_search(params[:q], columns: %w[full_name name]) if params[:q].present?
     tasks = tasks.where(given_by: params[:trader]) if params[:trader].present?
-    # 221 of 468 quests count toward Kappa; players chase that set specifically.
+    tasks = tasks.where(map_name: params[:map]) if params[:map].present?
+    # Players chase the Kappa set specifically.
     tasks = tasks.where(kappa_required: true) if params[:kappa].present?
     @tasks = tasks.order(full_name: :asc)
     @task_count = tasks.count
@@ -11,6 +12,13 @@ class TasksController < ApplicationController
     @traders = Rails.cache.fetch("tasks/traders", expires_in: 1.hour) do
       Task.distinct.pluck(:given_by).compact.sort
     end
+    @maps = Rails.cache.fetch("tasks/maps", expires_in: 1.hour) do
+      Task.where.not(map_name: [ nil, "" ]).distinct.order(:map_name).pluck(:map_name)
+    end
+    # How many keys each task asks for, for the row chips (one query).
+    @key_counts = Task.where("jsonb_array_length(needed_keys) > 0")
+                      .pluck(:id, Arel.sql("jsonb_array_length(needed_keys)"))
+                      .to_h
     @kappa_count = Rails.cache.fetch("tasks/kappa_count", expires_in: 1.hour) do
       Task.where(kappa_required: true).count
     end
@@ -31,18 +39,26 @@ class TasksController < ApplicationController
     render partial: "tasks/autocomplete_results", locals: { tasks: @tasks }, layout: false
   end
 
+  # Preloaded after the freshness check: a 304 skips the view, so Bullet would
+  # flag the untouched preloads as unused eager loads.
+  SHOW_PRELOADS = [
+    { requirements: { previous_tasks: :task } },
+    { rewards: [
+      { loose_items: :item },
+      { offer_unlocks: :item },
+      { barter_unlocks: :item },
+      { craft_unlocks: :item }
+    ] },
+    { leads_tos: :follow_up_task },
+    { gated_currencies: :item }
+  ].freeze
+
   def show
-    @task = Task.includes(
-      requirements: { previous_tasks: :task },
-      rewards: [
-        { loose_items: :item },
-        { offer_unlocks: :item },
-        { barter_unlocks: :item },
-        { craft_unlocks: :item }
-      ],
-      leads_tos: :follow_up_task
-    ).find(params[:id])
+    @task = Task.find(params[:id])
     fresh_when(@task, public: true)
+    return if performed?
+
+    ActiveRecord::Associations::Preloader.new(records: [ @task ], associations: SHOW_PRELOADS).call
   end
 
   def chains

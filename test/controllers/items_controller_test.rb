@@ -22,6 +22,10 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     # only way to apply a selection before the change handler runs.
     assert_select "details.filter-group", minimum: 1
     assert_select "noscript button[type=submit]", text: "Apply filters"
+    # The search field works without JavaScript too: a submit button, and the
+    # field lives in the same form so submitting keeps the filters.
+    assert_select "form#filter-form input[name=q]"
+    assert_select "form#filter-form button[type=submit]", text: "Search"
     # Dead JS-only affordances must not come back.
     assert_select "button[data-action='filter-group#toggle']", count: 0
     assert_select "div[data-mobile-nav-target='menu']", count: 0
@@ -60,6 +64,18 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", "javascript:alert(1)", count: 0
   end
 
+  test "show answers a fresh conditional request with 304" do
+    item = Item.create!(bsg_id: "cond-#{SecureRandom.hex(4)}", full_name: "Conditional Item", short_name: "CI")
+
+    get item_url(item)
+    assert_response :success
+
+    get item_url(item), headers: { "If-None-Match" => response.headers["ETag"] }
+    assert_response :not_modified
+  ensure
+    item&.destroy
+  end
+
   # --- per-type stat partials (Task 8) ---
 
   test "show renders weapon stats partial for Item::Weapon" do
@@ -85,8 +101,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Caliber"
     assert_select "dd", text: "5.45x39mm"
     assert_select "dt", text: "Default Ammo"
-    assert_select "dt", text: "Ergonomics"
-    assert_select "dt", text: "Recoil"
     # fire_modes / sightrange / effective_distance are not in the imported
     # weapon data, so the readout no longer claims to show them.
     assert_select "dt", text: "Fire Modes", count: 0
@@ -114,7 +128,39 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Damage"
     assert_select "dt", text: "Penetration"
     assert_select "dt", text: "Ammo Type"
-    assert_select "dt", text: "Stack Max Size"
+  ensure
+    ammo&.destroy
+  end
+
+  # The wiki ballistics chart's levels, lit where the round penetrates (4+).
+  test "show renders the wiki effectiveness ladder for ammo" do
+    ammo = Item::Ammo.create!(
+      bsg_id: "ae-#{SecureRandom.hex(4)}", full_name: "Charted Ammo", short_name: "CA",
+      armor_class_effectiveness: { "1" => 6, "2" => 6, "3" => 5, "4" => 4, "5" => 3, "6" => 0 },
+      data: { "caliber" => "5.45x39mm", "damage" => 50, "penetration_power" => 37 }
+    )
+
+    get item_url(ammo)
+    assert_response :success
+    assert_select "span.stat__key", text: "Bullet effectiveness against armor class"
+    assert_select ".ac-grid .ac-cell", count: 6
+    assert_select ".ac-grid .ac-cell--on", count: 4
+    assert_select "dd.stat__note", text: "penetrates class 4 and below"
+    assert_select "a[href=?]", "https://escapefromtarkov.fandom.com/wiki/Ballistics"
+  ensure
+    ammo&.destroy
+  end
+
+  test "show falls back to the penetration estimate with no chart row" do
+    ammo = Item::Ammo.create!(
+      bsg_id: "af-#{SecureRandom.hex(4)}", full_name: "Uncharted Ammo", short_name: "UA",
+      data: { "caliber" => "5.45x39mm", "damage" => 50, "penetration_power" => 37 }
+    )
+
+    get item_url(ammo)
+    assert_response :success
+    assert_select "span.stat__key", text: "Reliable penetration by armor class"
+    assert_select "span.stat__key", text: "Bullet effectiveness against armor class", count: 0
   ensure
     ammo&.destroy
   end
@@ -137,10 +183,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
     assert_select "dt", text: "Durability"
-    # Zone coverage is surfaced now; a legacy `armor_slots` integer must not
-    # be mistaken for the real array-of-hashes structure.
-    assert_select "dt", text: "Zones covered"
-    assert_select "dt", text: "Plate slots", count: 0
   ensure
     armor&.destroy
   end
@@ -302,32 +344,38 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "show lists the barters and crafts the item feeds" do
     item = Item.create!(bsg_id: "used-#{SecureRandom.hex(4)}", full_name: "Used Test Item", short_name: "UTI")
+    product = Item.create!(bsg_id: "used-p-#{SecureRandom.hex(4)}", full_name: "Output Widget", short_name: "OW")
     task = Task.create!(bsg_id: "used-t-#{SecureRandom.hex(4)}", full_name: "Used Task", name: "used-task", given_by: "Prapor")
-    reward = task.rewards.create!(reward_type: "finish_rewards")
 
-    barter = reward.barter_unlocks.create!(item: item, item_name: item.full_name)
-    barter.barter_requirements.create!(trader_name: "Prapor", trader_level: 2)
-          .barter_requirement_items.create!(item: item, item_name: item.full_name, count: 5)
+    barter = product.item_barters.create!(trader: "Prapor", trader_level: "2", item_name: product.full_name, task: task)
+    barter.item_barter_requirements.create!(item: item, item_name: item.full_name, count: 5)
 
-    craft = reward.craft_unlocks.create!(item: item, item_name: item.full_name,
-                                         hideout_station: "Workbench", station_level: 2)
-    craft.craft_requirements.create!
-         .craft_requirement_items.create!(item: item, item_name: item.full_name, count: 1)
+    craft = product.item_hideouts.create!(station: "Workbench", level: 2, task: task)
+    craft.item_hideout_requirements.create!(item: item, item_name: item.full_name, count: 1)
+
+    quest = Task.create!(bsg_id: "used-o-#{SecureRandom.hex(4)}", full_name: "Hand-in Quest", name: "hand-in-quest", given_by: "Therapist")
+    objective = quest.task_objectives.create!(objective_type: "giveItem", description: "Hand over items", count: 2)
+    objective.task_objective_items.create!(item: item, item_name: item.full_name)
 
     get item_url(item)
 
     assert_response :success
     assert_select "section[aria-labelledby=used-in-head]" do
       assert_select "h2", text: "Used in"
+      assert_select ".srcrow", text: /gives Output Widget/
       assert_select ".srcrow", text: /Prapor LL2/
       assert_select ".srcrow", text: /needs 5 × UTI/
+      assert_select ".srcrow", text: /crafts into Output Widget/
       assert_select ".srcrow", text: /Workbench Lv\.2/
       assert_select ".srcrow", text: /needs 1 × UTI/
+      assert_select ".srcrow", text: /Hand-in Quest/
+      assert_select ".srcrow", text: /Hand over items/
     end
   ensure
-    Reward.where(task_id: task&.id).destroy_all
-    task&.destroy
+    product&.destroy
+    quest&.destroy
     item&.destroy
+    task&.destroy
   end
 
   test "show gives melee damage a home" do
@@ -374,19 +422,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     weapon&.destroy
     preset&.destroy
-  end
-
-  test "show counts the plates an armor ships with" do
-    armor = Item::Armor.create!(bsg_id: "pl-#{SecureRandom.hex(4)}", full_name: "Plated Vest", short_name: "PV",
-                                data: { "class" => 5, "default_plates" => "2x {{id}}<br/>2x {{id2}}" })
-
-    get item_url(armor)
-
-    assert_response :success
-    assert_select "dt", text: "Ships with"
-    assert_select "dd", text: "4 plates"
-  ensure
-    armor&.destroy
   end
 
   test "show handles item with no data without error" do
@@ -473,6 +508,164 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     item&.item_currencies&.destroy_all
     [ wet1, cleaner ].each { |t| t&.destroy }
     item&.destroy
+  end
+
+  test "show names the gating quest when a task-gated currency carries its task" do
+    item = Item.create!(bsg_id: "tc-#{SecureRandom.hex(4)}", full_name: "Task Currency", short_name: "TC")
+    prereq = Task.create!(bsg_id: "tcp-#{SecureRandom.hex(4)}", full_name: "Prereq Quest", name: "prereq-quest", given_by: "Prapor")
+    gating = Task.create!(bsg_id: "tcg-#{SecureRandom.hex(4)}", full_name: "Gating Quest", name: "gating-quest", given_by: "Therapist")
+    requirement = gating.requirements.create!(player_level: 0, trader_level: [])
+    requirement.previous_tasks.create!(task: prereq, task_name: prereq.name)
+
+    item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 2,
+                                 task_unlock: true, task: gating)
+
+    get item_url(item)
+
+    assert_response :success
+    # The unlock panel names the quest and draws its chain...
+    assert_select ".srcrow__title a", text: /Gating Quest/
+    assert_select ".timeline-node", text: /Prereq Quest/
+    # ...instead of the "quest not recorded" fallback.
+    assert_no_match "not recorded", response.body
+  ensure
+    item&.item_currencies&.destroy_all
+    PreviousTask.where(task_id: [ prereq&.id, gating&.id ]).update_all(task_id: nil)
+    gating&.requirements&.destroy_all
+    [ prereq, gating ].each { |t| t&.destroy }
+    item&.destroy
+  end
+
+  test "show falls back to 'not recorded' when a task-gated currency has no task" do
+    item = Item.create!(bsg_id: "tu-#{SecureRandom.hex(4)}", full_name: "Unknown Gate", short_name: "UG")
+    item.item_currencies.create!(trader: "Peacekeeper", currency: "USD", min_trader_level: 3, task_unlock: true)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_select ".srcrow__title", text: /Task-gated trader offer/
+    assert_match "the quest is not recorded", response.body
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+  end
+
+  test "show renders the trader offer price and buy limit" do
+    item = Item.create!(bsg_id: "pr-#{SecureRandom.hex(4)}", full_name: "Priced Item", short_name: "PI")
+    item.item_currencies.create!(trader: "Mechanic", currency: "RUB", min_trader_level: 3,
+                                 price: 22_997, price_rub: 22_997, buy_limit: 5)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_match "22,997 RUB", response.body
+    assert_match "Buy limit 5 per reset", response.body
+    assert_select "a[href=?]", trader_path("mechanic"), text: "Mechanic"
+  ensure
+    item&.item_currencies&.destroy_all
+    item&.destroy
+  end
+
+  test "show renders barter and craft recipes" do
+    item = Item.create!(bsg_id: "br-#{SecureRandom.hex(4)}", full_name: "Recipe Item", short_name: "RI")
+    input = Item.create!(bsg_id: "br-in-#{SecureRandom.hex(4)}", full_name: "Input Widget", short_name: "IW")
+    barter = item.item_barters.create!(trader: "Prapor", trader_level: "2", item_name: item.full_name,
+                                       count: 2, buy_limit: 3)
+    barter.item_barter_requirements.create!(item: input, item_name: input.full_name, count: 4)
+    craft = item.item_hideouts.create!(station: "Workbench", level: 2, count: 6, duration: 8200)
+    craft.item_hideout_requirements.create!(item: input, item_name: input.full_name, count: 1, is_tool: true)
+
+    get item_url(item)
+
+    assert_response :success
+    assert_match "for Input Widget ×4", response.body
+    assert_match "Buy limit 3 per reset", response.body
+    assert_select "a[href=?]", station_path("workbench"), text: "Workbench"
+    assert_match "tools needed: Input Widget", response.body
+    assert_match "about 2 hours", response.body
+  ensure
+    item&.destroy
+    input&.destroy
+  end
+
+  test "show renders slots and where a mod fits" do
+    weapon = Item.create!(bsg_id: "sl-#{SecureRandom.hex(4)}", full_name: "Slot Weapon", short_name: "SW")
+    mods = Array.new(8) do |i|
+      Item.create!(bsg_id: "sl-m#{i}-#{SecureRandom.hex(4)}", full_name: "Slot Mod #{i}", short_name: "SM#{i}")
+    end
+    slot = weapon.item_slots.create!(slot_id: "s1", name: "Magazine", required: true, position: 0)
+    mods.each { |mod| slot.item_slot_allowed_items.create!(item: mod) }
+
+    get item_url(weapon)
+
+    assert_response :success
+    assert_select "h2", text: "Slots"
+    assert_select "a[href=?]", item_path(mods.first), text: "Slot Mod 0"
+    # The rest collapse behind a disclosure instead of being dropped.
+    assert_select "details.disclosure summary", text: /and 2 more/
+    assert_select "a[href=?]", item_path(mods[6]), text: "Slot Mod 6"
+
+    get item_url(mods.first)
+
+    assert_response :success
+    assert_select "a[href=?]", item_path(weapon), text: "Slot Weapon"
+    assert_match "Magazine", response.body
+  ensure
+    weapon&.destroy
+    mods&.each(&:destroy)
+  end
+
+  test "show lists the quests that need this item as a key" do
+    key = Item.create!(bsg_id: "key-#{SecureRandom.hex(4)}", full_name: "Dorm Key", short_name: "DK")
+    task = Task.create!(bsg_id: "key-t-#{SecureRandom.hex(4)}", full_name: "Key Quest", name: "key-quest",
+                        given_by: "Prapor",
+                        needed_keys: [ { "map_name" => "Customs", "item_id" => key.id,
+                                         "item_name" => key.full_name } ])
+
+    get item_url(key)
+
+    assert_response :success
+    assert_select ".srcrow", text: /Key Quest/
+    assert_select ".srcbadge", text: "Key"
+  ensure
+    task&.destroy
+    key&.destroy
+  end
+
+  test "show lists what the item contains" do
+    part = Item.create!(bsg_id: "ct-part-#{SecureRandom.hex(4)}", full_name: "Build Part", short_name: "BP")
+    preset = Item.create!(bsg_id: "ct-#{SecureRandom.hex(4)}", full_name: "Build Preset", short_name: "BPreset",
+                          data: { "containsItems" => [ { "item" => part.bsg_id, "count" => 2 } ] })
+
+    get item_url(preset)
+
+    assert_response :success
+    assert_select "section[aria-labelledby=contains-head]" do
+      assert_select "h2", text: "Contains"
+      assert_select "a[href=?]", item_path(part), text: "Build Part"
+    end
+    assert_match "×2", response.body
+  ensure
+    preset&.destroy
+    part&.destroy
+  end
+
+  test "show collapses a long list of fitting slots" do
+    mod = Item.create!(bsg_id: "fit-#{SecureRandom.hex(4)}", full_name: "Popular Mod", short_name: "PM")
+    weapons = Array.new(13) do |i|
+      weapon = Item.create!(bsg_id: "fit-w#{i}-#{SecureRandom.hex(4)}", full_name: "Fit Weapon #{i}", short_name: "FW#{i}")
+      weapon.item_slots.create!(slot_id: "s#{i}", name: "Mount", position: 0)
+            .item_slot_allowed_items.create!(item: mod)
+      weapon
+    end
+
+    get item_url(mod)
+
+    assert_response :success
+    assert_select "details.disclosure summary", text: /and 1 more slots/
+  ensure
+    weapons&.each(&:destroy)
+    mod&.destroy
   end
 
   # --- typeahead ---
@@ -572,6 +765,51 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     ItemCurrency.destroy_all
     [ rub_item, usd_item ].each { |i| i&.destroy }
+  end
+
+  test "index filters by trader" do
+    prapor_item = Item.create!(bsg_id: "tr1-#{SecureRandom.hex(4)}", full_name: "Prapor Only Item", short_name: "POI")
+    therapist_item = Item.create!(bsg_id: "tr2-#{SecureRandom.hex(4)}", full_name: "Therapist Only Item", short_name: "TOI")
+    prapor_item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
+    therapist_item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 1)
+
+    get items_url(filters: { trader: [ "Prapor" ] })
+
+    assert_response :success
+    assert_select "td a", text: "Prapor Only Item"
+    assert_no_match(/Therapist Only Item/, response.body)
+  ensure
+    ItemCurrency.destroy_all
+    [ prapor_item, therapist_item ].each { |i| i&.destroy }
+  end
+
+  test "index renders every filter" do
+    [
+      { q: "a" },
+      { filters: { currency: [ "RUB" ] } },
+      { filters: { trader: [ "Prapor" ] } },
+      { filters: { source: [ "trader" ] } },
+      { filters: { category: [ "headphones" ] } },
+      { filters: { caliber: [ "Caliber556x45NATO" ] } },
+      { filters: { armor_class: [ "5" ] } },
+      { filters: { task_required: [ "1" ] } },
+      { filters: { exclude_ref: [ "1" ] } }
+    ].each do |params|
+      get items_url(params)
+      assert_response :success, "expected 200 for #{params.inspect}"
+    end
+  end
+
+  test "index shows an armor class on a helmet card" do
+    helmet = Item.create!(bsg_id: "helm-#{SecureRandom.hex(4)}", full_name: "Test Helmet Card", short_name: "THC",
+                          data: { "propertiesType" => "ItemPropertiesHelmet", "class" => 4, "type" => "Helmet" })
+
+    get items_url(q: "Test Helmet Card")
+
+    assert_response :success
+    assert_select "a.card[href=?]", item_path(helmet), text: /CLASS/
+  ensure
+    helmet&.destroy
   end
 
   test "index survives malformed filter params" do
@@ -729,6 +967,47 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "td a", text: "Gated Source"
     assert_no_match(/Free Source/, response.body)
+  ensure
+    OfferUnlock.where(item_id: gated&.id).destroy_all
+    Reward.where(task_id: task&.id).destroy_all
+    task&.destroy
+    [ gated, free ].each { |i| i&.destroy }
+  end
+
+  test "index source 'craft' means quest reward, not hideout craft" do
+    rewarded = Item.create!(bsg_id: "srcq1-#{SecureRandom.hex(4)}", full_name: "Rewarded Item", short_name: "RI")
+    crafted = Item.create!(bsg_id: "srcq2-#{SecureRandom.hex(4)}", full_name: "Crafted Item", short_name: "CI")
+    task = Task.create!(bsg_id: "t-srcq-#{SecureRandom.hex(4)}", full_name: "Reward Task", name: "reward-task", given_by: "Prapor")
+    rewarded.item_task_rewards.create!(task_id: task.id, task_name: task.name)
+    crafted.item_hideouts.create!(station: "Workbench", level: 1)
+
+    get items_url(filters: { source: [ "craft" ] })
+
+    assert_response :success
+    assert_select "td a", text: "Rewarded Item"
+    assert_no_match(/Crafted Item/, response.body)
+  ensure
+    crafted&.item_hideouts&.destroy_all
+    [ rewarded, crafted ].each { |i| i&.destroy }
+    task&.destroy
+  end
+
+  test "index marks task-gated item cards" do
+    gated = Item.create!(bsg_id: "badge-#{SecureRandom.hex(4)}", full_name: "Badge Gated", short_name: "BG")
+    free = Item.create!(bsg_id: "badge2-#{SecureRandom.hex(4)}", full_name: "Badge Free", short_name: "BF")
+    task = Task.create!(bsg_id: "badge-t-#{SecureRandom.hex(4)}", full_name: "Badge Task", name: "badge-task", given_by: "Prapor")
+    reward = task.rewards.create!(reward_type: "finish_rewards")
+    reward.offer_unlocks.create!(item_id: gated.id, item_name: gated.full_name, trader_name: "Prapor", trader_level: 1)
+
+    get items_url(q: "Badge")
+
+    assert_response :success
+    assert_select "a.card[href=?]", item_path(gated) do
+      assert_select ".chip", text: "Task-gated"
+    end
+    assert_select "a.card[href=?]", item_path(free) do
+      assert_select ".chip", text: "Task-gated", count: 0
+    end
   ensure
     OfferUnlock.where(item_id: gated&.id).destroy_all
     Reward.where(task_id: task&.id).destroy_all

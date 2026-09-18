@@ -1,24 +1,19 @@
- # db/seeds.rb — orchestrator: items first (so bsg_id → id is resolvable),
- # then full task graph, then cross-table task_id resolution for item_task_rewards.
+# frozen_string_literal: true
 
- puts "Importing items (index → tarkovdev → wiki)..."
- Importers::Index.import!
- Importers::TarkovDev.import!
- Importers::Wiki.import!
+# The datastore (`datastore/canonical/`) is the source of truth: it replaces
+# every row rather than merging with the offlinedata-derived importers.
+puts "Importing the datastore (datastore/canonical/)..."
+Importers::Datastore.import!
 
- puts "Importing task graph..."
- Importers::TaskGraph.import!
-
- puts "Backfilling calibers from gun/preset names..."
- Item.populate_calibers_from_names
-
- puts "Resolving item_task_rewards.task_id..."
- ItemTaskReward.where(task_id: nil).find_each do |itr|
+# Canonical normally carries the task id directly; this is the fallback for the
+# rows whose source task id was blank.
+puts "Resolving item_task_rewards.task_id..."
+ItemTaskReward.where(task_id: nil).find_each do |itr|
   task = Task.find_by(full_name: itr.task_name) || Task.find_by(name: itr.task_name)
   itr.update!(task_id: task.id) if task
- end
+end
 
- puts "Done. Items: #{Item.count}, Tasks: #{Task.count}, " \
+puts "Done. Items: #{Item.count}, Tasks: #{Task.count}, " \
      "LeadsTos: #{LeadsTo.count}, Requirements: #{Requirement.count}, " \
      "Rewards: #{Reward.count}, " \
      "LooseItems: #{LooseItem.count}, OfferUnlocks: #{OfferUnlock.count}, " \

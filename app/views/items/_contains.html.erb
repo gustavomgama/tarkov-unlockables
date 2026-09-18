@@ -1,0 +1,22 @@
+<%# What this item holds: a preset's installed mods, a container's contents, an
+    ammo box's rounds. Locals: contains (data rows with bsg_id + count),
+    contained (bsg_id => Item). %>
+<div class="panel__body panel__body--flush">
+  <% contains.each do |entry| %>
+    <% child = contained[entry["item"]] %>
+    <div class="srcrow">
+      <div class="srcrow__body">
+        <p class="srcrow__title">
+          <% if child %>
+            <%= link_to child.full_name, item_path(child) %>
+          <% else %>
+            <%= entry["item"] %>
+          <% end %>
+          <% if entry["count"].to_i > 1 %>
+            <span class="font-data text-[var(--text-muted)]">×<%= entry["count"] %></span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+</div>

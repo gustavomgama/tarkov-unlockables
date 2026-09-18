@@ -4,20 +4,21 @@ require "test_helper"
 #
 # Table name: items
 #
-#  id          :bigint           not null, primary key
-#  type        :string           default("Item::Generic"), not null
-#  bsg_id      :string
-#  slug        :string
-#  full_name   :string
-#  short_name  :string
-#  wiki_title  :string
-#  categories  :text             default([]), is an Array
-#  links       :text             default([]), is an Array
-#  images      :text             default([]), is an Array
-#  data        :jsonb            not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  search_text :string           default(""), not null
+#  id                        :bigint           not null, primary key
+#  type                      :string           default("Item::Generic"), not null
+#  bsg_id                    :string
+#  slug                      :string
+#  full_name                 :string
+#  short_name                :string
+#  wiki_title                :string
+#  categories                :text             default([]), is an Array
+#  links                     :text             default([]), is an Array
+#  images                    :text             default([]), is an Array
+#  data                      :jsonb            not null
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  search_text               :string           default(""), not null
+#  armor_class_effectiveness :jsonb            not null
 #
 # Indexes
 #
@@ -160,6 +161,16 @@ class ItemTest < ActiveSupport::TestCase
     gated = Item.task_gated
     assert_includes gated.map(&:id), items(:one).id
     assert_includes gated.map(&:id), items(:two).id
+  end
+
+  test "a task-gated trader offer alone makes an item task-gated" do
+    item = Item.create!(bsg_id: "gate-#{SecureRandom.hex(4)}", full_name: "Gated Only", short_name: "GO")
+    item.item_currencies.create!(trader: "Therapist", currency: "RUB", min_trader_level: 3, task_unlock: true)
+
+    assert item.requires_task?
+    assert_includes Item.task_gated.map(&:id), item.id
+  ensure
+    item&.destroy
   end
 
   test "how_to_unlock returns unlock paths" do

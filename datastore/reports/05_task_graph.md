@@ -1,18 +1,17 @@
 # Task graph analysis
 
 - tasks: **517**
-- prerequisite edges: **255** (from `task_requirements` + `previous_tasks`)
+- prerequisite edges: **389** (from `task_requirements` + `previous_tasks`)
 - forward edges (`leads_to`): **29**
 - cycles: **none**
 - prerequisite ids outside the dataset: **0**
-- forward edges whose prerequisite is not recorded on the target: **2**
+- forward edges whose prerequisite is not recorded on the target: **1**
     - `What’s on the Flash Drive?` → `Golden Swag` (target lists no prerequisite)
-    - `Battery Change` → `Protect the Sky` (target lists no prerequisite)
 
 ## Prerequisite depth (longest chain to reach the task)
 
 - max depth: **18**
-- depth distribution: {0: 288, 1: 56, 2: 28, 3: 21, 4: 32, 5: 19, 6: 12, 7: 11, 8: 10, 9: 8, 10: 5, 11: 5, 12: 7, 13: 3, 14: 3, 15: 3, 16: 3, 17: 2, 18: 1}
+- depth distribution: {0: 186, 1: 80, 2: 55, 3: 37, 4: 26, 5: 34, 6: 26, 7: 13, 8: 12, 9: 8, 10: 8, 11: 7, 12: 5, 13: 4, 14: 6, 15: 3, 16: 3, 17: 3, 18: 1}
 - longest chain (19): Burning Rubber → Easy Money - Part 1 [PVP ZONE] → Easy Money - Part 2 [PVP ZONE] → Balancing - Part 1 [PVP ZONE] → Arena Business [PVP ZONE]
  → Professional Fitness - Part 1 [PVP ZONE] → Professional Fitness - Part 2 [PVP ZONE] → To Great Heights! - Part 1 [PVP ZONE] → To Great Heights! - Part 2 [PVP ZONE] → To Great Heights! - Part 3 [PVP ZONE] → To Great Heights! - Part 4 [PVP ZONE] → To Great Heights! - Part 5 [PVP ZONE] → To Great Heights! - Part 6 [PVP ZONE] → Hold the Lead [PVP ZONE] → Against the Conscience - Part 1 [PVP ZONE] → Against the Conscience - Part 2 [PVP ZONE] → Between Two Fires [PVP ZONE] → Surprise Gift [PVP ZONE] → Postponed Reward [PVP ZONE]
 
@@ -20,10 +19,10 @@
 
 ### Kappa
 
-- flagged tasks: **13**; with prerequisite closure: **13**
-- total XP from the chain: **155,000**; highest character-level gate: **42**
-- traders involved: {'jaeger': 4, 'skier': 3, 'ragman': 2, 'fence': 1, 'mechanic': 1, 'prapor': 1, 'therapist': 1}
-- chain starts at: `Chemical - Part 1`, `Postman Pat - Part 1`, `Sew it Good - Part 1`, `Shooter Born in Heaven`, `The Tarkov Shooter - Part 1`
+- flagged tasks: **13**; with prerequisite closure: **16**
+- total XP from the chain: **165,500**; highest character-level gate: **42**
+- traders involved: {'jaeger': 5, 'skier': 4, 'mechanic': 2, 'ragman': 2, 'fence': 1, 'prapor': 1, 'therapist': 1}
+- chain starts at: `Golden Swag`, `Introduction`, `Postman Pat - Part 1`, `Sew it Good - Part 1`, `Shooter Born in Heaven`
 
 ### Lightkeeper
 
@@ -36,10 +35,10 @@
 
 | trader | tasks | min level range | kappa chain |
 | --- | ---: | --- | ---: |
-| Mechanic | 91 | 0–45 | 1 |
+| Mechanic | 91 | 0–45 | 2 |
 | Prapor | 66 | 0–46 | 1 |
-| Skier | 66 | 0–50 | 3 |
-| Jaeger | 64 | 0–55 | 4 |
+| Skier | 66 | 0–50 | 4 |
+| Jaeger | 64 | 0–55 | 5 |
 | Ragman | 58 | 0–42 | 2 |
 | Therapist | 52 | 0–38 | 1 |
 | Peacekeeper | 51 | 0–37 | 0 |

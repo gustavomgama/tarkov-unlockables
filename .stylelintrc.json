@@ -1,0 +1,6 @@
+{
+  "ignoreFiles": [
+    "app/assets/builds/**",
+    "app/assets/tailwind/**"
+  ]
+}

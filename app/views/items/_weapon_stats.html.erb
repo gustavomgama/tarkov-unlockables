@@ -1,7 +1,4 @@
-<% ergonomics = item.data["ergonomics"].presence %>
-<% recoil = item.data["recoil"].presence %>
 <% range = item.data["range"].presence %>
-<% velocity = item.data["velocity"].presence %>
 <% default_preset = bsg_item(item.data["default_preset"].presence || item.data["defaultPreset"]) %>
 <% default_ammo_raw = item.data["default_ammo"].presence || item.data["def_ammo"] %>
 <% default_ammo = bsg_item(default_ammo_raw) %>
@@ -43,26 +40,6 @@
     </div>
   <% end %>
 
-  <% if ergonomics.present? && ergonomics.to_f.nonzero? %>
-    <div class="stat">
-      <dt class="stat__key">Ergonomics</dt>
-      <dd class="stat__val">
-        <%= ergonomics %>
-        <span class="mt-1.5 block meter">
-          <span class="meter__fill" style="--tone: var(--ac3); width: <%= ergonomics.to_f.clamp(0, 100) %>%"></span>
-        </span>
-      </dd>
-    </div>
-  <% end %>
-
-  <% if recoil.present? && recoil.to_f.nonzero? %>
-    <div class="stat">
-      <dt class="stat__key">Recoil</dt>
-      <dd class="stat__val"><%= recoil %></dd>
-      <dd class="stat__note">lower is better</dd>
-    </div>
-  <% end %>
-
   <% if range.present? %>
     <div class="stat">
       <dt class="stat__key">Range</dt>
@@ -85,19 +62,11 @@
   </div>
 <% end %>
 
-<% if velocity.present? || default_preset %>
+<% if default_preset %>
   <dl class="specs">
-    <% if default_preset %>
-      <div class="spec">
-        <dt class="spec__key">Default preset</dt>
-        <dd class="spec__val"><%= link_to default_preset.full_name, item_path(default_preset) %></dd>
-      </div>
-    <% end %>
-    <% if velocity.present? %>
-      <div class="spec">
-        <dt class="spec__key">Muzzle Velocity</dt>
-        <dd class="spec__val"><%= velocity %> m/s</dd>
-      </div>
-    <% end %>
+    <div class="spec">
+      <dt class="spec__key">Default preset</dt>
+      <dd class="spec__val"><%= link_to default_preset.full_name, item_path(default_preset) %></dd>
+    </div>
   </dl>
 <% end %>

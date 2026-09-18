@@ -30,6 +30,19 @@ module ItemsHelper
     Array(raw[name]).reject(&:blank?)
   end
 
+  # Task-gated flag per item id, batched: the caller primes it with the whole
+  # page collection, then each card reads the memo. One query per page, not
+  # one per card.
+  def task_gated_item_ids(items)
+    @task_gated_item_ids ||= {}
+    missing = Array(items).map(&:id) - @task_gated_item_ids.keys
+    if missing.any?
+      gated = Item.task_gated.where(id: missing).pluck(:id).to_set
+      missing.each { |id| @task_gated_item_ids[id] = gated.include?(id) }
+    end
+    @task_gated_item_ids
+  end
+
   # Player-facing name for a raw category key.
   def category_label(raw)
     CATEGORY_LABELS.fetch(raw.to_s) { raw.to_s.humanize }
@@ -91,12 +104,18 @@ module ItemsHelper
   # down so the label states the reliable case, not the lucky one.
   # ponytail: single constant, retune here when the wipe changes it.
   def penetration_class(value)
-    (value.to_f / 10).floor.clamp(0, 6)
+    Item.penetration_class(value)
   end
 
   def penetration_tone(value)
     n = penetration_class(value)
     n.zero? ? "var(--ac1)" : "var(--ac#{n})"
+  end
+
+  # A round's place on the lethality ramp: the wiki chart's armor class where
+  # the round has a row, the penetration estimate where it does not.
+  def ammo_tone(round)
+    round.wiki_effectiveness? ? armor_class_tone(round.defeats_class) : penetration_tone(round.penetration)
   end
 
   # Armor class value (1–6) as a filled bar scale.
@@ -212,7 +231,13 @@ module ItemsHelper
       pairs << [ "RNDS", capacity, nil ] if capacity
       pairs << [ "CAL", caliber, nil ] if caliber
     when Item::Generic
-      pairs << [ "PART", d["type"], nil ] if d["type"].present?
+      # Helmets and plates are Generic but carry an armor class; show it
+      # rather than the raw wiki type.
+      if d["class"].present?
+        pairs << [ "CLASS", d["class"], armor_class_tone(d["class"]) ]
+      elsif d["type"].present?
+        pairs << [ "PART", d["type"], nil ]
+      end
     end
     pairs
   end

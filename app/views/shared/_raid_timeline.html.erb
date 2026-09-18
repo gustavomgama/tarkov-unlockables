@@ -24,6 +24,9 @@
           aria-hidden="true"
         ></span>
         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <% if t[:alternative] %>
+            <span class="text-[0.625rem] uppercase tracking-widest text-[var(--text-muted)]">or</span>
+          <% end %>
           <% if t[:id] %>
             <%= link_to task_display_name(t[:name]), task_path(t[:id]),
                   class: "text-[0.8125rem] #{is_current ? 'font-bold text-[var(--accent)]' : 'text-[var(--text)] hover:text-[var(--accent-hover)]'}" %>

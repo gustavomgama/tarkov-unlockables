@@ -28,7 +28,8 @@
         </thead>
         <tbody>
           <% ammo.each do |round| %>
-            <% pen = round.data["penetration_power"].presence || round.data["penetration"].presence %>
+            <% pen = round.penetration %>
+            <% class_defeated = round.defeats_class %>
             <% is_current = current && round.id == current.id %>
             <tr class="<%= "current" if is_current %>">
               <th scope="row">
@@ -38,8 +39,14 @@
               </th>
               <td><%= round.data["damage"].presence || "—" %></td>
               <% if pen.present? %>
-                <td style="color: <%= penetration_tone(pen) %>"><%= pen %></td>
-                <td class="muted"><%= penetration_class(pen).zero? ? "—" : penetration_class(pen) %></td>
+                <td style="color: <%= ammo_tone(round) %>"><%= pen %></td>
+                <%# The class is the wiki chart's rule (effectiveness level 4+)
+                    where the round has a row; the note names the levels it
+                    penetrates rather than repeating six numbers per row. %>
+                <td class="muted"
+                    aria-label="<%= class_defeated.zero? ? "does not penetrate any armor class" : "penetrates armor classes 1 through #{class_defeated}" %>">
+                  <%= class_defeated.zero? ? "—" : class_defeated %>
+                </td>
               <% else %>
                 <td class="muted">—</td>
                 <td class="muted">—</td>

@@ -40,6 +40,8 @@
         ></div>
       </div>
 
+      <button type="submit" class="btn">Search</button>
+
       <%= select_tag :per_page, options_for_select([ 20, 50, 100 ], @per_page || 20),
             class: "input w-auto", "aria-label": "Items per page",
             data: { action: "change->filter-form#submit" } %>
@@ -60,6 +62,12 @@
         title: "Currency", name: "currency",
         options: @filter_options[:currency],
         selected: filter_selection(:currency)
+      ) %>
+
+      <%= render FilterComponent::GroupComponent.new(
+        title: "Trader", name: "trader",
+        options: @filter_options[:trader],
+        selected: filter_selection(:trader)
       ) %>
 
       <%= render FilterComponent::GroupComponent.new(
@@ -131,6 +139,7 @@
     <%= render "items/empty_state", reason: reason, total_pages: @total_pages %>
   <% else %>
     <div data-view-toggle-target="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-3">
+      <% task_gated_item_ids(@items) %>
       <%= render partial: "items/item_card", collection: @items, as: :card %>
     </div>
 

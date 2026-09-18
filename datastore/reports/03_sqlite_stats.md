@@ -50,7 +50,7 @@
 | task_objective_items | 15203 |
 | task_objective_refs | 18112 |
 | task_objectives | 1457 |
-| task_previous_tasks | 46 |
+| task_previous_tasks | 180 |
 | task_rewards | 1951 |
 | task_task_requirements | 241 |
 | task_trader_requirements | 124 |

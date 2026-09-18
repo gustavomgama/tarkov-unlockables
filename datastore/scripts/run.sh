@@ -9,6 +9,7 @@ PY="${PY:-$HOME/.pyvenv-tarkov/bin/python}"
 steps=(
   10_fetch.py
   20_build_canonical.py
+  25_ballistics.py
   30_build_sqlite.py
   00_recon.py
   01_coverage.py

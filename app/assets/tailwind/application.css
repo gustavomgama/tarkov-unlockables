@@ -1,1 +1,10 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+
+/* Only the app's own code emits utility classes. Automatic detection would
+   also scan docs/, datastore/, offlinedata/ and local agent state, so a prose
+   mention of "grow" or "ordinal" leaked phantom utilities into the bundle and
+   made the committed build drift. */
+@source "../../views";
+@source "../../helpers";
+@source "../../javascript";
+@source "../../components";

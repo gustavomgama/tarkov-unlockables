@@ -2,20 +2,21 @@
 #
 # Table name: items
 #
-#  id          :bigint           not null, primary key
-#  type        :string           default("Item::Generic"), not null
-#  bsg_id      :string
-#  slug        :string
-#  full_name   :string
-#  short_name  :string
-#  wiki_title  :string
-#  categories  :text             default([]), is an Array
-#  links       :text             default([]), is an Array
-#  images      :text             default([]), is an Array
-#  data        :jsonb            not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  search_text :string           default(""), not null
+#  id                        :bigint           not null, primary key
+#  type                      :string           default("Item::Generic"), not null
+#  bsg_id                    :string
+#  slug                      :string
+#  full_name                 :string
+#  short_name                :string
+#  wiki_title                :string
+#  categories                :text             default([]), is an Array
+#  links                     :text             default([]), is an Array
+#  images                    :text             default([]), is an Array
+#  data                      :jsonb            not null
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  search_text               :string           default(""), not null
+#  armor_class_effectiveness :jsonb            not null
 #
 # Indexes
 #
@@ -40,6 +41,12 @@ class Item < ApplicationRecord
   has_many :barter_result_items, dependent: :delete_all
   has_many :craft_requirement_items, dependent: :delete_all
   has_many :craft_result_items, dependent: :delete_all
+  has_many :item_barter_requirements, dependent: :delete_all
+  has_many :item_hideout_requirements, dependent: :delete_all
+  has_many :task_objective_items, dependent: :delete_all
+  has_many :hideout_item_requirements, dependent: :delete_all
+  has_many :item_slots, dependent: :delete_all
+  has_many :item_slot_allowed_items, dependent: :delete_all
 
   attr_accessor :data_json_invalid
 
@@ -186,6 +193,15 @@ class Item < ApplicationRecord
     end
   end
 
+  # Community approximation: roughly 10 penetration per armor class, rounded
+  # down so a label states the reliable case, not the lucky one. It is only a
+  # fallback now — the wiki ballistics chart (see Item::Ammo) is the source
+  # where it has a row.
+  # ponytail: single constant, retune here when the wipe changes it.
+  def self.penetration_class(value)
+    (value.to_f / 10).floor.clamp(0, 6)
+  end
+
   # Full category list backing filter expansion. Cached: changes only on import.
   def self.category_list
     Rails.cache.fetch("items/category_list", expires_in: 1.hour) do
@@ -310,13 +326,14 @@ class Item < ApplicationRecord
   def requires_task?
     %w[OfferUnlock BarterUnlock CraftUnlock].any? do |model_name|
       model_name.constantize.exists?(item_id: id)
-    end
+    end || item_currencies.where(task_unlock: true).exists?
   end
 
   scope :task_gated, -> {
     where(id: OfferUnlock.select(:item_id))
       .or(where(id: BarterUnlock.select(:item_id)))
       .or(where(id: CraftUnlock.select(:item_id)))
+      .or(where(id: ItemCurrency.where(task_unlock: true).select(:item_id)))
   }
 
   def self.ransackable_attributes(auth_object = nil)

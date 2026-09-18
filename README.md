@@ -7,6 +7,23 @@ Answering questions like:
 - what are the armor class 5 I can get or unlock?
 - What loyalty level is required for me to buy salewas?
 - Is there magazine case barters or buyable offers, can I even buy them, how do I unlock offers?
+- What do I need to build the Lavatory, and what does Therapist LL4 cost me?
+- What is the barter recipe for a LEDX, and which quests hand one in?
+
+## Sections
+
+- `/items` — every item: stats, weight, mod slots, recipes, prices, where it
+  comes from and what it is used in.
+- `/tasks` — the quest graph: prerequisites, objectives, needed keys, rewards
+  and the unlock chain that gates trader offers and crafts.
+- `/hideout` — each station's levels, build costs and crafts.
+- `/traders` — loyalty thresholds and what each trader sells.
+- `/maps` — raid length, bosses, extracts and transits.
+- `/keys` — every key a quest asks for, and which quests need it.
+- `/ammo` — every round by caliber, sorted by penetration, with each round's
+  armor-class effectiveness from the wiki ballistics chart. A round penetrates
+  an armor class at effectiveness level 4 or higher.
+- `/armor` — body armor and helmets by class, durability and movement penalty.
 
 ## Setup
 
@@ -21,11 +38,11 @@ rails db:create db:migrate db:seed
 docker compose up --build
 ```
 
-Open `http://localhost:3000`. First boot installs gems, runs
-`db:prepare` (create + migrate), then starts Puma with live reload
-(code is bind-mounted, gems cached in a volume).
+Open `http://localhost:3000`. First boot installs gems, runs `db:prepare`
+(create + migrate), seeds the canonical dataset, then starts Puma with
+live reload (code is bind-mounted, gems cached in a volume).
 
-Seed separately — the dev DB starts empty:
+Re-seed on demand with:
 
 ```bash
 docker compose exec web bin/rails db:seed
@@ -78,8 +95,10 @@ against postgres:18, matching Neon production.
   `RAILS_MASTER_KEY`, `ADMIN_PASSWORD`).
 - VPS: Kamal via `config/deploy.yml` (`kamal setup`, then `kamal deploy`).
 
-Seed data lives in `offlinedata/` (`parsed_items.json` is tracked because
-`db:seed` needs it); regenerate it with `rake wiki:parse`.
+`db:seed` loads `datastore/canonical/` (the verified, cross-checked dataset —
+see `datastore/README.md`), not `offlinedata/` directly. Regenerate the
+canonical dataset with the scripts in `datastore/scripts/`; `offlinedata/` is
+its input.
 
 ## Queries
 
@@ -95,22 +114,20 @@ Item.find_by(bsg_id: "5448ba0b4bdc2d02308b456c")
 # Find item by name (partial match)
 Item.where("full_name ILIKE ?", "%salewa%")
 
-# Items by category
-Item.where("categories @> ?", ["meds"])
+# Items by category (categories is a string array, so pass its literal)
+Item.where("categories @> ?", "{meds}")
+Item.where("categories && ?", "{meds}")  # any overlap
 
-# Items with properties
-Item.joins(:property).count
-
-# Item properties
+# Item properties live in `data` (jsonb): tarkov.dev properties verbatim,
+# their snake_case twins, and the wiki infobox underneath as fallback.
 item = Item.find_by(bsg_id: "544fb45d4bdc2dee738b4568")
-item.property
-item.property.slots
+item.data["caliber"]
+item.data["propertiesType"]
 
-# Item slots
-item.property.slots.each do |slot|
+# Mod slots and what fits each
+item.item_slots.each do |slot|
   slot.name_id
-  slot.allowed_items
-  slot.allowed_categories
+  slot.item_slot_allowed_items.map { |allowed| allowed.item&.full_name }
 end
 
 # Item obtain methods
@@ -120,27 +137,23 @@ item.item_barters
 item.item_currencies
 ```
 
-### Properties
+### Properties (the `data` jsonb)
 
 ```ruby
 # Items by armor class
-Property.where(armor_class: "5")
-Property.where(armor_class: "6")
+Item.where("data->>'class' = ?", "5")
+Item.where("data->>'class' = ?", "6")
 
 # Items by caliber
-Property.where(caliber: "Caliber556x45NATO")
+Item.where("data->>'caliber' = ?", "Caliber556x45NATO")
 
-# Ammo types
-Property.where(properties_type: "ItemPropertiesAmmo")
+# Ammo, med kits and food/drink by tarkov.dev properties type
+Item.where("data->>'propertiesType' = ?", "ItemPropertiesAmmo")
+Item.where("data->>'propertiesType' = ?", "ItemPropertiesMedKit")
+Item.where("data->>'propertiesType' = ?", "ItemPropertiesFoodDrink")
 
-# Weapons with slots
-Property.where.not(slots: {id: nil}).joins(:slots)
-
-# Med kits
-Property.where(properties_type: "ItemPropertiesMedKit")
-
-# Food/drink
-Property.where(properties_type: "ItemPropertiesFoodDrink")
+# Weapons and mods with a slot graph
+Item.joins(:item_slots).distinct
 ```
 
 ### Tasks
@@ -260,9 +273,9 @@ CraftUnlock.where(station_level: 3)
 ### Trader Levels
 
 ```ruby
-# Items buyable from a trader at specific level
-ItemBarter.where(trader_name: "therapist", trader_level: 1)
-ItemCurrency.where(trader_name: "prapor", trader_level: 3)
+# Items buyable from a trader at specific level (trader is the display name)
+ItemBarter.where(trader: "Therapist", trader_level: "1")
+ItemCurrency.where(trader: "Prapor", min_trader_level: 3)
 
 # All trader offers for an item
 item = Item.find_by(bsg_id: "544fb45d4bdc2dee738b4568")
@@ -270,25 +283,77 @@ item.item_barters
 item.item_currencies
 
 # Trader levels for an item
-item.item_barters.pluck(:trader_name, :trader_level)
-item.item_currencies.pluck(:trader_name, :trader_level, :currency)
+item.item_barters.pluck(:trader, :trader_level)
+item.item_currencies.pluck(:trader, :min_trader_level, :currency)
 ```
 
 ### Hideout
 
 ```ruby
-# Items available from hideout
-ItemHideout.where(station_name: "Medstation")
-ItemHideout.where(station_name: "Workbench")
-ItemHideout.where(station_name: "Lavatory")
+# Craft recipe for an item
+item.item_hideouts
+item.item_hideouts.first.item_hideout_requirements  # inputs, tools and counts
 
-# Items by station level
-ItemHideout.where(station_level: 1)
-ItemHideout.where(station_level: 2)
-ItemHideout.where(station_level: 3)
+# Station build costs
+station = HideoutStation.find_by(slug: "lavatory")
+station.hideout_levels.find_by(level: 2).hideout_item_requirements
+# => Corrugated hose ×6, Pack of screws ×6, … (found_in_raid flags FIR)
 
-# Hideout crafts
+# Crafted items by station and level
+ItemHideout.where(station: "Workbench", level: 2)
+
+# Task-unlocked crafts
 CraftUnlock.where.not(hideout_station: nil)
+```
+
+### Recipes, prices and quest hand-ins
+
+```ruby
+# Barter recipe
+barter = item.item_barters.first
+barter.item_barter_requirements.map { |r| [ r.item_name, r.count ] }
+barter.buy_limit
+
+# Offer price and loyalty requirement
+offer = item.item_currencies.first
+[ offer.trader, offer.min_trader_level, offer.price, offer.currency, offer.price_rub ]
+
+# Which quests hand this item in
+item.task_objective_items.map { |oi| oi.task_objective.task.full_name }
+```
+
+### Traders
+
+```ruby
+# Loyalty thresholds
+Trader.find_by(slug: "therapist").trader_levels.map do |l|
+  [ l.level, l.required_player_level, l.required_reputation, l.pay_rate ]
+end
+
+# What a trader sells at a loyalty level
+ItemCurrency.where(trader: "Therapist", min_trader_level: 4)
+```
+
+### Maps
+
+```ruby
+map = Map.find_by(slug: "customs")
+
+map.raid_duration            # 35 (minutes)
+map.bosses                   # [{ "name" => "Reshala", "spawn_chance" => 0.6, "escorts" => [...] }]
+map.extracts                 # [{ "name" => "ZB-1011", "faction" => "shared" }, …]
+map.transits                 # [{ "name" => "Transit to Reserve", "map_name" => "Reserve" }]
+```
+
+### Task objectives and keys
+
+```ruby
+task.task_objectives.map(&:description)
+task.task_objectives.flat_map(&:task_objective_items).map(&:item_name)
+task.needed_keys  # [{ "map_name" => "Shoreline", "item_name" => …, "item_id" => … }]
+
+# Which quests need this item as a key
+Task.where("needed_keys @> ?::jsonb", [ { "item_id" => item.id } ].to_json)
 ```
 
 ### Example Queries
@@ -303,7 +368,7 @@ item = Item.find_by("full_name ILIKE ?", "%M80A1%")
 item.how_to_unlock.each do |path|
   puts "Task: #{path.task.name}"
   puts "  Reward type: #{path.reward_type}"       # start_rewards or finish_rewards
-  puts "  Unlock method: #{path.unlock_method}"   # task_reward, offer_unlock, barter_unlock, craft_unlock, loose_item
+  puts "  Unlock method: #{path.unlock_method}"   # offer_unlock, barter_unlock, craft_unlock
 end
 
 # WHERE TO GET - shows direct obtain methods (not task chain)
@@ -333,11 +398,11 @@ end
 # =============================================
 
 # What armor class 5 armors can I get?
-Item.joins(:property).where("properties.armor_class = 5")
+Item.where("data->>'class' = ?", "5")
 
 # All armors by class
-Item.joins(:property).where("properties.armor_class = 6")  # Class 6 armors
-Item.joins(:property).where("properties.armor_class = 4")  # Class 4 armors
+Item.where("data->>'class' = ?", "6")  # Class 6 armors
+Item.where("data->>'class' = ?", "4")  # Class 4 armors
 
 # =============================================
 # BUY/BARTER/UNLOCK OFFERS
@@ -351,11 +416,11 @@ mc.obtain_from_tasks      # task rewards
 
 # What loyalty level required to buy item?
 item = Item.find_by("full_name ILIKE ?", "%Salewa%")
-item.item_barters.pluck(:trader_name, :trader_level)
-item.item_currencies.pluck(:trader_name, :trader_level, :currency)
+item.item_barters.pluck(:trader, :trader_level)
+item.item_currencies.pluck(:trader, :min_trader_level, :currency)
 
 # What items can I get at loyalty level 2 from Therapist?
-Item.joins(:item_barters).where(item_barters: {trader_name: "therapist", trader_level: 2})
+Item.joins(:item_currencies).where(item_currencies: {trader: "Therapist", min_trader_level: 2})
 
 # =============================================
 # TASK REWARDS

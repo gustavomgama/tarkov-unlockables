@@ -1,0 +1,94 @@
+<% content_for :title, @trader.name %>
+<% content_for :description, "#{@trader.name} — Escape from Tarkov loyalty levels and the items they sell." %>
+
+<div class="space-y-4 sm:space-y-6">
+  <nav class="crumbs no-print" aria-label="Breadcrumb">
+    <%= link_to "Traders", traders_path %>
+    <span aria-hidden="true">/</span>
+    <span class="text-[var(--text)]"><%= @trader.name %></span>
+  </nav>
+
+  <section class="panel">
+    <div class="panel__body flex gap-4 sm:gap-6">
+      <% if @trader.image_url.present? %>
+        <img src="<%= @trader.image_url %>" alt="" width="96" height="96"
+             class="w-20 sm:w-24 shrink-0 object-contain">
+      <% end %>
+      <div class="min-w-0">
+        <h1 class="text-xl sm:text-2xl font-bold text-[var(--text-bright)]"><%= @trader.name %></h1>
+        <% if @trader.currency.present? %>
+          <p class="mt-1 text-sm text-[var(--text-muted)]">
+            deals in <span class="font-data"><%= @trader.currency %></span>
+          </p>
+        <% end %>
+        <% if @trader.description.present? %>
+          <p class="mt-2 text-sm text-[var(--text)]"><%= @trader.description %></p>
+        <% end %>
+        <% if @offers_by_level.any? %>
+          <p class="mt-2">
+            <%= link_to "Browse #{@trader.name} items", items_path(filters: { trader: [ @trader.name ] }), class: "chip chip--link" %>
+          </p>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
+  <% if @trader.trader_levels.any? %>
+    <section class="panel" aria-labelledby="loyalty-head">
+      <div class="panel__head">
+        <h2 id="loyalty-head" class="panel__title">Loyalty levels</h2>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <table class="ammo-table">
+          <thead>
+            <tr>
+              <th>Level</th>
+              <th>Player level</th>
+              <th>Reputation</th>
+              <th>Pay rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @trader.trader_levels.each do |level| %>
+              <tr>
+                <th>LL<%= level.level %></th>
+                <td><%= level.required_player_level %></td>
+                <td><%= level.required_reputation.to_f %></td>
+                <td><%= (level.pay_rate.to_f * 100).round(1) %>%</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+
+  <% @offers_by_level.sort_by { |level, _| level.to_i }.each do |level, offers| %>
+    <section class="panel" aria-labelledby="level-<%= level %>">
+      <div class="panel__head">
+        <h2 id="level-<%= level %>" class="panel__title">LL<%= level %></h2>
+        <span class="panel__note"><span class="font-data"><%= offers.size %></span> items</span>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <% offers.first(TradersController::OFFERS_PER_LEVEL).each do |offer| %>
+          <div class="srcrow">
+            <div class="srcrow__body">
+              <p class="srcrow__title">
+                <%= link_to offer.item.full_name, item_path(offer.item) %>
+                <% if offer.price.present? %>
+                  <span class="font-data text-[var(--text-bright)]"><%= number_with_delimiter(offer.price) %> <%= offer.currency %></span>
+                <% end %>
+              </p>
+            </div>
+          </div>
+        <% end %>
+        <% if offers.size > TradersController::OFFERS_PER_LEVEL %>
+          <p class="px-4 py-3 text-xs text-[var(--text-muted)]">
+            and <%= offers.size - TradersController::OFFERS_PER_LEVEL %> more —
+            <%= link_to "browse all #{@trader.name} items", items_path(filters: { trader: [ @trader.name ] }) %>.
+          </p>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>
