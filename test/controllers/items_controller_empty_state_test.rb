@@ -27,11 +27,22 @@ class ItemsControllerEmptyStateTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "Show all items"
   end
 
+  # The category filter is a no-op when the whole group is selected, and the
+  # group is every category in the database. The test therefore seeds the group
+  # itself: it cannot rely on the fixtures, because another test destroys every
+  # item, which empties the category list and made this order-dependent (it
+  # passed locally and failed in CI).
   test "filters that match nothing explain the filters" do
+    first = create_item("Category One Item", categories: [ "zzqqxxone" ])
+    second = create_item("Category Two Item", categories: [ "zzqqxxtwo" ])
+
     get items_url(filters: { category: [ "zzqqxxnothing" ] })
 
     assert_response :success
     assert_select "p", /No items match this combination of filters/
     assert_select "a", text: "Clear filters"
+  ensure
+    first&.destroy
+    second&.destroy
   end
 end
