@@ -4,14 +4,6 @@ class ItemsController < ApplicationController
   AUTOCOMPLETE_LIMIT = 8
   AUTOCOMPLETE_MIN_QUERY = 2
 
-  # Name is the default. Weight comes from the item's `physical` block, so a
-  # jsonb cast (all canonical weights are numbers or absent).
-  SORT_ORDERS = {
-    "name" => "items.full_name ASC",
-    "weight_asc" => "sort_weight ASC NULLS LAST, items.full_name ASC",
-    "weight_desc" => "sort_weight DESC NULLS LAST, items.full_name ASC"
-  }.freeze
-
   def index
     # Filter dropdowns only change on seed/import: cache the whole block so
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
@@ -31,10 +23,7 @@ class ItemsController < ApplicationController
     items = Item.all.order(full_name: :asc)
     items = items.loose_search(params[:q], columns: %w[full_name short_name]) if params[:q].present?
     items = apply_filters(items) if filter_params.present?
-    # Count before sorting: the weight sort selects an extra column, which a
-    # plain COUNT would reject.
     @item_count = items.count
-    items = apply_sort(items)
 
     page = int_param(:page)
     page = 1 if page < 1
@@ -218,17 +207,6 @@ class ItemsController < ApplicationController
     end
 
     items
-  end
-
-  def apply_sort(items)
-    if params[:sort].to_s.start_with?("weight")
-      # The weight is selected under an alias: DISTINCT (added by some
-      # filters) requires every ORDER BY expression in the select list.
-      items.select("items.*, (items.data->>'weight')::float AS sort_weight")
-           .order(Arel.sql(SORT_ORDERS[params[:sort]]))
-    else
-      items.order(Arel.sql(SORT_ORDERS["name"]))
-    end
   end
 
   def currency_options

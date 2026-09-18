@@ -85,25 +85,4 @@ module TasksHelper
     return label unless label == "Items"
     row.item_name.to_s.match?(/roubles|dollars|euros|₽|\$/i) ? "Currency" : label
   end
-
-  # Short badge per objective type. Falls back to the type, so a new
-  # tarkov.dev objective kind shows up instead of vanishing.
-  OBJECTIVE_LABELS = {
-    "giveItem" => "Hand over",
-    "giveQuestItem" => "Hand over",
-    "findItem" => "Find",
-    "findQuestItem" => "Find",
-    "plantItem" => "Plant",
-    "plantQuestItem" => "Plant",
-    "visit" => "Visit",
-    "mark" => "Mark",
-    "shoot" => "Eliminate",
-    "extract" => "Extract",
-    "buildWeapon" => "Build",
-    "traderLevel" => "Trader"
-  }.freeze
-
-  def objective_label(type)
-    OBJECTIVE_LABELS[type.to_s] || type.to_s.titleize
-  end
 end

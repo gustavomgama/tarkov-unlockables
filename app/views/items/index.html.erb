@@ -44,11 +44,6 @@
             class: "input w-auto", "aria-label": "Items per page",
             data: { action: "change->filter-form#submit" } %>
 
-      <%= select_tag :sort,
-            options_for_select([ [ "Name", "name" ], [ "Lightest", "weight_asc" ], [ "Heaviest", "weight_desc" ] ], params[:sort]),
-            class: "input w-auto", "aria-label": "Sort order",
-            data: { action: "change->filter-form#submit" } %>
-
       <div class="flex gap-px bg-[var(--border)] border border-[var(--border)] p-px">
         <button type="button" data-view-toggle-target="button" data-action="view-toggle#toggle" data-view="grid"
                 aria-pressed="false"
@@ -115,7 +110,7 @@
       </noscript>
 
       <% if has_filters || params[:q].present? %>
-        <%= link_to "Clear all", items_path(per_page: @per_page, sort: params[:sort].presence), class: "text-sm text-[var(--danger)] hover:underline px-2 py-2" %>
+        <%= link_to "Clear all", items_path(per_page: @per_page), class: "text-sm text-[var(--danger)] hover:underline px-2 py-2" %>
       <% end %>
     </div>
 
@@ -127,7 +122,7 @@
             <% next if filter_type.to_s == "exclude_ref" %>
             <span class="chip chip--strong">
               <%= filter_type.to_s.humanize %>: <%= filter_value_label(filter_type, value) %>
-              <%= link_to "×", items_path(q: params[:q], per_page: @per_page, sort: params[:sort].presence, filters: active_filters.except(filter_type).merge(filter_type => Array(values) - [ value ])),
+              <%= link_to "×", items_path(q: params[:q], per_page: @per_page, filters: active_filters.except(filter_type).merge(filter_type => Array(values) - [ value ])),
                     class: "ml-1 text-[var(--text-muted)] hover:text-[var(--danger)] no-underline",
                     "aria-label": "Remove filter #{filter_type} #{value}" %>
             </span>
@@ -151,21 +146,18 @@
         <caption class="sr-only">Items matching the current search and filters</caption>
         <thead class="bg-[var(--bg-panel)]">
           <tr class="text-left text-[0.625rem] uppercase tracking-widest text-[var(--text-muted)]">
-            <th scope="col" class="px-3 py-2 font-normal w-[38%]">Name</th>
-            <th scope="col" class="px-3 py-2 font-normal w-[16%]">Short name</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[45%]">Name</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[18%]">Short name</th>
             <th scope="col" class="px-3 py-2 font-normal w-[12%]">Type</th>
-            <th scope="col" class="px-3 py-2 font-normal w-[12%] text-right">Weight</th>
-            <th scope="col" class="px-3 py-2 font-normal w-[22%]">Categories</th>
+            <th scope="col" class="px-3 py-2 font-normal w-[25%]">Categories</th>
           </tr>
         </thead>
         <tbody>
           <% @items.each do |item| %>
-            <% weight = item.data["weight"] %>
             <tr class="border-t border-[var(--border)] hover:bg-[var(--bg-elevated)]">
               <td class="px-3 py-2"><%= link_to item.full_name, item_path(item) %></td>
               <td class="px-3 py-2 font-data text-[var(--text-muted)]"><%= item.short_name %></td>
               <td class="px-3 py-2 text-[var(--text-muted)]"><%= item.class.name.demodulize.titleize %></td>
-              <td class="px-3 py-2 font-data text-right text-[var(--text-muted)]"><%= weight.present? ? "#{weight} kg" : "—" %></td>
               <td class="px-3 py-2 text-[var(--text-muted)]"><%= category_labels(item, limit: 3).join(", ") %></td>
             </tr>
           <% end %>
@@ -180,7 +172,7 @@
           from sm up. %>
       <% page_link = ->(label, page, disabled, always: true) {
            link_to label,
-                   items_path(page: page, q: params[:q], per_page: @per_page, sort: params[:sort].presence, filters: safe_filters),
+                   items_path(page: page, q: params[:q], per_page: @per_page, filters: safe_filters),
                    class: [ "btn justify-center flex-1 sm:flex-none",
                             ("hidden sm:inline-flex" unless always),
                             ("opacity-40 pointer-events-none" if disabled) ].compact.join(" "),

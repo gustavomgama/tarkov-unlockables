@@ -1,15 +1,5 @@
 <% armor_class = item.data["class"] %>
 <% armor_type = item.data["armor_type"].presence %>
-<%# armor_slots is an array of hashes in real data; tolerate anything else. %>
-<% slots = Array(item.data["armor_slots"]).select { |s| s.is_a?(Hash) }
-                                         .map { |s| s["name"].to_s }
-                                         .reject { |n| n.match?(/\A[0-9a-f]{20,}/) }
-                                         .map { |n| n.sub(/_(plate|mount|slot)\z/i, "").tr("_", " ").titleize }
-                                         .uniq %>
-<% zones = Array(item.data["zones"]) %>
-<%# "2x {{id}}<br/> 2x {{id}}" — the plate ids do not resolve, but the count
-    still tells you what the vest arrives with. %>
-<% plates = item.data["default_plates"].to_s.scan(/(\d+)\s*x/i).flatten.map(&:to_i).sum %>
 <% durability = item.data["max_uses"].presence %>
 
 <dl class="stats">
@@ -34,13 +24,6 @@
       <dd class="stat__val"><%= item.data["slot"].titleize %></dd>
     </div>
   <% end %>
-
-  <% if zones.any? %>
-    <div class="stat">
-      <dt class="stat__key">Zones covered</dt>
-      <dd class="stat__val"><%= zones.size %></dd>
-    </div>
-  <% end %>
 </dl>
 
 <% if armor_class.present? %>
@@ -52,29 +35,11 @@
   </div>
 <% end %>
 
-<% if armor_type.present? || slots.any? || plates.positive? %>
+<% if armor_type.present? %>
   <dl class="specs">
-    <% if armor_type.present? %>
-      <div class="spec">
-        <dt class="spec__key">Armor Type</dt>
-        <dd class="spec__val"><%= armor_type %></dd>
-      </div>
-    <% end %>
-    <% if plates.positive? %>
-      <div class="spec">
-        <dt class="spec__key">Ships with</dt>
-        <dd class="spec__val"><%= plates %> <%= "plate".pluralize(plates) %></dd>
-      </div>
-    <% end %>
-    <% if slots.any? %>
     <div class="spec">
-      <dt class="spec__key">Plate slots</dt>
-      <dd class="spec__val flex flex-wrap justify-end gap-1">
-        <% slots.each do |slot| %>
-          <span class="chip chip--strong"><%= slot %></span>
-        <% end %>
-      </dd>
+      <dt class="spec__key">Armor Type</dt>
+      <dd class="spec__val"><%= armor_type %></dd>
     </div>
-    <% end %>
   </dl>
 <% end %>

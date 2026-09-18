@@ -16,7 +16,6 @@
             <th scope="col">Armor</th>
             <th scope="col">Durability</th>
             <th scope="col">Material</th>
-            <th scope="col">Zones</th>
             <th scope="col">Speed</th>
             <th scope="col">Turn</th>
           </tr>
@@ -29,7 +28,6 @@
               <th scope="row"><%= link_to armor.full_name, item_path(armor) %></th>
               <td><%= armor.data["durability"].presence || "—" %></td>
               <td class="muted"><%= armor.data["material"].presence || "—" %></td>
-              <td class="muted"><%= Array(armor.data["zones"]).size %></td>
               <td><%= speed.nil? ? "—" : "#{(speed.to_f * 100).round}%" %></td>
               <td><%= turn.nil? ? "—" : "#{(turn.to_f * 100).round}%" %></td>
             </tr>

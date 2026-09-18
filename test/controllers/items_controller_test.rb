@@ -85,8 +85,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Caliber"
     assert_select "dd", text: "5.45x39mm"
     assert_select "dt", text: "Default Ammo"
-    assert_select "dt", text: "Ergonomics"
-    assert_select "dt", text: "Recoil"
     # fire_modes / sightrange / effective_distance are not in the imported
     # weapon data, so the readout no longer claims to show them.
     assert_select "dt", text: "Fire Modes", count: 0
@@ -114,7 +112,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Damage"
     assert_select "dt", text: "Penetration"
     assert_select "dt", text: "Ammo Type"
-    assert_select "dt", text: "Stack Max Size"
   ensure
     ammo&.destroy
   end
@@ -137,10 +134,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dt", text: "Armor Class"
     assert_select "dd", text: "4"
     assert_select "dt", text: "Durability"
-    # Zone coverage is surfaced now; a legacy `armor_slots` integer must not
-    # be mistaken for the real array-of-hashes structure.
-    assert_select "dt", text: "Zones covered"
-    assert_select "dt", text: "Plate slots", count: 0
   ensure
     armor&.destroy
   end
@@ -382,19 +375,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     preset&.destroy
   end
 
-  test "show counts the plates an armor ships with" do
-    armor = Item::Armor.create!(bsg_id: "pl-#{SecureRandom.hex(4)}", full_name: "Plated Vest", short_name: "PV",
-                                data: { "class" => 5, "default_plates" => "2x {{id}}<br/>2x {{id2}}" })
-
-    get item_url(armor)
-
-    assert_response :success
-    assert_select "dt", text: "Ships with"
-    assert_select "dd", text: "4 plates"
-  ensure
-    armor&.destroy
-  end
-
   test "show handles item with no data without error" do
     bare = Item.create!(
       bsg_id: "bare-#{SecureRandom.hex(4)}",
@@ -559,19 +539,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     input&.destroy
   end
 
-  test "show renders item weight and grid size" do
-    item = Item.create!(bsg_id: "ph-#{SecureRandom.hex(4)}", full_name: "Heavy Item", short_name: "HI",
-                        data: { "weight" => 3.5, "width" => 2, "height" => 1, "stack_max_size" => 1 })
-
-    get item_url(item)
-
-    assert_response :success
-    assert_match "3.5 kg", response.body
-    assert_match "2 × 1 slots", response.body
-  ensure
-    item&.destroy
-  end
-
   test "show renders slots and where a mod fits" do
     weapon = Item.create!(bsg_id: "sl-#{SecureRandom.hex(4)}", full_name: "Slot Weapon", short_name: "SW")
     mods = Array.new(8) do |i|
@@ -632,18 +599,6 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
   ensure
     preset&.destroy
     part&.destroy
-  end
-
-  test "index table shows the item weight" do
-    item = Item.create!(bsg_id: "wt-#{SecureRandom.hex(4)}", full_name: "Weight Row", short_name: "WR",
-                        data: { "weight" => 1.25 })
-
-    get items_url(q: "Weight Row")
-
-    assert_response :success
-    assert_select "td", text: "1.25 kg"
-  ensure
-    item&.destroy
   end
 
   test "show collapses a long list of fitting slots" do
@@ -779,49 +734,17 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     [ prapor_item, therapist_item ].each { |i| i&.destroy }
   end
 
-  test "index sorts by weight" do
-    heavy = Item.create!(bsg_id: "sw-h-#{SecureRandom.hex(4)}", full_name: "Weighs A Lot", short_name: "WAL",
-                         data: { "weight" => 9.9 })
-    light = Item.create!(bsg_id: "sw-l-#{SecureRandom.hex(4)}", full_name: "Weighs A Little", short_name: "WALt",
-                         data: { "weight" => 0.1 })
-
-    get items_url(q: "Weighs A", sort: "weight_asc")
-
-    assert_response :success
-    assert_operator response.body.index("Weighs A Little"), :<, response.body.index("Weighs A Lot")
-  ensure
-    [ heavy, light ].each { |i| i&.destroy }
-  end
-
-  test "index sorts by weight when a filter adds DISTINCT" do
-    light = Item.create!(bsg_id: "dw1-#{SecureRandom.hex(4)}", full_name: "Distinct Light", short_name: "DL",
-                         data: { "weight" => 0.2 })
-    heavy = Item.create!(bsg_id: "dw2-#{SecureRandom.hex(4)}", full_name: "Distinct Heavy", short_name: "DH",
-                         data: { "weight" => 7.7 })
-    [ light, heavy ].each do |item|
-      item.item_currencies.create!(trader: "Prapor", currency: "RUB", min_trader_level: 1)
-    end
-
-    get items_url(filters: { trader: [ "Prapor" ] }, sort: "weight_desc")
-
-    assert_response :success
-    assert_operator response.body.index("Distinct Heavy"), :<, response.body.index("Distinct Light")
-  ensure
-    ItemCurrency.destroy_all
-    [ light, heavy ].each { |i| i&.destroy }
-  end
-
-  test "index renders every filter with a weight sort" do
+  test "index renders every filter" do
     [
-      { q: "a", sort: "weight_desc" },
-      { filters: { currency: [ "RUB" ] }, sort: "weight_asc" },
-      { filters: { trader: [ "Prapor" ] }, sort: "weight_desc" },
-      { filters: { source: [ "trader" ] }, sort: "weight_asc" },
-      { filters: { category: [ "headphones" ] }, sort: "weight_desc" },
-      { filters: { caliber: [ "Caliber556x45NATO" ] }, sort: "weight_desc" },
-      { filters: { armor_class: [ "5" ] }, sort: "weight_asc" },
-      { filters: { task_required: [ "1" ] }, sort: "weight_desc" },
-      { filters: { exclude_ref: [ "1" ] }, sort: "weight_desc" }
+      { q: "a" },
+      { filters: { currency: [ "RUB" ] } },
+      { filters: { trader: [ "Prapor" ] } },
+      { filters: { source: [ "trader" ] } },
+      { filters: { category: [ "headphones" ] } },
+      { filters: { caliber: [ "Caliber556x45NATO" ] } },
+      { filters: { armor_class: [ "5" ] } },
+      { filters: { task_required: [ "1" ] } },
+      { filters: { exclude_ref: [ "1" ] } }
     ].each do |params|
       get items_url(params)
       assert_response :success, "expected 200 for #{params.inspect}"

@@ -1,5 +1,5 @@
 <% content_for :title, @task.full_name %>
-<% content_for :description, "#{@task.full_name} — Escape from Tarkov quest: requirements, objectives, rewards and unlock chain." %>
+<% content_for :description, "#{@task.full_name} — Escape from Tarkov quest: requirements, rewards and unlock chain." %>
 <% chain = @task.prerequisite_chain([], task_map) %>
 <% prerequisites = chain.length - 1 %>
 <% requirements = @task.requirements.select { |r|
@@ -173,41 +173,6 @@
       </section>
     <% end %>
 
-    <% objectives = @task.task_objectives %>
-    <% if objectives.any? %>
-      <section class="panel lg:col-span-2" aria-labelledby="objectives-head">
-        <div class="panel__head">
-          <h2 id="objectives-head" class="panel__title">Objectives</h2>
-          <span class="panel__note"><%= objectives.size %> to complete</span>
-        </div>
-        <div class="panel__body panel__body--flush">
-          <% objectives.each do |objective| %>
-            <div class="srcrow">
-              <span class="srcbadge" style="--tone: var(--badge-task)"><%= objective_label(objective.objective_type) %></span>
-              <div class="srcrow__body">
-                <p class="srcrow__title"><%= objective.description.presence || objective.objective_type.to_s.titleize %></p>
-                <p class="srcrow__meta">
-                  <% if objective.count.to_i > 1 %>
-                    <span class="font-data">×<%= objective.count %></span>
-                  <% end %>
-                  <% if objective.optional %>
-                    <span class="text-[var(--text-muted)]">optional</span>
-                  <% end %>
-                </p>
-                <% items = objective.task_objective_items %>
-                <% if items.any? %>
-                  <p class="srcrow__meta">
-                    any of
-                    <%= safe_join(items.first(8).map { |oi| oi.item ? link_to(oi.item_name, item_path(oi.item)) : oi.item_name }, ", ") %>
-                    <% if items.size > 8 %><span class="text-[var(--text-muted)]">(+<%= items.size - 8 %> more)</span><% end %>
-                  </p>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      </section>
-    <% end %>
 
     <section class="panel <%= "lg:col-span-2" unless requirements.any? %>" aria-labelledby="rewards-head">
       <div class="panel__head">
