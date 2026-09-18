@@ -633,7 +633,8 @@ def main():
     tables = [r[0] for r in con.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '%_fts%' ORDER BY name")]
     for t in tables:
-        lines.append(f"| {t} | {con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]} |")  # nosec B608
+        count = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # nosec B608
+        lines.append(f"| {t} | {count} |")
     con.close()
     os.makedirs(C.REPORTS, exist_ok=True)
     with open(os.path.join(C.REPORTS, "03_sqlite_stats.md"), "w", encoding="utf-8") as fh:
