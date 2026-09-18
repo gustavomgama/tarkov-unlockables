@@ -6,8 +6,10 @@ Everything the canonical dataset is built from. Two locations:
   set this task started from).
 - `datastore/fetched/` — seven endpoints fetched from
   `https://json.tarkov.dev/regular` on **2026-09-16** to supply the display
-  strings and reference entities the snapshots lack. Hashes and sizes in
-  `fetched/manifest.json`; refresh with `scripts/10_fetch.py --refresh`.
+  strings and reference entities the snapshots lack, plus one MediaWiki API
+  response for the wiki's ballistics page. Hashes and sizes in
+  `fetched/manifest.json`; refresh with `scripts/10_fetch.py --refresh`
+  (and `scripts/25_ballistics.py --refresh` for the wiki page).
 
 ---
 
@@ -149,6 +151,7 @@ typed, wiki-markup links). Kept verbatim as `wiki.infobox`.
 | `maps` | 8.6 MB | 17 map entities: `raidDuration`, `players`, `enemies`, `bosses`, `extracts`, `transits` |
 | `hideout` | 80 KB | 26 stations, 68 levels, with `itemRequirements` (incl. `foundInRaid`), `stationLevelRequirements`, `traderRequirements`, `constructionTime` |
 | `hideout_en` | 15 KB | `hideout_area_N_name` → station name |
+| `ballistics` | 101 KB | the Fandom wiki's `Ballistics` page wikitext, via the MediaWiki API (`escapefromtarkov.fandom.com/api.php`, `action=query&prop=revisions&rvslots=*`). The page's four tables are parsed by `scripts/25_ballistics.py`: the ammo and penetration chart (190 rounds — the only source for per-armor-class effectiveness), the effectiveness scale (7 rows), the armor-material destructibility table (8 rows) and the caliber grouping. The first three become `canonical/ballistics.ndjson`, `armor_classes.ndjson` and `armor_materials.ndjson`; the grouping is folded into each round's `group`. Fandom answers `403` to urllib's default user agent, so the fetch sends one |
 
 These are live endpoints, so the canonical build is **snapshot + live
 localization**. Ids are stable across both; the 2026-09-03 snapshot had 5,312
@@ -184,6 +187,11 @@ Ranked by how likely it is to matter:
    labels, kept as-is.
 7. **`item.json`'s price fields are a single sample**, not a snapshot; do not
    treat as current.
+8. **Four rounds on the ballistics chart have no item.** `7.62x51mm Ball 11
+   Long Range`, `7.62x54mm R Tungsten Carbide AP`, `12.7x108mm BZT-44M` and
+   `12.7x108mm B-32` are on the live wiki but not in the 2026-09-03 snapshot,
+   so they keep a null `bsg_id` in `ballistics.ndjson` — the same snapshot gap
+   as 3. above, seen from the wiki side.
 
 ---
 

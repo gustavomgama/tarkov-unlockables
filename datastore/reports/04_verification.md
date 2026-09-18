@@ -48,31 +48,33 @@
 | 44 | PASS | task graph is a well-formed DAG — acyclic, depth 18, kappa 16, lightkeeper 7 |
 | 45 | PASS | wiki weapon variants map 1:1 to presets — 103 variants over 52 base weapons, 101 matched 1:1, 1063 attachments |
 | 46 | PASS | wiki build parts agree with preset parts — 99/101 wiki part lists are a subset of their preset's parts |
-| 47 | PASS | map boss names resolved — 129 entries named |
-| 48 | PASS | map transit names resolved — 33 entries named |
-| 49 | PASS | map extract names resolved — 152 entries named |
-| 50 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
-| 51 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
-| 52 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
-| 53 | PASS | sqlite file exists — 52187136 |
-| 54 | PASS | sqlite integrity_check — ok |
-| 55 | PASS | sqlite item count matches canonical — ==5481 = 5481 |
-| 56 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
-| 57 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
-| 58 | PASS | view v_item_price returns — 3540 priced items |
-| 59 | PASS | sqlite trader levels — ==42 = 42 |
-| 60 | PASS | sqlite slot graph present — 39910 allowed-item edges |
-| 61 | PASS | sqlite acquisition present — 7903 routes |
-| 62 | PASS | category paths backfilled — 35643/35643 populated |
-| 63 | PASS | route costs are complete or null, never faked — 929 rows, 921 priced, 8 incomplete (null cost), 1 legitimately zero-cost (no inputs), 146 cheaper than flea |
-| 64 | PASS | weapon build stats present — 171 weapons, 109 with capped combinatorial counts |
-| 65 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
-| 66 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
-| 67 | PASS | special-slot ids resolve to items or categories — 37 ids = 28 items + 9 categories; 44 items carry the specialSlot type |
-| 68 | PASS | every wiki infobox id is attached to its item — 4115/5481 items carry a wiki block; 216 ids filled from 156 multi-id pages; 1 wiki-only item(s); 22 title/name differences |
-| 69 | PASS | README row counts match the data — 9 documented counts match (barters=789, categories=200, crafts=214, hideout_stations=26...) |
-| 70 | PASS | map nests are normalized without loss — 5 map tables complete (map_boss_helpers=192, map_bosses=129, map_enemies=92, map_extracts=152, map_transits=33) |
-| 71 | PASS | no table is entirely empty — 57 tables all non-empty |
-| 72 | PASS | wiki-derived relations loaded — item_wiki_slots=26786, item_wiki_meta=4115, item_wiki_trader_offers=2760, item_conflicts=13588, item_compatibility=10775, item_grids=903 |
+| 47 | PASS | ballistics chart agrees with the API — 190 rounds, 186 joined to items, 1318 values compared to the API, 99% equal, 4 wiki-vs-API disagreements |
+| 48 | PASS | armor materials agree with reference.json — 8 materials, both numbers equal to reference.json |
+| 49 | PASS | map boss names resolved — 129 entries named |
+| 50 | PASS | map transit names resolved — 33 entries named |
+| 51 | PASS | map extract names resolved — 152 entries named |
+| 52 | PASS | buy routes are all tarkovdev + priced — 2658 tdev rows (2658 priced) + 3202 index offers (78 with variant) |
+| 53 | PASS | buy coverage (tdev + index union) >= 2,900 — buyable items = 2965 |
+| 54 | PASS | sell_to rows have no null price — 25488 rows, 25281 positive, 207 zero |
+| 55 | PASS | sqlite file exists — 52187136 |
+| 56 | PASS | sqlite integrity_check — ok |
+| 57 | PASS | sqlite item count matches canonical — ==5481 = 5481 |
+| 58 | PASS | fts search finds M4A1 — 3+ hits, first=Colt M4A1 5.56x45 assault rifle |
+| 59 | PASS | fts search finds LEDX — 2+ hits, first=LEDX Skin Transilluminator |
+| 60 | PASS | view v_item_price returns — 3540 priced items |
+| 61 | PASS | sqlite trader levels — ==42 = 42 |
+| 62 | PASS | sqlite slot graph present — 39910 allowed-item edges |
+| 63 | PASS | sqlite acquisition present — 7903 routes |
+| 64 | PASS | category paths backfilled — 35643/35643 populated |
+| 65 | PASS | route costs are complete or null, never faked — 929 rows, 921 priced, 8 incomplete (null cost), 1 legitimately zero-cost (no inputs), 146 cheaper than flea |
+| 66 | PASS | weapon build stats present — 171 weapons, 109 with capped combinatorial counts |
+| 67 | PASS | all analysis steps have run — item_acquisition_cost, weapon_build_stats |
+| 68 | PASS | armor materials join to items — 326 armored items joined to 8 materials |
+| 69 | PASS | special-slot ids resolve to items or categories — 37 ids = 28 items + 9 categories; 44 items carry the specialSlot type |
+| 70 | PASS | every wiki infobox id is attached to its item — 4115/5481 items carry a wiki block; 216 ids filled from 156 multi-id pages; 1 wiki-only item(s); 22 title/name differences |
+| 71 | PASS | README row counts match the data — 12 documented counts match (armor_classes=7, armor_materials=8, ballistics=190, barters=789...) |
+| 72 | PASS | map nests are normalized without loss — 5 map tables complete (map_boss_helpers=192, map_bosses=129, map_enemies=92, map_extracts=152, map_transits=33) |
+| 73 | PASS | no table is entirely empty — 57 tables all non-empty |
+| 74 | PASS | wiki-derived relations loaded — item_wiki_slots=26786, item_wiki_meta=4115, item_wiki_trader_offers=2760, item_conflicts=13588, item_compatibility=10775, item_grids=903 |
 
-**72/72 checks passed.**
+**74/74 checks passed.**

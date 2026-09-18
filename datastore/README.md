@@ -36,6 +36,9 @@ datastore/
 | `canonical/maps.ndjson` | 17 | maps with raid duration, extracts, transits, bosses |
 | `canonical/categories.ndjson` | 200 | internal + handbook category trees with paths |
 | `canonical/weapon_variants.ndjson` | 103 | wiki-named weapon builds with their exact attachment lists, mapped 1:1 to tarkovdev presets |
+| `canonical/ballistics.ndjson` | 190 | one row per round from the wiki's ballistics chart: damage, penetration, armor damage, accuracy, recoil, bleeds, speed and **effectiveness against armor class 1-6** |
+| `canonical/armor_classes.ndjson` | 7 | the wiki's effectiveness scale: what level 0-6 means and how many hits it takes |
+| `canonical/armor_materials.ndjson` | 8 | the wiki's destructibility table, kept as a cross-check of the API's copy |
 | `canonical/reference.json` | — | levels, skills, mastery, armor materials, achievements, prestige |
 
 Price it: `item_acquisition_cost` (SQLite) costs every barter and craft by
@@ -46,7 +49,6 @@ adds the item's own flea price and the difference.
 
 Key structure: **the BSG id is the join key everywhere**, and every item
 carries both directions of the graph —
-
 ```
 acquisition:  buy_from trader · barter · craft · task reward · hideout craft
 used_in:      craft input · barter requirement · hideout build cost · quest objective
@@ -54,12 +56,21 @@ used_in:      craft input · barter requirement · hideout build cost · quest o
 
 so "how do I get X" and "what is X for" are both single lookups.
 
+The ballistics files come from the wiki's [Ballistics](https://escapefromtarkov.fandom.com/wiki/Ballistics)
+page, the only source that publishes **how effective each round is against
+each armor class** (and the scale those six numbers are read on). Every other
+column on that page repeats a value the dataset already holds, so
+`99_verify.py` compares them rather than trusting the parse: 1,000+ values
+against the API's ammo properties at ≥95% agreement, and both armor-material
+destructibility numbers against `reference.json`.
+
 ## Rebuild
 
 ```bash
 cd datastore/scripts
 ~/.pyvenv-tarkov/bin/python 10_fetch.py           # cache tarkov.dev *_en/maps/hideout (idempotent)
 ~/.pyvenv-tarkov/bin/python 20_build_canonical.py # offlinedata + fetched -> canonical/
+~/.pyvenv-tarkov/bin/python 25_ballistics.py      # wiki ballistics page -> canonical/ (fetches once)
 ~/.pyvenv-tarkov/bin/python 30_build_sqlite.py    # canonical/ -> tarkov.sqlite3
 ~/.pyvenv-tarkov/bin/python 99_verify.py          # every check, exits non-zero on failure
                                                   # (the count is in reports/04_verification.md)
@@ -175,3 +186,11 @@ jq -c 'select(.slug=="colt-m4a1-556x45-assault-rifle") | {name, slots: (.slots|l
    (2,965 items, 78 of them variant-labelled, unpriced). Their union is what
    makes an item "buyable". There is no `index_hideout` route — the index's
    hideout claims are a strict subset of `craft` and were dropped.
+6. **The ballistics chart is name-joined and snapshot-bound.** 186 of its 190
+   rounds resolve to an item by normalized name; the four that do not
+   (`7.62x51mm Ball 11 Long Range`, `7.62x54mm R Tungsten Carbide AP`,
+   `12.7x108mm BZT-44M`, `12.7x108mm B-32`) are items the snapshot lacks, and
+   they keep a null `bsg_id` rather than being dropped. The page's `*`
+   footnote — the effectiveness numbers assume every projectile hits — is not
+   modelled, and a `9x35` damage cell is split into `projectile_count` 9 and
+   `damage` 35 so it stays in the API's per-projectile unit.

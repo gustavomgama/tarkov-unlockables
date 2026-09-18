@@ -190,6 +190,50 @@ enemies[], bosses[], extracts[{name,faction}], transits[{name,map}]`.
 `id, kind` (`item` \| `handbook`), `slug, parent_id, children_ids, path, depth,
 min_level_for_flea, image_url`. `path` is the full slug chain from the root.
 
+## `ballistics.ndjson` — 190 rows
+
+One row per round in the wiki's ammo and penetration chart, across 30 calibers.
+This is the only source for the per-armor-class effectiveness numbers; the rest
+of the row is the wiki's copy of the API's ammo properties, cross-checked in
+`99_verify.py` rather than trusted.
+
+| field | type | notes |
+| --- | --- | --- |
+| `name` | string | round name (the wiki page title); 190 distinct |
+| `bsg_id` | string? | the item this round is; null for the 4 rounds the snapshot lacks |
+| `caliber` | string | the block the chart lists it under, e.g. `7.62x25mm Tokarev` |
+| `group` | string | quick-selection group: `pistol`, `pdw`, `rifle`, `shotgun`, `other` |
+| `damage` | int | **per projectile**, the API's unit — a `9x35` cell is 9 projectiles of 35 |
+| `projectile_count` | int | projectiles per shot (1 unless the cell was a multiple; 15 rows) |
+| `penetration_power`, `armor_damage`, `speed` | int | penetration power, armor damage %, speed m/s |
+| `accuracy`, `recoil`, `light_bleed`, `heavy_bleed` | int? | signed percentages; null where the cell is blank (76/74/111/103 rows) |
+| `subsonic`, `tracer` | bool | from the `S`/`T` superscript on the name |
+| `vs_armor_class` | object | `"1".."6"` -> 0-6 effectiveness level, from the six `Bullet effectiveness` columns |
+| `wiki_link` | string | the round's wiki page |
+
+## `armor_classes.ndjson` — 7 rows
+
+The scale `vs_armor_class` is read on, in order 0-6.
+
+| field | type | notes |
+| --- | --- | --- |
+| `armor_class` | int | 0-6 |
+| `label` | string | e.g. `Magdump only`, `Usually ignores` |
+| `bullets_stopped` | string | the wiki's range kept as text: `20+`, `13 to 20`, `<1` |
+| `explanation` | string | what that many hits means for the round |
+
+## `armor_materials.ndjson` — 8 rows
+
+The wiki's destructibility table. `reference.json` carries the same numbers
+from the API, so this file is the cross-check: `99_verify.py` fails if either
+number differs.
+
+| field | type | notes |
+| --- | --- | --- |
+| `material` | string | the wiki's spelling, e.g. `Combined Materials` |
+| `reference` | string? | the `reference.json.armor_materials` key it maps to, e.g. `Combined` |
+| `destructibility`, `explosive_destructibility` | float | per-hit and per-explosion durability factors |
+
 ## `reference.json`
 
 `flea_market, armor_materials, player_levels, skills, mastering, special_items,

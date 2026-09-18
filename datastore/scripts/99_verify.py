@@ -54,7 +54,8 @@ def main():
     # -- canonical shape ---------------------------------------------------
     check("canonical files exist", lambda: ", ".join(
         f"{n}.ndjson" for n in ("items", "tasks", "traders", "barters", "crafts",
-                                "hideout_stations", "maps", "categories")
+                                "hideout_stations", "maps", "categories", "ballistics",
+                                "armor_classes", "armor_materials")
         if not os.path.exists(os.path.join(C.CANON, f"{n}.ndjson"))) or "all present")
     check("items unique bsg_id", lambda: f"{len(item_ids)} distinct of {len(items)}"
           if len(item_ids) == len(items) else (_ for _ in ()).throw(AssertionError("duplicate bsg_id")))
@@ -121,6 +122,8 @@ def main():
     check("task graph is a well-formed DAG", lambda: _task_graph(tasks))
     check("wiki weapon variants map 1:1 to presets", lambda: _weapon_variants())
     check("wiki build parts agree with preset parts", lambda: _build_parts_agree())
+    check("ballistics chart agrees with the API", lambda: _ballistics())
+    check("armor materials agree with reference.json", lambda: _armor_materials())
     check("map boss names resolved", lambda: _map_names(maps, "bosses"))
     check("map transit names resolved", lambda: _map_names(maps, "transits"))
     check("map extract names resolved", lambda: _map_names(maps, "extracts"))
@@ -455,6 +458,80 @@ def _wiki_crosscheck():
             f"crafts {s['crafts_matched']}/{s['wiki_crafts']} ({craft_pct}%), "
             f"ballistics {s['ballistics_agreed']}/{s['ballistics_compared']} ({b_pct}%), "
             f"{s['ballistics_disagreements']} numeric disagreements")
+
+
+def _ballistics():
+    """The ammo and penetration chart is the only source for the per-armor-class
+    effectiveness column, and it repeats the API's ammo properties everywhere
+    else — so it is checked for shape, then pinned against the API value by
+    value, which is what proves the column mapping is right."""
+    rows = list(C.load_jsonl(os.path.join(C.CANON, "ballistics.ndjson")))
+    classes = list(C.load_jsonl(os.path.join(C.CANON, "armor_classes.ndjson")))
+    assert len(rows) >= 180, f"only {len(rows)} rounds in the chart"
+    assert [c["armor_class"] for c in classes] == list(range(7)), \
+        f"armor scale is not 0-6: {[c['armor_class'] for c in classes]}"
+    assert all(c["label"] and c["bullets_stopped"] for c in classes), "a class row is blank"
+
+    for r in rows:
+        assert r["caliber"] and r["group"], f"{r['name']} has no caliber or group"
+        assert set(r["vs_armor_class"]) == {str(c) for c in range(1, 7)}, \
+            f"{r['name']}: armor-class keys are {sorted(r['vs_armor_class'])}"
+        levels = r["vs_armor_class"].values()
+        assert all(isinstance(v, int) and 0 <= v <= 6 for v in levels), \
+            f"{r['name']}: effectiveness outside 0-6 ({list(levels)})"
+        assert r["projectile_count"] >= 1, f"{r['name']}: projectile_count < 1"
+
+    unmatched = [r["name"] for r in rows if not r["bsg_id"]]
+    assert len(unmatched) <= 10, f"{len(unmatched)} chart rows match no item: {unmatched[:3]}"
+
+    # wiki column -> (API property, scale). The API keeps accuracy/recoil/bleed
+    # as fractions and the wiki rounds them to whole percents, hence the 1.0.
+    fields = [
+        ("damage", "damage", 1), ("projectile_count", "projectileCount", 1),
+        ("penetration_power", "penetrationPower", 1), ("armor_damage", "armorDamage", 1),
+        ("speed", "initialSpeed", 1), ("accuracy", "accuracyModifier", 100),
+        ("recoil", "recoilModifier", 100), ("light_bleed", "lightBleedModifier", 100),
+        ("heavy_bleed", "heavyBleedModifier", 100),
+    ]
+    items = {i["bsg_id"]: i for i in C.load_jsonl(os.path.join(C.CANON, "items.ndjson"))}
+    compared = agreed = 0
+    diffs = []
+    for r in rows:
+        props = (items.get(r["bsg_id"]) or {}).get("properties") or {}
+        for field, prop, scale in fields:
+            mine, api = r[field], props.get(prop)
+            if mine is None or api is None:
+                continue
+            compared += 1
+            if abs(api * scale - mine) <= 1:
+                agreed += 1
+            else:
+                diffs.append((r["name"], field, mine, round(api * scale, 2)))
+    assert compared >= 1000, f"only {compared} chart values could be compared to the API"
+    pct = agreed * 100 // compared
+    assert pct >= 95, f"only {pct}% of the chart equals the API ({len(diffs)} disagreements)"
+    return (f"{len(rows)} rounds, {sum(1 for r in rows if r['bsg_id'])} joined to items, "
+            f"{compared} values compared to the API, {pct}% equal, "
+            f"{len(diffs)} wiki-vs-API disagreements")
+
+
+def _armor_materials():
+    """The page repeats `reference.json`'s destructibility numbers, so this pins
+    the wiki against the API: a drift in either source fails the build."""
+    rows = list(C.load_jsonl(os.path.join(C.CANON, "armor_materials.ndjson")))
+    ref = json.load(open(os.path.join(C.CANON, "reference.json"), encoding="utf-8"))
+    materials = ref["armor_materials"]
+    assert len(rows) == len(materials), \
+        f"the page lists {len(rows)} materials, reference.json has {len(materials)}"
+    for r in rows:
+        assert r["reference"] in materials, f"{r['material']} has no reference.json counterpart"
+        want = materials[r["reference"]]
+        assert r["destructibility"] == want["destructibility"], \
+            f"{r['material']} destructibility {r['destructibility']} != {want['destructibility']}"
+        assert r["explosive_destructibility"] == want["explosionDestructibility"], \
+            (f"{r['material']} explosive destructibility {r['explosive_destructibility']} "
+             f"!= {want['explosionDestructibility']}")
+    return f"{len(rows)} materials, both numbers equal to reference.json"
 
 
 def _weapon_variants():

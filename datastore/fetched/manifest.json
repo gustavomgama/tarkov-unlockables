@@ -1,4 +1,10 @@
 {
+  "ballistics": {
+    "bytes": 101247,
+    "fetched_at": "2026-09-18T01:13:37Z",
+    "sha256": "13bc2ba6da1e0d02f22b4f8805cb4d64f005a3690b0027b2aa71429fbac12f0e",
+    "url": "https://escapefromtarkov.fandom.com/api.php?format=json&action=query&titles=Ballistics&prop=revisions&rvslots=*&rvprop=content&formatversion=2"
+  },
   "hideout": {
     "bytes": 80199,
     "fetched_at": "2026-09-16T04:00:00Z",
