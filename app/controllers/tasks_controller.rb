@@ -39,19 +39,26 @@ class TasksController < ApplicationController
     render partial: "tasks/autocomplete_results", locals: { tasks: @tasks }, layout: false
   end
 
+  # Preloaded after the freshness check: a 304 skips the view, so Bullet would
+  # flag the untouched preloads as unused eager loads.
+  SHOW_PRELOADS = [
+    { requirements: { previous_tasks: :task } },
+    { rewards: [
+      { loose_items: :item },
+      { offer_unlocks: :item },
+      { barter_unlocks: :item },
+      { craft_unlocks: :item }
+    ] },
+    { leads_tos: :follow_up_task },
+    { gated_currencies: :item }
+  ].freeze
+
   def show
-    @task = Task.includes(
-      requirements: { previous_tasks: :task },
-      rewards: [
-        { loose_items: :item },
-        { offer_unlocks: :item },
-        { barter_unlocks: :item },
-        { craft_unlocks: :item }
-      ],
-      leads_tos: :follow_up_task,
-      gated_currencies: :item
-    ).find(params[:id])
+    @task = Task.find(params[:id])
     fresh_when(@task, public: true)
+    return if performed?
+
+    ActiveRecord::Associations::Preloader.new(records: [ @task ], associations: SHOW_PRELOADS).call
   end
 
   def chains

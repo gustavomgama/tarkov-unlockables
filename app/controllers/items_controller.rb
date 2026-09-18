@@ -4,6 +4,22 @@ class ItemsController < ApplicationController
   AUTOCOMPLETE_LIMIT = 8
   AUTOCOMPLETE_MIN_QUERY = 2
 
+  # The association graph the show page renders. Preloaded after the freshness
+  # check: a 304 skips the view, and Bullet flags every preload the skipped
+  # view never touched as an unused eager load.
+  SHOW_PRELOADS = [
+    :item_currencies,
+    { item_task_rewards: :task },
+    { item_hideouts: [ :item_hideout_requirements, :task ] },
+    { item_barters: [ :item_barter_requirements, :task ] },
+    { offer_unlocks: { reward: :task } },
+    { barter_unlocks: { reward: :task } },
+    { craft_unlocks: { reward: :task } },
+    { item_barter_requirements: { item_barter: [ :item, :task ] } },
+    { item_hideout_requirements: { item_hideout: [ :item, :task ] } },
+    { task_objective_items: { task_objective: :task } }
+  ].freeze
+
   def index
     # Filter dropdowns only change on seed/import: cache the whole block so
     # the ~15 aggregate queries (full-table plucks, per-caliber counts) run
@@ -53,20 +69,15 @@ class ItemsController < ApplicationController
   end
 
   def show
+    # Freshness first, on the bare record: a conditional request that is still
+    # fresh returns before the association graph or the mod-graph queries run.
+    @item = Item.find(params[:id])
+    fresh_when(@item, public: true)
+    return if performed?
+
     # Unlock associations carry reward → task so the view renders the
     # "How to Unlock" section and raid timelines with zero extra queries.
-    @item = Item.includes(
-      { item_task_rewards: :task },
-      { item_hideouts: [ :item_hideout_requirements, :task ] },
-      { item_barters: [ :item_barter_requirements, :task ] },
-      :item_currencies,
-      { offer_unlocks: { reward: :task } },
-      { barter_unlocks: { reward: :task } },
-      { craft_unlocks: { reward: :task } },
-      { item_barter_requirements: { item_barter: [ :item, :task ] } },
-      { item_hideout_requirements: { item_hideout: [ :item, :task ] } },
-      { task_objective_items: { task_objective: :task } }
-    ).find(params[:id])
+    ActiveRecord::Associations::Preloader.new(records: [ @item ], associations: SHOW_PRELOADS).call
 
     # Mod graph: plain queries turned into hashes, so nothing is eager-loaded
     # for the items that have no slots (Bullet reads that as a wasted query).
@@ -85,8 +96,6 @@ class ItemsController < ApplicationController
     @item_key_tasks = Task.where("needed_keys @> ?::jsonb", [ { "item_id" => @item.id } ].to_json)
                           .order(:full_name)
                           .to_a
-
-    fresh_when(@item, public: true)
   end
 
   private

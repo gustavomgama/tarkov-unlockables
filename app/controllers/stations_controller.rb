@@ -9,11 +9,14 @@ class StationsController < ApplicationController
   end
 
   def show
-    @station = HideoutStation
-               .includes(hideout_levels: :hideout_item_requirements)
-               .find_by!(slug: params[:slug])
+    @station = HideoutStation.find_by!(slug: params[:slug])
+    fresh_when(@station, public: true)
+    return if performed?
+
+    ActiveRecord::Associations::Preloader.new(
+      records: [ @station ], associations: [ { hideout_levels: :hideout_item_requirements } ]
+    ).call
     # What the station produces, keyed by level, in one query.
     @crafts_by_level = ItemHideout.where(station: @station.name).includes(:item).group_by(&:level)
-    fresh_when(@station, public: true)
   end
 end

@@ -270,6 +270,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     task&.destroy
   end
 
+  test "show answers a fresh conditional request with 304" do
+    task = Task.create!(bsg_id: "cond-#{SecureRandom.hex(4)}", full_name: "Conditional Quest",
+                        name: "conditional-quest", given_by: "Prapor")
+
+    get task_url(task)
+    assert_response :success
+
+    get task_url(task), headers: { "If-None-Match" => response.headers["ETag"] }
+    assert_response :not_modified
+  ensure
+    task&.destroy
+  end
+
   test "show returns 404 for a missing task" do
     get task_url(id: 999_999_999)
     assert_response :not_found

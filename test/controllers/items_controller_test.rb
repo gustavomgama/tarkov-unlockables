@@ -60,6 +60,18 @@ class ItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", "javascript:alert(1)", count: 0
   end
 
+  test "show answers a fresh conditional request with 304" do
+    item = Item.create!(bsg_id: "cond-#{SecureRandom.hex(4)}", full_name: "Conditional Item", short_name: "CI")
+
+    get item_url(item)
+    assert_response :success
+
+    get item_url(item), headers: { "If-None-Match" => response.headers["ETag"] }
+    assert_response :not_modified
+  ensure
+    item&.destroy
+  end
+
   # --- per-type stat partials (Task 8) ---
 
   test "show renders weapon stats partial for Item::Weapon" do
