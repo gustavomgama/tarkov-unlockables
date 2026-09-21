@@ -18,6 +18,9 @@
 #   coverage       Coverage: 89% line gate
 #   system         System: Browser tests
 #   audit          Audit: Rubycritic ≥ 75
+#   jev            Jev: TypeSafe scorecard (changed files)
+#   jev-tools      Supercov: quality + coverage
+#   jev-tools      Jev Review: staged diff
 #   docker         Docker: Build production image
 #   docker         Deploy rehearsal: migrate, boot, poll /up
 #
@@ -32,6 +35,8 @@
 #   development  uses the development database
 #   test-db      test, coverage and system all use the test database
 #   audit        reads hand-written code, writes tmp/rubycritic
+#   jev          reads the source tree and calls the TypeSafe API
+#   jev-tools    calls the TypeSafe API and the optional Supercov / Jev Review CLIs
 #   docker       builds the image, then owns port 3001 and its containers
 #
 # Each step's output goes to tmp/ci/<step>.log so concurrent steps do not
@@ -54,6 +59,9 @@ CI.run do
       [ "Coverage: 89% line gate", "bundle exec rake ci:coverage" ],
       [ "System: Browser tests", "bundle exec rake ci:system" ] ],
     [ [ "Audit: Rubycritic ≥ 75", "bundle exec rake ci:audit" ] ],
+    [ [ "Jev: TypeSafe scorecard", "bundle exec rake ci:jev" ] ],
+    [ [ "Supercov: quality + coverage", "bundle exec rake ci:supercov" ],
+      [ "Jev Review: staged diff", "bundle exec rake ci:jev_review" ] ],
     [ [ "Docker: Build production image", "bundle exec rake ci:docker" ],
       [ "Deploy rehearsal: migrate, boot, poll /up", "bundle exec rake ci:rehearsal" ] ]
   ]

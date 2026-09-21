@@ -47,6 +47,9 @@
 skill-observations/
 coverage/
 
+# Supercov's local run evidence and build cache (created by `rake ci:supercov`).
+/.supercov/
+
 # Local API snapshots (large; tarkov-market dump contains an API key)
 /refjsons/*.json
 
@@ -72,3 +75,4 @@ offlinedata/officialwiki/itembatches
 /.goopspec/
 /.opencode/
 /progress.md
+/progress-jev.md

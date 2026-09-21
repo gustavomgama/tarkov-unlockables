@@ -532,6 +532,42 @@ class Importers::DatastoreTest < ActiveSupport::TestCase
     assert_equal 1, Map.count
   end
 
+  # Canonical is generated, but it is still external input: a row missing a
+  # field it usually has must not crash the whole load. Each mutation here
+  # lands on a defensive branch of the importer.
+  test "tolerates malformed source rows instead of crashing the import" do
+    items = item_rows
+    weapon = items.find { |item| item["bsg_id"] == "w1" }
+    weapon["properties"] = nil
+    weapon["slots"] = []
+
+    tasks = task_rows
+    first = tasks.find { |task| task["id"] == "t1" }
+    first["start_rewards"] = nil
+    first["finish_rewards"]["trader_standing"] = []
+
+    write("items", items)
+    write("tasks", tasks)
+    write("hideout_stations", hideout_rows)
+    write("traders", trader_rows)
+    write("maps", map_rows)
+    # A ballistics chart whose only row carries no bsg id: nothing to apply.
+    write("ballistics", [ { "name" => "12.7x108mm B-32", "bsg_id" => nil, "vs_armor_class" => {} } ])
+
+    Importers::Datastore.import!(source: @source)
+
+    assert_equal 3, Item.count
+    # properties was nil, so the infobox fallback is what survives.
+    assert_equal "5.45x39mm", Item.find_by!(bsg_id: "w1").data["caliber"]
+    # Every kept item is slot-less, so no slot rows were inserted.
+    assert_equal 0, ItemSlot.count
+    # A nil start_rewards bucket creates no reward row rather than an empty one.
+    assert_nil Task.find_by!(bsg_id: "t1").rewards.find_by(reward_type: "start_rewards")
+    # The empty unmodelled kind is dropped from the jsonb payload.
+    refute Task.find_by!(bsg_id: "t1").rewards.find_by!(reward_type: "finish_rewards")
+               .data.key?("trader_standing")
+  end
+
   test "is idempotent — reseeding replaces rather than accumulates" do
     import!
     counts = [ Item.count, Task.count, ItemCurrency.count, ItemBarter.count,

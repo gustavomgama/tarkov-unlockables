@@ -1,0 +1,81 @@
+<% content_for :title, @question.present? ? "Ask: #{@question}" : "Ask" %>
+
+<div class="mx-auto max-w-3xl space-y-4">
+  <section class="panel">
+    <div class="panel__body">
+      <h1 class="text-lg font-semibold text-[var(--text-bright)]">Ask</h1>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
+        Ask about an item, a hideout station, a trader or a task — for example
+        “how do I unlock CBJs?” or “what do I need to build the Lavatory?”.
+      </p>
+
+      <%= form_tag ask_path, method: :get, class: "mt-3 flex flex-wrap items-center gap-2" do %>
+        <%= text_field_tag :q, @question, type: "search", autocomplete: "off",
+              placeholder: "how do I unlock CBJs?",
+              class: "input flex-1 min-w-[12rem]", "aria-label": "Ask a question" %>
+        <button type="submit" class="btn">Ask</button>
+      <% end %>
+    </div>
+  </section>
+
+  <% if @answer&.resolved? %>
+    <section class="panel">
+      <div class="panel__body">
+        <p class="text-sm text-[var(--text-muted)]">
+          Read as <strong class="text-[var(--text-bright)]"><%= @answer.title %></strong>
+          · <%= @answer.intent %>
+          · confidence <%= number_to_percentage(@answer.confidence * 100, precision: 0) %>
+        </p>
+
+        <% if @answer.routes.any? %>
+          <div class="mt-3">
+            <% @answer.routes.each do |route| %>
+              <div class="srcrow">
+                <span class="srcbadge" style="--tone: var(--badge-currency)"><%= route.kind %></span>
+                <div class="srcrow__body">
+                  <p class="srcrow__title"><%= route.label %></p>
+                  <% if route.detail.present? %>
+                    <p class="srcrow__meta"><%= route.detail %></p>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="mt-3 text-sm text-[var(--text-muted)]">
+            The <%= ask_target_name(@answer) %> has the full answer.
+          </p>
+        <% end %>
+
+        <p class="mt-3">
+          <%= link_to "Open the #{ask_target_name(@answer)}", ask_target_path(@answer), class: "btn" %>
+        </p>
+      </div>
+    </section>
+  <% elsif @question.present? %>
+    <section class="panel">
+      <div class="panel__body">
+        <p class="text-sm text-[var(--text-muted)]">
+          I could not tell what “<%= @question %>” is about.
+        </p>
+
+        <% if @answer&.entries.present? %>
+          <ul class="mt-2 space-y-1 text-sm">
+            <% @answer.entries.each do |entry| %>
+              <li><%= entry.label %></li>
+            <% end %>
+          </ul>
+          <p class="mt-2 text-sm text-[var(--text-muted)]">
+            Try naming one of those, or
+            <%= link_to "search the items list", items_path(q: @question) %>.
+          </p>
+        <% else %>
+          <p class="mt-2 text-sm text-[var(--text-muted)]">
+            Try naming an item, or
+            <%= link_to "search the items list", items_path(q: @question) %>.
+          </p>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>

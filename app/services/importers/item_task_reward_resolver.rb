@@ -11,11 +11,15 @@ module Importers
       new.call
     end
 
+    # One transaction: a failure part-way through leaves the table untouched
+    # rather than half-backfilled, so a re-run starts from a known state.
     def call
-      ItemTaskReward.where(task_id: nil).find_each do |reward|
-        name = reward.task_name
-        task = Task.find_by(full_name: name) || Task.find_by(name: name)
-        reward.update!(task_id: task.id) if task
+      ItemTaskReward.transaction do
+        ItemTaskReward.where(task_id: nil).find_each do |reward|
+          name = reward.task_name
+          task = Task.find_by(full_name: name) || Task.find_by(name: name)
+          reward.update!(task_id: task.id) if task
+        end
       end
     end
   end

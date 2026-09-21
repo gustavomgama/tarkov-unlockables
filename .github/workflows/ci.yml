@@ -275,6 +275,65 @@ jobs:
           SCORE=$(python3 -c "import json; d=json.load(open('tmp/rubycritic/report.json')); print(d.get('score','?'))" 2>/dev/null || echo "?")
           echo "## Rubycritic: $SCORE / 100" >> $GITHUB_STEP_SUMMARY
 
+  # ── Jev scorecard (rake ci:jev) ──────────────────────────────────────
+  # Scores the files this PR changed with TypeSafe's Jev (System One) and
+  # fails on a severe, confident judgment. Skips cleanly when the
+  # TYPESAFE_API_KEY secret is absent, so forks still pass.
+  jev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The gate diffs the change against its base, so it needs history.
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby-4.0.6
+          bundler-cache: true
+
+      - name: Jev scorecard (TypeSafe System One)
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          JEV_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bundle exec rake ci:jev
+
+  # ── Jev toolchain (rake ci:supercov + ci:jev_review) ─────────────────
+  # Both steps are report-only and skip cleanly without a key or their
+  # third-party CLI, so a fork still passes. Set SUPERCOV_REQUIRE=1 or
+  # JEV_REVIEW_REQUIRE=1 to make either one fail the job.
+  jev-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby-4.0.6
+          bundler-cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Supercov
+        run: gem install supercov --no-document
+
+      - name: Supercov quality + coverage
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: bundle exec rake ci:supercov
+
+      - name: Jev Review (app/javascript)
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          JEV_REVIEW_AUTO: "1"
+          JEV_REVIEW_MODE: codebase
+          JEV_REVIEW_SCOPE: app/javascript
+        run: bundle exec rake ci:jev_review
+
   # ── Deploy rehearsal: build, migrate, boot, health-check ─────────────
   # Mirrors render.yaml: production Dockerfile, db:migrate preDeployCommand,
   # Puma via dockerCommand + Render env, /up healthCheckPath, direct
@@ -318,7 +377,7 @@ jobs:
   # ── Merge gate ───────────────────────────────────────────────────────
   gate:
     if: always()
-    needs: [security, lint, development, test, coverage, system, audit, docker]
+    needs: [security, lint, development, test, coverage, system, audit, jev, jev-tools, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Check all jobs
@@ -332,6 +391,8 @@ jobs:
             "coverage:${{ needs.coverage.result }}" \
             "system:${{ needs.system.result }}" \
             "audit:${{ needs.audit.result }}" \
+            "jev:${{ needs.jev.result }}" \
+            "jev-tools:${{ needs.jev-tools.result }}" \
             "docker:${{ needs.docker.result }}"; do
             name="${result%%:*}"
             status="${result#*:}"
@@ -350,6 +411,8 @@ jobs:
             echo "  coverage:    ${{ needs.coverage.result }}"
             echo "  system:      ${{ needs.system.result }}"
             echo "  audit:       ${{ needs.audit.result }}"
+            echo "  jev:         ${{ needs.jev.result }}"
+            echo "  jev-tools:   ${{ needs.jev-tools.result }}"
             echo "  docker:      ${{ needs.docker.result }}"
             exit 1
           fi

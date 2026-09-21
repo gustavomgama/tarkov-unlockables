@@ -9,11 +9,13 @@ module Admin::ApplicationHelper
 
   # Resolve admin paths via the resource's base class so STI subclasses
   # (e.g. Item::Generic) don't generate non-existent polymorphic routes.
+  # public_send: the method name is computed, so a private helper must not be
+  # reachable through it.
   def admin_resource_path(resource)
-    send("admin_#{resource.class.base_class.name.underscore}_path", resource)
+    public_send("admin_#{resource.class.base_class.name.underscore}_path", resource)
   end
 
   def edit_admin_resource_path(resource)
-    send("edit_admin_#{resource.class.base_class.name.underscore}_path", resource)
+    public_send("edit_admin_#{resource.class.base_class.name.underscore}_path", resource)
   end
 end

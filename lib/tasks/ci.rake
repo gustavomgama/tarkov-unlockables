@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
+require "fileutils"
+
 namespace :ci do
   desc "Run full CI pipeline locally (mirrors .github/workflows/ci.yml)"
-  task all: %i[security lint js assets fasterer python development test db_doctor coverage system audit docker] do
+  task all: %i[security lint js assets fasterer python development test db_doctor coverage system audit jev supercov jev_review docker rehearsal] do
     puts "\n✅ All CI checks passed."
   end
 
@@ -123,6 +127,142 @@ namespace :ci do
     score = rubycritic_score
     puts "Rubycritic score: #{score}"
     abort "❌ Score #{score} is below 75 threshold" if score < 75
+  end
+
+  desc "Jev (TypeSafe System One) scorecard gate for changed files"
+  task jev: :environment do
+    puts "── Jev ──"
+    # The key is optional so a fork without the secret skips the check rather
+    # than failing it; JEV_REQUIRE=1 turns a missing key into a failure.
+    unless Jev.enabled?
+      abort "❌ TYPESAFE_API_KEY is not set" if ENV["JEV_REQUIRE"] == "1"
+
+      puts "  skipped: TYPESAFE_API_KEY is not set"
+      next
+    end
+
+    audit = ENV["JEV_ALL"] == "1" ? Jev::Audit.all : Jev::Audit.changed
+    # The scorecard calls a paid API, so JEV_LIMIT caps a full-tree run while
+    # iterating on the rubrics.
+    limit = ENV["JEV_LIMIT"].to_i
+    audit = Jev::Audit.new(files: audit.files.first(limit)) if limit.positive?
+    if audit.files.empty?
+      puts "  no changed files to judge"
+      next
+    end
+
+    puts "  judging #{audit.files.length} file(s) with #{Jev::MODEL}"
+    audit.run
+    puts audit.summary
+    puts "  report: #{audit.write}"
+
+    # A judgment that errored is an ungated file, not a clean one. Name it on
+    # the console; the report carries the error text.
+    audit.failed.each { |result| puts "  ⚠️  not judged: #{result.path} — #{result.error}" }
+
+    # Every judgment failed: the gate is blind, and blindness is not a pass.
+    if audit.blind?
+      abort "❌ Jev judged 0 of #{audit.files.length} file(s) — " \
+            "check TYPESAFE_API_KEY and the API"
+    end
+
+    if ENV["JEV_MODE"] == "report"
+      puts "  JEV_MODE=report — not gating"
+      next
+    end
+
+    if audit.pass?
+      puts "  ✅ no severe judgments"
+    else
+      audit.violations.each do |violation|
+        puts "  ❌ #{violation[:path]} — #{violation[:dimension]} " \
+             "#{format('%.2f', violation[:score])} " \
+             "(confidence #{format('%.2f', violation[:confidence])})"
+      end
+      abort "❌ Jev flagged #{audit.violations.length} severe judgment(s)"
+    end
+  end
+
+  desc "Supercov quality + coverage (Jev-based; report-only unless SUPERCOV_REQUIRE=1)"
+  task supercov: :environment do
+    puts "── Supercov ──"
+    # Both third-party tools below are opt-in: they need a key, a binary or a
+    # checkout, and they are not part of the merge gate unless the matching
+    # *_REQUIRE flag is set. CI stays green where they are not installed.
+    unless Jev.enabled?
+      puts "  skipped: TYPESAFE_API_KEY is not set"
+      next
+    end
+    # supercov ships as a platform gem and is deliberately not in the Gemfile,
+    # so it runs with an unbundled environment: inside the bundle its binstub
+    # refuses to activate a gem the bundle does not contain.
+    unless Bundler.with_unbundled_env { system("supercov --version >/dev/null 2>&1") }
+      puts "  skipped: supercov is not installed (gem install supercov)"
+      next
+    end
+
+    report = Rails.root.join("tmp/jev/supercov.txt")
+    FileUtils.mkdir_p(report.dirname)
+    command = ENV.fetch("SUPERCOV_COMMAND", "quality patch")
+    passed = Bundler.with_unbundled_env do
+      system("supercov #{command}", chdir: Rails.root.to_s,
+                                    out: report.to_s, err: [ :child, :out ])
+    end
+    puts report.read.lines.last(20).join
+    puts "  report: #{report}"
+    next if passed || ENV["SUPERCOV_REQUIRE"] != "1"
+
+    abort "❌ supercov failed: #{command}"
+  end
+
+  desc "Jev Review (report-only; JEV_REVIEW_AUTO=1 clones it; JS/TS only)"
+  task jev_review: :environment do
+    puts "── Jev Review ──"
+    unless Jev.enabled?
+      puts "  skipped: TYPESAFE_API_KEY is not set"
+      next
+    end
+
+    dir = Pathname.new(ENV.fetch("JEV_REVIEW_DIR", Rails.root.join("tmp/jev-review").to_s))
+    if ENV["JEV_REVIEW_AUTO"] == "1" && !dir.join("package.json").exist?
+      puts "  cloning devagrawal09/jev-review into #{dir}"
+      unless system("git", "clone", "--depth", "1",
+                    "https://github.com/devagrawal09/jev-review", dir.to_s)
+        abort "❌ could not clone devagrawal09/jev-review"
+      end
+      unless system("npm", "install", "--no-audit", "--no-fund", chdir: dir.to_s)
+        abort "❌ npm install failed in #{dir}"
+      end
+    end
+
+    unless dir.join("package.json").exist?
+      puts "  skipped: no jev-review checkout at #{dir}"
+      puts "  enable: JEV_REVIEW_AUTO=1 (clone into tmp) or JEV_REVIEW_DIR=/path/to/jev-review"
+      next
+    end
+
+    # Run the CLI directly rather than `npm run`: the package scripts pass
+    # `--env-file=.env`, and the key is already in this process's environment.
+    # Jev Review screens JavaScript and TypeScript only, so a Rails app scopes
+    # it at its JS (app/javascript) rather than the repository root.
+    mode = ENV.fetch("JEV_REVIEW_MODE", "changes")
+    # Resolve the scope against the project, not the checkout the CLI runs in.
+    scope = File.expand_path(ENV.fetch("JEV_REVIEW_SCOPE", Rails.root.to_s), Rails.root.to_s)
+    verb = ENV["JEV_REVIEW_SAVE"] == "1" ? "save" : "review"
+    entrypoint = dir.join("src/cli/#{verb}-#{mode}.ts")
+    report = Rails.root.join("tmp/jev/review-#{mode}.json")
+    FileUtils.mkdir_p(report.dirname)
+    # Progress goes to stderr and the JSON report to stdout, so only stdout is
+    # redirected: merging the two would leave a file that is not valid JSON.
+    passed = system("node", entrypoint.to_s, scope, chdir: dir.to_s, out: report.to_s)
+    puts "  report: #{report}"
+    if passed
+      puts "  ✅ review written"
+    else
+      puts "  ⚠️  jev-review did not finish (report-only; set JEV_REVIEW_REQUIRE=1 to gate)"
+      puts "     it reviews JavaScript/TypeScript only — set JEV_REVIEW_SCOPE=app/javascript"
+      abort "❌ jev-review failed" if ENV["JEV_REVIEW_REQUIRE"] == "1"
+    end
   end
 
   desc "Build production Docker image (same Dockerfile Render deploys)"

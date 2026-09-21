@@ -223,19 +223,6 @@ class ItemsController < ApplicationController
     scope
   end
 
-  # All six dropdown groups are built behind the same cache key, so they are
-  # computed together and only on a cache miss.
-  def filter_options
-    {
-      currency: currency_options,
-      trader: trader_options,
-      category: category_options,
-      armor_class: armor_class_options,
-      caliber: caliber_options,
-      source: source_options
-    }
-  end
-
   def currency_options
     @currency_options ||= ItemCurrency.group(:currency).count.sort_by { |c, _| c }.map do |c, count|
       { value: c, label: c, count: count }

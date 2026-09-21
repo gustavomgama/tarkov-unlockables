@@ -21,6 +21,10 @@ Rails.application.routes.draw do
   get "ammo", to: "ammo#index", as: :ammo
   get "armor", to: "armor#index", as: :armor
 
+  # Natural-language front door: resolves a free-text question to a record and
+  # answers it from the same data the section pages render.
+  get "ask", to: "ask#show", as: :ask
+
   namespace :admin do
     resources :items, :tasks, :requirements, :rewards, :leads_tos,
               :barter_unlocks, :craft_unlocks, :offer_unlocks, :previous_tasks
